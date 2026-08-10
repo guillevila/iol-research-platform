@@ -21,19 +21,23 @@
 import { assertFinite } from '../core/units.mjs';
 import { buildRaytraceEye } from '../optics/eyebuilder.mjs';
 import { ObjectiveKind, evaluateObjective, describeObjective } from '../optics/objective.mjs';
-import { parallelBundle } from '../optics/raytrace/trace.mjs';
+import { generateBundle, SamplingKind, isTwoDimensional } from '../optics/raytrace/bundle.mjs';
 import { GenericIOLFactory } from '../core/iol_factory.mjs';
 import { hasTraceableGeometry } from '../core/iol.mjs';
 
-/** Haz por defecto: anillos de alturas hasta el radio de pupila declarado. */
+/**
+ * Haz por defecto: MERIDIONAL con alturas equiespaciadas en área.
+ *
+ * Es exacto mientras el sistema tenga simetría de revolución, que es el caso hoy
+ * (superficies esféricas centradas). Cuando entren tilt, descentración o tórico habrá que
+ * pasar a un muestreo 2D (`sampling: SamplingKind.RINGS_EQUAL_AREA` o `FIBONACCI_SPIRAL`),
+ * porque un haz meridional mediría un solo corte de un sistema que ya no es igual en todas
+ * las direcciones — y lo haría en silencio. Ver `bundle.mjs`.
+ */
 export function defaultBundle(pupil_radius_mm, n_anillos = 5) {
-  assertFinite(pupil_radius_mm, 'pupil_radius_mm');
-  if (!(pupil_radius_mm > 0)) throw new RangeError('radio de pupila debe ser > 0');
-  // alturas equiespaciadas en ÁREA (cada anillo representa igual fracción de pupila),
-  // que es el muestreo correcto para una métrica promediada sobre la pupila
-  const hs = [];
-  for (let i = 1; i <= n_anillos; i++) hs.push(pupil_radius_mm * Math.sqrt(i / n_anillos));
-  return parallelBundle(hs);
+  return generateBundle({
+    radius_mm: pupil_radius_mm, kind: SamplingKind.MERIDIONAL, n: n_anillos,
+  }).rays;
 }
 
 /**
@@ -87,6 +91,8 @@ export function optimizePowerByRaytrace({
   catalog_d = null,
   pupil_mm = 3.0,
   n_anillos = 5,
+  sampling = SamplingKind.MERIDIONAL,
+  perRing = 6,
   search_d = [0, 40],
   tol_d = 1e-4,
   cornea = {},
@@ -97,7 +103,8 @@ export function optimizePowerByRaytrace({
   if (!(hi > lo)) throw new RangeError(`rango de búsqueda inválido: [${lo}, ${hi}]`);
 
   const aperture_mm = pupil_mm / 2;
-  const bundle = defaultBundle(aperture_mm, n_anillos);
+  const haz = generateBundle({ radius_mm: aperture_mm, kind: sampling, n: n_anillos, perRing });
+  const bundle = haz.rays;
   const f = costeDe({ postop, factory, objective, bundle, aperture_mm, cornea });
 
   const { x: exact_power_d } = seccionAurea(f, lo, hi, tol_d);
@@ -146,7 +153,8 @@ export function optimizePowerByRaytrace({
     delta_between_top2: second ? second.cost - best.cost : null,
     catalog_evaluations: evaluaciones,
     parametros_declarados: {
-      pupil_mm, n_anillos, rayos: bundle.length, search_d, tol_d,
+      pupil_mm, n_anillos, sampling, rayos: haz.actual,
+      muestreo_2d: haz.twoDimensional, search_d, tol_d,
       iol_factory: factory.id,
       is_simulation_surrogate: factory instanceof GenericIOLFactory,
       cornea_policy: enOptimo.eye.cornea_policy,
