@@ -2,9 +2,12 @@
  * Demostración ejecutable de que BEST_FOCUS_ON_RETINA ≡ EQUIVALENT_DEFOCUS como criterios
  * de optimización (revisión pre-V1.2).
  *
- * La demostración formal está en la cabecera de `objective.mjs`:
- *   coste_B(P) = |z*(P) − z_ret|  y  coste_C(P) = |φ(z*(P))|  con φ estrictamente
- *   creciente y φ(z_ret) = 0  ⇒  mismos ceros, misma monotonía a cada lado, mismo argmin.
+ * La demostración formal está en la cabecera de `objective.mjs`. Estructura: bajo tres
+ * hipótesis (H1: z* > z_ref por construcción del bracket; H2: sin rayos perdidos —
+ * VERIFICADA aquí en cada barrido; H3: z*(P) continua y estrictamente decreciente —
+ * MEDIDA aquí, no deducida), ambos costes son unimodales con el mismo minimizador, y la
+ * sección áurea converge a él por el invariante de bracket — NO porque ordenen igual:
+ * entre lados opuestos pueden ordenar distinto, y hay un test que demuestra que ocurre.
  *
  * Estos tests verifican cada eslabón por separado sobre el motor real, y además
  * reconstruyen el objetivo B eliminado para comprobar empíricamente que su óptimo
@@ -35,7 +38,9 @@ const factory = new GenericIOLFactory();
 /** z del mejor foco para una potencia dada — la MISMA computación que usan B y C. */
 function mejorFocoDe(postop, P, aperture_mm, bundle) {
   const eye = buildRaytraceEye(postop, factory.create({ power_d: P }), { aperture_mm });
-  const { rays } = traceBundle(eye.surfaces, bundle);
+  const { rays, lost } = traceBundle(eye.surfaces, bundle);
+  // H2 de la demostración: el conjunto de rayos no cambia con P. Se VERIFICA, no se asume.
+  assert.equal(lost.length, 0, `P=${P}: ${lost.length} rayos perdidos rompen la hipótesis H2`);
   const zUltima = Math.max(...eye.surfaces.map(s => s.kind === 'plane' ? s.z_mm : s.zVertex_mm));
   return { z: bestFocus(rays, zUltima + 0.05, eye.retina_z_mm + 15).z_mm, zRet: eye.retina_z_mm };
 }
@@ -69,6 +74,7 @@ test('equivalencia: sign(residual_d) = sign(z* − z_ret) y cero común — el e
     for (let P = 12; P <= 32; P += 0.5) {
       const eye = buildRaytraceEye(postop, factory.create({ power_d: P }), { aperture_mm });
       const c = evaluateObjective(eye, bundle, ObjectiveKind.EQUIVALENT_DEFOCUS);
+      assert.equal(c.raysLost, 0, `AL=${geom.al} P=${P}: rayos perdidos rompen H2`);
       const despl = c.detail.desplazamiento_mm;
       if (Math.abs(despl) > 1e-9) {
         assert.equal(Math.sign(c.residual_d), Math.sign(despl),
@@ -82,22 +88,32 @@ test('equivalencia: sign(residual_d) = sign(z* − z_ret) y cero común — el e
   }
 });
 
-test('equivalencia: z*(P) es estrictamente decreciente — el cero común es único', () => {
-  const postop = ojo();
-  const aperture_mm = 1.5;
-  const bundle = defaultBundle(aperture_mm);
-  let zPrevio = null;
-  for (let P = 12; P <= 32; P += 1) {
-    const { z } = mejorFocoDe(postop, P, aperture_mm, bundle);
-    if (zPrevio !== null) assert.ok(z < zPrevio, `z*(${P}) = ${z} no decrece (previo ${zPrevio})`);
-    zPrevio = z;
+test('equivalencia: z*(P) es estrictamente decreciente — la hipótesis H3, medida', () => {
+  // H3 no es un teorema: es una propiedad del motor que se mide. Se exige sobre varios
+  // ojos y aperturas, no en un caso suelto (crítica de la revisión adversarial).
+  for (const geom of [{ al: 22.0, k: 45.0 }, { al: 23.5, k: 43.5 }, { al: 26.0, k: 42.0 }]) {
+    for (const aperture_mm of [0.75, 1.5, 2.5]) {
+      const postop = ojo(geom);
+      const bundle = defaultBundle(aperture_mm);
+      let zPrevio = null;
+      for (let P = 12; P <= 32; P += 1) {
+        const { z } = mejorFocoDe(postop, P, aperture_mm, bundle);
+        if (zPrevio !== null) {
+          assert.ok(z < zPrevio,
+            `AL=${geom.al} ap=${aperture_mm}: z*(${P}) = ${z} no decrece (previo ${zPrevio})`);
+        }
+        zPrevio = z;
+      }
+    }
   }
 });
 
-test('equivalencia: mismo ORDEN de costes a cada lado del óptimo (lo que usa el buscador)', () => {
-  // la sección áurea solo consulta comparaciones coste(P1) < coste(P2); si B y C ordenan
-  // igual a cada lado del óptimo, no pueden separarse. Se verifica la implicación
-  // coste_B(P1) < coste_B(P2) ⇔ coste_C(P1) < coste_C(P2) para pares del mismo lado.
+test('equivalencia: mismo ORDEN de costes dentro de cada lado del óptimo', () => {
+  // Consecuencia directa de H1+H3: para pares del MISMO lado de P*,
+  // coste_B(P1) < coste_B(P2) ⇔ coste_C(P1) < coste_C(P2). OJO: esto NO basta para
+  // garantizar la búsqueda — la sección áurea también compara lados OPUESTOS, donde el
+  // orden puede invertirse (test siguiente); ahí la equivalencia del resultado la
+  // sostiene el invariante de bracket bajo unimodalidad, no el orden.
   const postop = ojo();
   const aperture_mm = 2.0;
   const bundle = defaultBundle(aperture_mm);
@@ -120,6 +136,38 @@ test('equivalencia: mismo ORDEN de costes a cada lado del óptimo (lo que usa el
       }
     }
   }
+});
+
+test('equivalencia: entre lados OPUESTOS, B y C pueden ordenar DISTINTO — el reorden es real', () => {
+  // Este test existe porque una revisión adversarial demostró que el argumento original
+  // ("mismo orden ⇒ mismo resultado del buscador") era inválido: la convexidad de φ da
+  // más D/mm en el lado miope, así que un par cruzado con |Δz| casi iguales puede
+  // ordenarse al revés en mm que en D. Si este reorden dejara de existir, el argumento
+  // de bracket seguiría siendo válido pero convendría revisar la cabecera.
+  const postop = ojo();
+  const aperture_mm = 2.0;
+  const bundle = defaultBundle(aperture_mm);
+  const evalC = P => evaluateObjective(
+    buildRaytraceEye(postop, factory.create({ power_d: P }), { aperture_mm }),
+    bundle, ObjectiveKind.EQUIVALENT_DEFOCUS);
+  const optimo = optimizePowerByRaytrace({ postop, factory, pupil_mm: 4.0, tol_d: 1e-7 }).exact_power_d;
+  const muestras = [];
+  for (let d = 0.3; d <= 3.0; d += 0.15) {
+    for (const lado of [-1, 1]) {
+      const e = evalC(optimo + lado * d);
+      assert.equal(e.raysLost, 0);
+      muestras.push({ lado, costeB: Math.abs(e.detail.desplazamiento_mm), costeC: e.cost });
+    }
+  }
+  let reordenes = 0;
+  for (const a of muestras) {
+    for (const b of muestras) {
+      if (a.lado === b.lado) continue;
+      if (a.costeB < b.costeB && a.costeC > b.costeC) reordenes++;
+    }
+  }
+  assert.ok(reordenes > 0,
+    'no se encontró ningún par cruzado reordenado: o la asimetría de φ desapareció o el muestreo es insuficiente');
 });
 
 test('equivalencia: el argmin del B reconstruido coincide con el de C en varios ojos y pupilas', () => {

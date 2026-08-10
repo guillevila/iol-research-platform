@@ -41,7 +41,7 @@
    (`cornea_policy`), y existe `SINGLE_SURFACE_FROM_RADIUS`, invariante por
    construcción. **Se mantiene la de lectura por defecto** porque cambiarla desplazaría
    en bloque las predicciones sin recalibrar el predictor de posición, y decidir cuál
-   predice mejor exige datos postoperatorios que no se tienen (OPEN_QUESTIONS #2/#3).
+   predice mejor exige datos postoperatorios que no se tienen (OPEN_QUESTIONS #7).
    No se ha ajustado ninguna constante corneal contra EVO.
 8. **Superficie corneal posterior: no se asume.** `TWO_SURFACE_RATIO` existe pero exige
    ratio y procedencia citada explícitos; no hay ratio por defecto, y está prohibido

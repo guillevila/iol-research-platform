@@ -23,7 +23,7 @@
  *   - el paraxial de LENTE DELGADA (lo que hace V0);
  *   - el paraxial DEL MISMO SISTEMA GRUESO (la referencia correcta para aislar aberración).
  *
- * Lo que este experimento NO dice: cuál de los tres criterios predice mejor la refracción
+ * Lo que este experimento NO dice: cuál de los criterios predice mejor la refracción
  * postoperatoria real. Eso exige datos que el proyecto no tiene (OPEN_QUESTIONS #7).
  */
 import fs from 'node:fs';

@@ -202,7 +202,8 @@ test('V1.1: comparar objetivos no declara ninguno preferible', () => {
   assert.equal(Object.keys(c.por_objetivo).length, 2);
   assert.ok(c.rango_potencia_d >= 0);
   assert.match(c.nota, /No se declara ninguno preferible/);
-  assert.match(c.nota, /OPEN_QUESTIONS #7/);
+  // la pregunta abierta del CRITERIO óptico es la #8 (la #7 es la política corneal)
+  assert.match(c.nota, /OPEN_QUESTIONS #8/);
 });
 
 test('V1.1: un óptimo pegado al borde del intervalo se rechaza, no se devuelve', () => {

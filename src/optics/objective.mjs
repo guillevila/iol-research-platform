@@ -29,26 +29,47 @@
  *
  * se tiene   coste_B(P) = |z*(P) − z_ret|   y   coste_C(P) = |φ(z*(P))|.
  *
- * φ es estrictamente creciente (dφ/dz = n·1000/(z−z_ref)² > 0) y φ(z_ret) = 0. Por tanto:
+ * HIPÓTESIS. Dos son estructurales del código y una es empírica del motor; ninguna se
+ * da por supuesta (una versión anterior de esta demostración presentaba la unimodalidad
+ * como deducida, y una revisión adversarial señaló correctamente que no lo es):
  *
- *   1. φ(z) = 0  ⇔  z = z_ret  ⇒  coste_B y coste_C se anulan EXACTAMENTE en el mismo P.
- *   2. sign(φ(z)) = sign(z − z_ret)  ⇒  a cada lado del óptimo ambos costes crecen
- *      monótonamente con |z* − z_ret|: para P1, P2 del mismo lado,
- *      coste_B(P1) < coste_B(P2) ⇔ coste_C(P1) < coste_C(P2).
- *   3. De (1)+(2): ambos costes son unimodales con EL MISMO argmin. Cualquier buscador
- *      de mínimo (sección áurea incluida) devuelve la misma potencia. ∎
+ *   H1 (estructural) z*(P) > z_ref siempre: la búsqueda de `bestFocus` arranca en
+ *      z_ref + 0.05 mm y la cara posterior de la LIO es la última superficie del
+ *      sistema. En ese dominio φ es estrictamente creciente
+ *      (dφ/dz = n·1000/(z−z_ref)² > 0) y φ(z_ret) = 0.
+ *   H2 (estructural) el conjunto de rayos evaluado no cambia con P (sin pérdidas). Con
+ *      pérdidas, z*(P) podría saltar discontinuamente y el cero volverse inalcanzable.
+ *      Los tests de equivalencia lo VERIFICAN en cada barrido (raysLost = 0) y V1.13
+ *      lo vigila con pupila clínica sobre la rejilla completa.
+ *   H3 (empírica)    z*(P) es continua y estrictamente decreciente en P. Es una
+ *      propiedad medida del motor, no un teorema: la fija el test
+ *      'z*(P) es estrictamente decreciente' sobre varios ojos y aperturas.
  *
- * Donde NO son idénticos: la forma del coste lejos del óptimo. φ es convexa (la escala
- * dióptrica es asimétrica: 1 mm por delante de la retina son más dioptrías que 1 mm por
- * detrás), así que al elegir entre DOS escalones discretos de catálogo que caen a lados
- * OPUESTOS del óptimo, B (mm) y C (D) podrían desempatar distinto. La asimetría relativa
- * es ≈ 2·|Δz|/L_ret (~2 % para ±0.17 mm, el semiescalón de 0.5 D): solo afecta a empates
+ * De H1: φ(z) = 0 ⇔ z = z_ret y sign(φ(z)) = sign(z − z_ret). Con H3, z*(P) cruza z_ret
+ * a lo sumo una vez, en P*: ambos costes se anulan exactamente ahí y, por composición de
+ * |·| con una función estrictamente monótona de P, ambos son unimodales en P con el
+ * MISMO minimizador P*. ∎ (del argmin común; la búsqueda se trata aparte, abajo)
+ *
+ * SOBRE LA BÚSQUEDA — el punto delicado. NO basta afirmar que "ambos costes ordenan
+ * igual": es falso entre puntos a lados OPUESTOS de P*, porque φ es convexa (la escala
+ * dióptrica es asimétrica: más D/mm en el lado miope) y puede invertir el orden de B
+ * respecto a C — y la sección áurea hace comparaciones entre lados. Lo que garantiza el
+ * mismo resultado es el INVARIANTE DE BRACKET: sobre una función unimodal, cada paso de
+ * la sección áurea descarta un tramo que NO contiene el minimizador, sea cual sea el
+ * lado que el orden local le haga descartar; ambas búsquedas mantienen a P* dentro del
+ * bracket en todo momento y convergen a él hasta la tolerancia, aunque sus trayectorias
+ * intermedias difieran. `tests/objective_equivalence.test.mjs` verifica las dos mitades
+ * del fenómeno: que existen pares a lados opuestos donde B y C ordenan DISTINTO (el
+ * reorden es real, no hipotético) y que aun así sus argmin coinciden.
+ *
+ * Donde la equivalencia NO llega: elegir entre DOS escalones discretos de catálogo que
+ * caen a lados opuestos de P* es una única comparación entre lados, sin bracket que la
+ * proteja: ahí B (mm) y C (D) podrían desempatar distinto. La asimetría relativa es
+ * ≈ 2·|Δz|/L_ret; con la pendiente medida en el ojo de referencia (~3.9 D/mm), el
+ * semiescalón de un catálogo de 0.5 D son ~0.065 mm ⇒ ~0.7 % de asimetría — solo empates
  * al filo de la navaja. C se conserva como objetivo porque su coste está en dioptrías —
  * la unidad comparable entre ojos y con los umbrales clínicos; el desplazamiento en mm
  * (la métrica de B) se reporta en `detail.desplazamiento_mm`.
- *
- * `tests/objective_equivalence.test.mjs` verifica ambas mitades: la equivalencia del
- * argmin (empírica, sobre barridos) y la estructura de signos/monotonía (la demostración).
  *
  * A sí es independiente: minimiza el RMS EN el plano retiniano, y con aberración su
  * óptimo NO coincide con llevar el mejor foco a la retina (exp008 lo cuantifica:

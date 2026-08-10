@@ -141,3 +141,46 @@ test('asfericidad: Q=0 numérica NO es lo mismo que ASSUMED_SPHERICAL', () => {
   assert.equal(q0.geometry.asphericity_q_anterior, 0);      // se almacena como dato
   assert.throws(() => buildRaytraceEye(post, q0), /Q=0 documentada/);
 });
+
+test('asfericidad: una Q solo en la cara POSTERIOR también hace fallar el trazado', () => {
+  // La guarda de la cara anterior se evalúa primero: sin este test, una regresión que
+  // eliminara el chequeo de la posterior pasaría toda la suite (hallazgo de la revisión
+  // adversarial: todos los fixtures anteriores ponían la Q en la cara anterior).
+  const post = postopOf();
+  const soloPosterior = new ManufacturerIOLFactory({
+    manufacturer: 'ACME', model: 'M5', provenance: PROV,
+    geometryByPower: { 20: { ...GEOM_SIN_Q, asphericity_q_posterior: -0.15 } },
+  }).create({ power_d: 20 });
+  assert.throws(() => buildRaytraceEye(post, soloPosterior),
+    /iol_post tiene asfericidad Q=-0.15/s);
+});
+
+test('asfericidad: el OPTIMIZADOR expone los supuestos del trazado — la trazabilidad no se pierde', () => {
+  // Hallazgo de la revisión adversarial: optimizePowerByRaytrace construía el ojo,
+  // tenía eye.assumptions a mano y lo descartaba — una LIO con Q UNKNOWN producía una
+  // recomendación sin rastro del supuesto de esfera. Este test fija la propagación.
+  const post = postopOf();
+
+  // con la genérica (esferas DECLARADAS): solo el supuesto corneal
+  const rGen = optimizePowerByRaytrace({ postop: post, pupil_mm: 3 });
+  assert.ok(Array.isArray(rGen.supuestos_trazado));
+  assert.equal(rGen.supuestos_trazado.filter(a => /^iol_/.test(a)).length, 0);
+  assert.equal(rGen.supuestos_trazado.filter(a => /^cornea:/.test(a)).length, 1);
+
+  // con una lente de fabricante SIN Q documentada (espía que cubre el continuo):
+  // los supuestos de ambas caras deben llegar a la salida del optimizador
+  const base = new GenericIOLFactory();
+  const espiaSinQ = {
+    id: 'espia_sin_q',
+    create: ({ power_d }) => {
+      const { asphericity_q_anterior, asphericity_q_posterior, ...resto } = base.create({ power_d }).geometry;
+      return createIOL({
+        manufacturer: 'ACME', model: 'M6', nominal_power_d: power_d,
+        geometry: resto, geometry_status: GeometryStatus.MANUFACTURER, provenance: PROV,
+      });
+    },
+  };
+  const rMfr = optimizePowerByRaytrace({ postop: post, factory: espiaSinQ, pupil_mm: 3 });
+  assert.ok(rMfr.supuestos_trazado.some(a => /^iol_ant: asfericidad no documentada/.test(a)));
+  assert.ok(rMfr.supuestos_trazado.some(a => /^iol_post: asfericidad no documentada/.test(a)));
+});

@@ -133,6 +133,8 @@ export function assertTraceableGeometry(iol, context = 'trazado') {
  * Potencia FÍSICA que realmente tiene la geometría (lente gruesa en un medio):
  *   P = P1 + P2 − (t/n_iol)·P1·P2,  P1=(n_iol−n_before)/r1,  P2=(n_after−n_iol)/r2
  * Sirve para verificar que la etiqueta nominal se corresponde con la geometría.
+ * La asfericidad no interviene y es correcto: la potencia paraxial depende solo de la
+ * curvatura en el vértice (Q entra en la sagita a orden r⁴).
  */
 export function physicalPowerOfIOL(iol, { n_before = 1.336, n_after = 1.336 } = {}) {
   assertTraceableGeometry(iol, 'physicalPowerOfIOL');

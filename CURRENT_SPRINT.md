@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
 **Fecha:** 10/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 154/154 tests verdes · CI verde (5 jobs) · 4 experimentos deterministas verificados en CI
+**Suite:** 157/157 tests verdes · CI verde (5 jobs) · 4 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
@@ -42,6 +42,13 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 3. **exp007 reencuadrado.** Mide sensibilidad sintética a la CONVENCIÓN de índice
    queratométrico, no diferencias entre marcas reales de biómetro. Título, campos y docs
    corregidos; diff numérico = 0.
+4. **Verificación adversarial posterior** (4 revisores independientes, 15 hallazgos):
+   el teorema B≡C sobrevivió, pero la demostración escrita tenía dos huecos reales —
+   la unimodalidad en P es hipótesis empírica (H3), no deducción, y el argumento de
+   orden era inválido entre lados opuestos (el reorden EXISTE; la equivalencia la
+   sostiene el invariante de bracket). Reescrita con hipótesis H1/H2/H3 explícitas y
+   dos tests nuevos. Además: el optimizador propagaba `cornea_policy` pero descartaba
+   `eye.assumptions` — ahora expone `supuestos_trazado` y hay test que lo fija.
 
 ## BLOCKED permanentes (requieren el mundo exterior; nada se desbloquea con código)
 

@@ -59,9 +59,9 @@ export function createPreopEye(f) {
     k1_axis_deg,
     k2_d: assertInRange(f.k2_d, ...PLAUSIBLE.k_d, 'k2_d'),
     k2_axis_deg,
-    // Convención de lectura del biómetro (1.3375 / 1.3315 / 1.332...). NO se rellena
-    // por defecto: asumir 1.3375 sobre un dato de otra marca falsea el radio corneal
-    // recuperado. Si no se declara queda `null` y las políticas que lo necesitan fallan
+    // Convención de conversión radio→K del dato de entrada (1.3375 / 1.3315 / 1.332...).
+    // NO se rellena por defecto: asumir 1.3375 sobre un dato generado bajo otra
+    // convención falsea el radio corneal recuperado. Si no se declara queda `null` y las políticas que lo necesitan fallan
     // explícitamente en vez de adivinar (V0.5 / P0.1, hallazgo H1).
     keratometric_index: f.keratometric_index ?? null,
     // córnea física (opcional; si hay radios, la óptica puede usar 2 superficies)

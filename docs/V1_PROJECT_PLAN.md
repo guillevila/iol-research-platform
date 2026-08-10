@@ -57,7 +57,7 @@ Tres controles, aplicados en todos los sprints:
 
 ### V1.1 · `OpticalObjective` + `RaytracePowerOptimizer` — *núcleo*
 
-Interfaz de objetivo óptico con tres implementaciones, todas sobre el mismo trazado:
+Interfaz de objetivo óptico con dos implementaciones independientes, ambas sobre el mismo trazado:
 
 | Objetivo | Criterio | Qué privilegia |
 |---|---|---|

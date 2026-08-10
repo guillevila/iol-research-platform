@@ -159,12 +159,17 @@ export function optimizePowerByRaytrace({
       is_simulation_surrogate: factory instanceof GenericIOLFactory,
       cornea_policy: enOptimo.eye.cornea_policy,
     },
+    // Supuestos de modelado ACTIVOS en el trazado del óptimo (p. ej. asfericidad no
+    // documentada trazada como esfera). Sin esto, una recomendación podría salir de un
+    // trazado con supuestos registrados que ninguna capa superior llegaría a ver — el
+    // relleno tácito volvería por la puerta de atrás.
+    supuestos_trazado: enOptimo.eye.assumptions,
     etiqueta: 'SIMULACION / NO GROUND TRUTH CLINICO',
   };
 }
 
 /**
- * Compara los TRES objetivos sobre el mismo ojo y la misma pupila. Sirve para cuantificar
+ * Compara los objetivos disponibles (A y C) sobre el mismo ojo y la misma pupila. Sirve para cuantificar
  * cuánto depende la recomendación del criterio elegido — que es la pregunta que V1.1 pone
  * sobre la mesa. No decide cuál es mejor.
  */
@@ -178,7 +183,7 @@ export function compareObjectives(opciones) {
     por_objetivo: salidas,
     rango_potencia_d: Math.max(...potencias) - Math.min(...potencias),
     etiqueta: 'SIMULACION / NO GROUND TRUTH CLINICO',
-    nota: 'Los tres criterios son defendibles; cuál predice mejor exige datos '
-      + 'postoperatorios (OPEN_QUESTIONS #7). No se declara ninguno preferible.',
+    nota: 'Ambos criterios son defendibles; cuál predice mejor exige datos '
+      + 'postoperatorios (OPEN_QUESTIONS #8). No se declara ninguno preferible.',
   };
 }
