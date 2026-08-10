@@ -9,7 +9,8 @@
  *
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
-import { mmToM } from '../core/units.mjs';
+import { mmToM, assertFinite } from '../core/units.mjs';
+import { assertTraceableGeometry } from '../core/iol.mjs';
 import { corneaPowerTwoSurfaces, predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, refract, transfer } from './paraxial.mjs';
 import { N_AIR, N_AQUEOUS, N_CORNEA, N_VITREOUS } from './constants.mjs';
 import { sphericalSurface } from './raytrace/surfaces.mjs';
@@ -29,10 +30,18 @@ export function corneaModelOf(preop) {
 }
 
 /**
- * Ojo paraxial evaluable. `postop.iol_position_mm` es el plano de la LIO (delgada)
- * o el plano CENTRAL de la gruesa (se recoloca su cara anterior en consecuencia).
+ * Ojo paraxial evaluable. `postop.iol_position_mm` es el plano de la LIO delgada, o
+ * el plano CENTRAL de la gruesa (su cara anterior se recoloca en consecuencia).
+ *
+ * API DELIBERADAMENTE EXPLÍCITA (V0.5 / P0.2). Hay dos formas de evaluar y ninguna
+ * puede confundirse con la otra:
+ *   - `refractionForThinPower(P)` — lente DELGADA de potencia P (sin geometría);
+ *   - `refractionForIOL(iolModel)` — lente GRUESA real: la potencia sale de su
+ *     geometría, no de un argumento suelto.
+ * La API anterior (`refractionFor(power)` que ignoraba `power` cuando había una LIO
+ * gruesa inyectada) queda eliminada.
  */
-export function buildParaxialEye(postop, iol = null) {
+export function buildParaxialEye(postop) {
   const preop = postop.preop;
   const cornea = corneaModelOf(preop);
   const base = {
@@ -40,25 +49,34 @@ export function buildParaxialEye(postop, iol = null) {
     al_m: mmToM(preop.al_mm),
     iolPlane_m: mmToM(postop.iol_position_mm),
   };
-  const thick = iol && iol.geometry && ['refractive_index', 'central_thickness_mm', 'r_anterior_mm', 'r_posterior_mm']
-    .every(k => typeof iol.geometry[k] === 'number');
   return {
     cornea_kind: cornea.kind,
     corneaPower_d: cornea.power_d,
     al_mm: preop.al_mm,
     iol_position_mm: postop.iol_position_mm,
-    /** refracción de gafa prevista para una potencia dada (D) */
-    refractionFor(power_d) {
-      if (thick) {
-        const t_m = iol.geometry.central_thickness_mm / 1000;
-        return predictedRefractionThickIOL({
-          ...base, iolAnterior_m: base.iolPlane_m - t_m / 2,
-          iol: { geometry: { ...iol.geometry } },
-        });
-      }
+
+    /** Refracción de gafa (D) para una LIO DELGADA de potencia `power_d`. */
+    refractionForThinPower(power_d) {
+      assertFinite(power_d, 'power_d');
       return predictedRefraction({ ...base, iolPower_d: power_d });
     },
-    /** potencia exacta (continua) que logra la diana, con LIO delgada */
+
+    /**
+     * Refracción de gafa (D) para una LIO GRUESA concreta. La potencia efectiva la
+     * determina la GEOMETRÍA de `iol`; si no es trazable, falla explícitamente.
+     * La lente se centra en `iol_position_mm` (cara anterior en pos − t/2).
+     */
+    refractionForIOL(iol) {
+      assertTraceableGeometry(iol, 'refractionForIOL');
+      const t_m = iol.geometry.central_thickness_mm / 1000;
+      return predictedRefractionThickIOL({
+        ...base,
+        iolAnterior_m: base.iolPlane_m - t_m / 2,
+        iol: { geometry: { ...iol.geometry } },
+      });
+    },
+
+    /** Potencia exacta (continua) de LIO DELGADA que logra la diana. */
     exactPowerFor(target_d) {
       return iolPowerForTarget({ ...base, target_d });
     },
@@ -81,10 +99,8 @@ export function buildParaxialEye(postop, iol = null) {
  */
 export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5 } = {}) {
   const preop = postop.preop;
-  const g = iol?.geometry;
-  for (const k of ['refractive_index', 'central_thickness_mm', 'r_anterior_mm', 'r_posterior_mm']) {
-    if (typeof g?.[k] !== 'number') throw new TypeError('buildRaytraceEye: LIO sin geometría numérica (' + k + ')');
-  }
+  assertTraceableGeometry(iol, 'buildRaytraceEye');
+  const g = iol.geometry;
   const surfaces = [];
   const c = preop.cornea;
   let cornea_kind;

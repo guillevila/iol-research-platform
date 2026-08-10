@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createPreopEye, createPredictedPostopEye } from '../src/core/eye.mjs';
-import { createGenericThickIOL } from '../src/core/iol.mjs';
+import { createGenericThickIOL } from '../src/core/iol_factory.mjs';
 import { buildRaytraceEye, paraxialFocusOfRaytraceEye, compareParaxialVsRaytrace } from '../src/optics/eyebuilder.mjs';
 
 function eyeOf({ al = 23.5, k = 43.5, radios = false } = {}) {
@@ -15,7 +15,7 @@ function eyeOf({ al = 23.5, k = 43.5, radios = false } = {}) {
 }
 
 test('raytrace-eye: construcción con córnea equivalente y con córnea física', () => {
-  const iol = createGenericThickIOL({ se_power_d: 21 });
+  const iol = createGenericThickIOL({ power_d: 21 });
   const postA = createPredictedPostopEye(eyeOf(), { iol_position_mm: 4.9, position_source: 'test' });
   const a = buildRaytraceEye(postA, iol);
   assert.equal(a.cornea_kind, 'equivalent_single_surface');
@@ -34,7 +34,7 @@ test('raytrace-eye: LIO sin geometría numérica se rechaza (nunca inventar)', (
 });
 
 test('raytrace-eye: el trazado converge al paraxial del MISMO sistema cuando h→0', () => {
-  const iol = createGenericThickIOL({ se_power_d: 21 });
+  const iol = createGenericThickIOL({ power_d: 21 });
   for (const radios of [false, true]) {
     const post = createPredictedPostopEye(eyeOf({ radios }), { iol_position_mm: 4.9, position_source: 'test' });
     const eye = buildRaytraceEye(post, iol);
@@ -46,7 +46,7 @@ test('raytrace-eye: el trazado converge al paraxial del MISMO sistema cuando h�
 });
 
 test('raytrace-eye: con pupila clínica aparece aberración esférica (foco se acerca)', () => {
-  const iol = createGenericThickIOL({ se_power_d: 21 });
+  const iol = createGenericThickIOL({ power_d: 21 });
   const post = createPredictedPostopEye(eyeOf(), { iol_position_mm: 4.9, position_source: 'test' });
   const eye = buildRaytraceEye(post, iol);
   const paraxial = compareParaxialVsRaytrace(eye, { heights_mm: [0.02, 0.05, 0.08] });
@@ -60,7 +60,7 @@ test('raytrace-eye: con pupila clínica aparece aberración esférica (foco se a
 test('raytrace-eye: foco paraxial cerca de retina cuando la potencia es la óptima delgada', () => {
   // la potencia óptima se calculó con LIO delgada: la gruesa genérica desplaza el foco
   // de forma acotada (mismo orden que el test paraxial thin↔thick)
-  const iol = createGenericThickIOL({ se_power_d: 21 });
+  const iol = createGenericThickIOL({ power_d: 21 });
   const post = createPredictedPostopEye(eyeOf(), { iol_position_mm: 4.9, position_source: 'test' });
   const eye = buildRaytraceEye(post, iol);
   const zPar = paraxialFocusOfRaytraceEye(eye);

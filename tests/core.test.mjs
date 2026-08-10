@@ -6,7 +6,8 @@ import {
   focalMFromDiopters, dioptersFromFocalM, vergenceAtDistance, assertInRange,
 } from '../src/core/units.mjs';
 import { createPreopEye, createPredictedPostopEye } from '../src/core/eye.mjs';
-import { createIOL, createGenericThickIOL, UNKNOWN } from '../src/core/iol.mjs';
+import { createIOL, UNKNOWN, GeometryStatus, hasTraceableGeometry, assertTraceableGeometry } from '../src/core/iol.mjs';
+import { createGenericThickIOL } from '../src/core/iol_factory.mjs';
 import { createPredictionResult, RUO_WARNING } from '../src/core/result.mjs';
 import { ConstantOffsetPredictor, FractionOfALPredictor, LinearRegressionPredictor } from '../src/predictors/iol_position.mjs';
 
@@ -53,21 +54,25 @@ test('eye: estado postoperatorio previsto, separado y etiquetado', () => {
   assert.throws(() => createPredictedPostopEye(pre, { iol_position_mm: 30 }), RangeError);
 });
 
-test('iol: UNKNOWN explícito y bandera generic automática', () => {
-  const iol = createIOL({ manufacturer: 'X', model: 'Y', se_power_d: 21 });
-  assert.equal(iol.generic, true);
+test('iol: una lente comercial sin geometría queda UNKNOWN, no genérica', () => {
+  const iol = createIOL({ manufacturer: 'X', model: 'Y', nominal_power_d: 21 });
+  assert.equal(iol.geometry_status, GeometryStatus.UNKNOWN);
+  assert.equal(iol.is_simulation_surrogate, false);      // NO se degrada a genérica
   assert.deepEqual(iol.unknown_parameters,
     ['refractive_index', 'central_thickness_mm', 'r_anterior_mm', 'r_posterior_mm']);
   assert.equal(iol.geometry.r_anterior_mm, UNKNOWN);
+  assert.equal(hasTraceableGeometry(iol), false);
+  assert.throws(() => assertTraceableGeometry(iol), TypeError);
 });
 
 test('iol genérica: la lensmaker reproduce la potencia declarada', () => {
-  const iol = createGenericThickIOL({ se_power_d: 21 });
+  const iol = createGenericThickIOL({ power_d: 21 });
   const { refractive_index: n, central_thickness_mm: t, r_anterior_mm: R1, r_posterior_mm: R2 } = iol.geometry;
   const nm = 1.336, D = n - nm, r1 = R1 / 1000, r2 = R2 / 1000, tm = t / 1000;
   const P = D * (1 / r1 - 1 / r2) + tm * D * D / (n * r1 * r2);
   assert.ok(Math.abs(P - 21) < 1e-9, `lensmaker devuelve ${P}`);
-  assert.equal(iol.generic, true);
+  assert.equal(iol.geometry_status, GeometryStatus.DERIVED_GENERIC);
+  assert.equal(iol.is_simulation_surrogate, true);
   assert.match(iol.source, /SIMULACION/);
 });
 

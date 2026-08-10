@@ -27,7 +27,7 @@ export function searchBestPower({ postop, target_d = 0, grid = powerGrid(), tieT
   assertFinite(target_d, 'target_d');
   const eye = buildParaxialEye(postop);
   const evals = grid.map(p => {
-    const ref = eye.refractionFor(p);
+    const ref = eye.refractionForThinPower(p);
     return { power_d: p, predicted_refraction_d: ref, error_d: Math.abs(ref - target_d) };
   }).sort((a, b) => a.error_d - b.error_d);
   const best = evals[0], second = evals[1] ?? null;
@@ -35,7 +35,7 @@ export function searchBestPower({ postop, target_d = 0, grid = powerGrid(), tieT
   const h = 0.25;
   const at = dPos => buildParaxialEye(createPredictedPostopEye(postop.preop, {
     iol_position_mm: postop.iol_position_mm + dPos, position_source: 'sensitivity_probe',
-  })).refractionFor(best.power_d);
+  })).refractionForThinPower(best.power_d);
   const sens = (at(+h) - at(-h)) / (2 * h);
   return {
     best,

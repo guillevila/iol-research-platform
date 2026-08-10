@@ -68,7 +68,7 @@ export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas =
       const post = createPredictedPostopEye(pre, {
         iol_position_mm: iol_position_mm + dPos, position_source: 'montecarlo_draw',
       });
-      refs.push(buildParaxialEye(post).refractionFor(power_d));
+      refs.push(buildParaxialEye(post).refractionForThinPower(power_d));
     } catch { rejected++; }
   }
   if (refs.length < Math.max(10, n * 0.5)) {
@@ -115,8 +115,8 @@ export function alternativeBetterProbability({ preop, iol_position_mm, powerA_d,
         iol_position_mm: iol_position_mm + dPos, position_source: 'montecarlo_draw',
       });
       const eye = buildParaxialEye(post);
-      const errA = Math.abs(eye.refractionFor(powerA_d) - target_d);
-      const errB = Math.abs(eye.refractionFor(powerB_d) - target_d);
+      const errA = Math.abs(eye.refractionForThinPower(powerA_d) - target_d);
+      const errB = Math.abs(eye.refractionForThinPower(powerB_d) - target_d);
       if (errB < errA) better++;
       valid++;
     } catch { rejected++; }

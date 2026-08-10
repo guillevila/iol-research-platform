@@ -17,7 +17,7 @@ import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createPreopEye, createPredictedPostopEye } from '../src/core/eye.mjs';
-import { createGenericThickIOL } from '../src/core/iol.mjs';
+import { createGenericThickIOL } from '../src/core/iol_factory.mjs';
 import { buildRaytraceEye, compareParaxialVsRaytrace, buildParaxialEye } from '../src/optics/eyebuilder.mjs';
 import { searchBestPower } from '../src/optimize/power_search.mjs';
 import { ConstantOffsetPredictor } from '../src/predictors/iol_position.mjs';
@@ -50,7 +50,7 @@ for (const o of CONFIG.ojos) {
   const pos = predictor.predict(pre).iol_position_mm;
   const post = createPredictedPostopEye(pre, { iol_position_mm: pos, position_source: predictor.id });
   const P = searchBestPower({ postop: post, target_d: 0 }).best.power_d;
-  const eye = buildRaytraceEye(post, createGenericThickIOL({ se_power_d: P }));
+  const eye = buildRaytraceEye(post, createGenericThickIOL({ power_d: P }));
   const val = compareParaxialVsRaytrace(eye, { heights_mm: CONFIG.haces.validacion_mm });
   const cli = compareParaxialVsRaytrace(eye, { heights_mm: CONFIG.haces.clinico_mm });
   rows.push({

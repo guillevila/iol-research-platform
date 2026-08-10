@@ -31,6 +31,22 @@ export function assertInRange(x, lo, hi, name = 'valor') {
 export const mmToM = mm => assertFinite(mm, 'mm') / MM_PER_M;
 export const mToMm = m => assertFinite(m, 'm') * MM_PER_M;
 
+/**
+ * Curvatura (1/m) a partir de un radio en mm. Es la ÚNICA magnitud del proyecto en
+ * la que el infinito es físicamente significativo: r = ±Infinity ⇔ superficie plana
+ * ⇔ curvatura 0 exacta. Usar esto en vez de `1/mmToM(r)` evita tanto el rechazo del
+ * plano legítimo como los sentinelas finitos ("r muy grande") que dejan potencia
+ * residual espuria.
+ */
+export function curvatureFromRadiusMm(r_mm, name = 'radio') {
+  if (typeof r_mm !== 'number' || Number.isNaN(r_mm)) {
+    throw new TypeError(`${name} debe ser un número (o ±Infinity para plano); recibido: ${String(r_mm)}`);
+  }
+  if (r_mm === 0) throw new RangeError(`${name}=0: radio nulo sin significado físico`);
+  if (!Number.isFinite(r_mm)) return 0;
+  return MM_PER_M / r_mm;
+}
+
 // ---- ángulos ----
 export const degToRad = deg => assertFinite(deg, 'deg') * Math.PI / 180;
 export const radToDeg = rad => assertFinite(rad, 'rad') * 180 / Math.PI;

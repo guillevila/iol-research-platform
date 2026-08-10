@@ -51,7 +51,7 @@ for (const o of CONFIG.ojos) {
   const P = s.best.power_d;
   const refAt = pos => buildParaxialEye(
     createPredictedPostopEye(pre, { iol_position_mm: pos, position_source: 'sweep' })
-  ).refractionFor(P);
+  ).refractionForThinPower(P);
   const ref0 = refAt(basePos);
   const deltas = {};
   for (const d of CONFIG.deltas_mm) deltas[d.toFixed(2)] = +(refAt(basePos + d) - ref0).toFixed(4);

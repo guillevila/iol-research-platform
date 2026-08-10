@@ -8,7 +8,7 @@ import {
   refract, transfer, propagate, corneaPowerTwoSurfaces,
   iolPowerForTarget, predictedRefraction, predictedRefractionThickIOL,
 } from '../src/optics/paraxial.mjs';
-import { createGenericThickIOL } from '../src/core/iol.mjs';
+import { createGenericThickIOL } from '../src/core/iol_factory.mjs';
 
 test('paraxial: lente delgada en aire — objeto en infinito enfoca en f=1/P', () => {
   const P = 20;                       // D
@@ -80,13 +80,13 @@ test('paraxial: LIO gruesa genérica converge a la delgada cuando t→0', () => 
   const plane = 0.0049;
   const P = 21;
   const thin = predictedRefraction({ ...eye, iolPlane_m: plane, iolPower_d: P });
-  const thick = createGenericThickIOL({ se_power_d: P, thickness_mm: 0.1 });
+  const thick = createGenericThickIOL({ power_d: P, thickness_mm: 0.1 });
   // situar la gruesa con su CENTRO en el plano de la delgada
   const t_m = thick.geometry.central_thickness_mm / 1000;
   const rThick = predictedRefractionThickIOL({ ...eye, iolAnterior_m: plane - t_m / 2, iol: thick });
   assert.ok(Math.abs(rThick - thin) < 0.06, `thin ${thin} vs thick ${rThick}`);
   // y con espesor clínico la diferencia sigue acotada (documenta el orden de magnitud)
-  const thick08 = createGenericThickIOL({ se_power_d: P, thickness_mm: 0.8 });
+  const thick08 = createGenericThickIOL({ power_d: P, thickness_mm: 0.8 });
   const t08 = thick08.geometry.central_thickness_mm / 1000;
   const r08 = predictedRefractionThickIOL({ ...eye, iolAnterior_m: plane - t08 / 2, iol: thick08 });
   assert.ok(Math.abs(r08 - thin) < 0.5, `divergencia gruesa excesiva: ${r08} vs ${thin}`);
@@ -97,6 +97,6 @@ test('paraxial: guardas de dominio y singularidades', () => {
   assert.throws(() => iolPowerForTarget({ corneaPower_d: 43, al_m: 0.023, iolPlane_m: 0.03 }), RangeError);
   assert.throws(() => predictedRefractionThickIOL({
     corneaPower_d: 43, al_m: 0.023, iolAnterior_m: 0.0225,
-    iol: createGenericThickIOL({ se_power_d: 21 }),
+    iol: createGenericThickIOL({ power_d: 21 }),
   }), RangeError);
 });

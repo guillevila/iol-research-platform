@@ -1,27 +1,48 @@
 /**
  * iol.mjs — modelo de LIO (CAPA D).
  *
- * Principio inviolable: NO se inventa geometría de lentes comerciales. Cuando el
- * fabricante no publica un parámetro, ese parámetro es UNKNOWN y el modelo pasa a
- * ser `generic:true` (un sustituto de simulación etiquetado, no la lente real).
+ * SEPARACIÓN FUNDAMENTAL (V0.5 / P0.3):
+ *   - `nominal_power_d`  : la ETIQUETA comercial. Identifica el modelo; NO es lo que
+ *                          traza el motor físico.
+ *   - `geometry`         : la geometría FÍSICA (radios, espesor, índice). Es lo único
+ *                          que el ray tracer puede trazar.
+ *   - `geometry_status`  : de dónde viene esa geometría —
+ *        DERIVED_GENERIC : derivada matemáticamente de la potencia (lente de
+ *                          simulación declarada; NO representa una lente comercial);
+ *        MANUFACTURER    : documentada por el fabricante, con procedencia citada;
+ *        UNKNOWN         : no se conoce → el trazado debe FALLAR, nunca sustituir.
+ *
+ * Principio inviolable: NO se inventa geometría de lentes comerciales.
  *
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
-import { assertFinite, assertInRange } from './units.mjs';
+import { assertFinite, assertInRange, mmToM, curvatureFromRadiusMm } from './units.mjs';
 
 /** Sentinela serializable para parámetros no documentados. */
 export const UNKNOWN = 'UNKNOWN';
 export const isUnknown = v => v === UNKNOWN || v === null || v === undefined;
 
+export const GeometryStatus = Object.freeze({
+  DERIVED_GENERIC: 'DERIVED_GENERIC',
+  MANUFACTURER: 'MANUFACTURER',
+  UNKNOWN: 'UNKNOWN',
+});
+
+/** Parámetros sin los cuales no se puede trazar una lente gruesa. */
+export const ESSENTIAL_GEOMETRY = Object.freeze([
+  'refractive_index', 'central_thickness_mm', 'r_anterior_mm', 'r_posterior_mm',
+]);
+
 /**
  * Crea la descripción de una LIO.
- *  - `se_power_d` (potencia etiquetada, equivalente esférico) es obligatoria.
+ *  - `nominal_power_d` (potencia etiquetada, equivalente esférico) obligatoria.
  *  - `geometry` documenta lo que se sepa; lo demás queda UNKNOWN.
- *  - `generic` se calcula: true si falta cualquier parámetro físico esencial.
+ *  - `geometry_status` se DEDUCE: si falta algún esencial → UNKNOWN, se ignora lo
+ *    que declare el llamante (no se puede afirmar procedencia de lo que no existe).
  */
 export function createIOL(f) {
-  assertFinite(f.se_power_d, 'se_power_d');
-  assertInRange(f.se_power_d, -15, 60, 'se_power_d');
+  assertFinite(f.nominal_power_d, 'nominal_power_d');
+  assertInRange(f.nominal_power_d, -15, 60, 'nominal_power_d');
   const g = f.geometry ?? {};
   const geometry = {
     kind: g.kind ?? 'thick_lens',               // 'thin_lens' | 'thick_lens'
@@ -29,67 +50,81 @@ export function createIOL(f) {
     central_thickness_mm: g.central_thickness_mm ?? UNKNOWN,
     r_anterior_mm: g.r_anterior_mm ?? UNKNOWN,   // convención: +r centro a la derecha (+z)
     r_posterior_mm: g.r_posterior_mm ?? UNKNOWN,
-    asphericity_q: g.asphericity_q ?? UNKNOWN,
+    asphericity_q_anterior: g.asphericity_q_anterior ?? UNKNOWN,
+    asphericity_q_posterior: g.asphericity_q_posterior ?? UNKNOWN,
     toric_design: g.toric_design ?? UNKNOWN,     // 'anterior'|'posterior'|'bitoric'|UNKNOWN
     haptic_angulation_deg: g.haptic_angulation_deg ?? UNKNOWN,
   };
-  const essentials = ['refractive_index', 'central_thickness_mm', 'r_anterior_mm', 'r_posterior_mm'];
-  const unknowns = essentials.filter(k => isUnknown(geometry[k]));
-  const iol = {
+  const unknowns = ESSENTIAL_GEOMETRY.filter(k => isUnknown(geometry[k]));
+  const declared = f.geometry_status;
+  if (declared === GeometryStatus.MANUFACTURER && !f.provenance) {
+    throw new TypeError('geometry_status MANUFACTURER exige `provenance` documentada (ficha/patente)');
+  }
+  const geometry_status = unknowns.length > 0
+    ? GeometryStatus.UNKNOWN
+    : (declared ?? GeometryStatus.UNKNOWN);
+
+  return Object.freeze({
     kind: 'iol',
     manufacturer: f.manufacturer ?? UNKNOWN,
     model: f.model ?? UNKNOWN,
-    se_power_d: f.se_power_d,
+    nominal_power_d: f.nominal_power_d,
     cylinder_d: f.cylinder_d ?? 0,
     a_constant: f.a_constant ?? UNKNOWN,
     power_range_d: f.power_range_d ?? UNKNOWN,   // [min, max] si se conoce
     toric_catalog_d: f.toric_catalog_d ?? UNKNOWN,
     geometry,
-    generic: unknowns.length > 0 || f.generic === true,
+    geometry_status,
     unknown_parameters: unknowns,
-    source: f.source ?? 'unspecified',           // de dónde salen los datos declarados
-  };
-  return Object.freeze(iol);
+    /** true solo si la geometría NO representa una lente comercial real */
+    is_simulation_surrogate: geometry_status === GeometryStatus.DERIVED_GENERIC,
+    provenance: f.provenance ?? null,
+    source: f.source ?? 'unspecified',
+  });
+}
+
+/** ¿Puede el ray tracer trabajar con esta lente? */
+export function hasTraceableGeometry(iol) {
+  return iol?.geometry_status !== undefined
+    && iol.geometry_status !== GeometryStatus.UNKNOWN
+    && ESSENTIAL_GEOMETRY.every(k => typeof iol.geometry?.[k] === 'number');
 }
 
 /**
- * LIO GENÉRICA de simulación: lente gruesa equibiconvexa cuyo único dato real es
- * la potencia. Índice y espesor son PARÁMETROS DE SIMULACIÓN DECLARADOS (no datos
- * de fabricante); los radios se derivan del fabricante de lentes (lensmaker) para
- * que la potencia en humor acuoso sea la etiquetada.
- *
- *   P = (n_iol - n_medio) * (1/R1 - 1/R2) + espesor·((n_iol-n_medio)^2/(n_iol·R1·R2))
- *   con R2 = -R1 (equibiconvexa) → resolver R1.
- *
- * Para P≈0 se degrada a plano (R→∞ representado como 1e9 mm).
+ * Guarda dura: falla con mensaje accionable en lugar de sustituir en silencio por
+ * una genérica. Es la barrera que impide "ray tracing comercial falso".
  */
-export function createGenericThickIOL({ se_power_d, cylinder_d = 0, n_iol = 1.49, thickness_mm = 0.8, n_medium = 1.336 }) {
-  assertFinite(se_power_d, 'se_power_d');
-  assertInRange(n_iol, 1.3, 1.8, 'n_iol');
-  assertInRange(thickness_mm, 0.1, 2.5, 'thickness_mm');
-  const P = se_power_d;
-  let r1_mm;
-  if (Math.abs(P) < 1e-6) {
-    r1_mm = 1e9;
-  } else {
-    // P = D*(2/R1) + t*D^2/(n_iol*(-R1^2))  con D = (n_iol-n_medio), R en METROS
-    // → (t·D²/n_iol)·x² − 2D·x + P = 0, x = 1/R1  (raíz de menor curvatura física)
-    const D = n_iol - n_medium;
-    const tM = thickness_mm / 1000;
-    const a = tM * D * D / n_iol, b = -2 * D, c = P;
-    const disc = b * b - 4 * a * c;
-    if (disc <= 0) throw new RangeError('potencia irrealizable para la genérica declarada');
-    const x = (-b - Math.sqrt(disc)) / (2 * a); // rama continua con la lente delgada
-    r1_mm = 1000 / x;
-  }
-  return createIOL({
-    manufacturer: 'GENERIC', model: `GENERIC_EQUICONVEX_${P}D`,
-    se_power_d: P, cylinder_d,
-    geometry: {
-      kind: 'thick_lens', refractive_index: n_iol, central_thickness_mm: thickness_mm,
-      r_anterior_mm: r1_mm, r_posterior_mm: -r1_mm, toric_design: UNKNOWN,
-    },
-    generic: true,
-    source: 'SIMULACION: parámetros declarados, no datos de fabricante',
-  });
+export function assertTraceableGeometry(iol, context = 'trazado') {
+  if (hasTraceableGeometry(iol)) return iol;
+  const faltan = iol?.unknown_parameters?.length ? iol.unknown_parameters.join(', ') : 'geometría';
+  throw new TypeError(
+    `${context}: la LIO ${iol?.manufacturer ?? '?'}/${iol?.model ?? '?'} no tiene geometría trazable `
+    + `(geometry_status=${iol?.geometry_status ?? 'AUSENTE'}; faltan: ${faltan}). `
+    + 'Prohibido sustituir por una genérica sin declararlo: usa una GenericIOLFactory explícitamente.'
+  );
+}
+
+/**
+ * Potencia FÍSICA que realmente tiene la geometría (lente gruesa en un medio):
+ *   P = P1 + P2 − (t/n_iol)·P1·P2,  P1=(n_iol−n_before)/r1,  P2=(n_after−n_iol)/r2
+ * Sirve para verificar que la etiqueta nominal se corresponde con la geometría.
+ */
+export function physicalPowerOfIOL(iol, { n_before = 1.336, n_after = 1.336 } = {}) {
+  assertTraceableGeometry(iol, 'physicalPowerOfIOL');
+  const g = iol.geometry;
+  const n = g.refractive_index;
+  const c1 = curvatureFromRadiusMm(g.r_anterior_mm, 'r_anterior_mm');
+  const c2 = curvatureFromRadiusMm(g.r_posterior_mm, 'r_posterior_mm');
+  const t = mmToM(g.central_thickness_mm);
+  const P1 = (n - n_before) * c1;
+  const P2 = (n_after - n) * c2;
+  return P1 + P2 - (t / n) * P1 * P2;
+}
+
+/**
+ * Discrepancia entre la etiqueta y la física, en dioptrías. Un valor grande indica
+ * que la geometría NO corresponde a la potencia declarada (error de datos).
+ */
+export function nominalVsPhysicalMismatch(iol, medium) {
+  return physicalPowerOfIOL(iol, medium) - iol.nominal_power_d;
 }
