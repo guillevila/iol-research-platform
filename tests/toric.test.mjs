@@ -78,8 +78,12 @@ test('recomendación tórica: residual mínimo, eje del TCA y física coherente'
   assert.ok(Math.abs(r.implantation_axis_deg - 90) < 1e-9);
   // el cilindro recomendado sobrepasa el TCA corneal (plano LIO > plano corneal)
   assert.ok(r.recommended.cylinder_d >= 3.0, 'esperado ≥ TCA: ' + r.recommended.cylinder_d);
-  // en el óptimo, el residual es menor que el de sus vecinos y pequeño
-  assert.ok(Math.abs(r.recommended.residual_cyl_d) < 0.45);
+  // Cota DERIVADA del catálogo, no elegida (V0.5 / H10): con escalones de CATALOGO_TEST,
+  // el peor residual posible en el plano de la LIO es medio escalón; trasladado al plano
+  // corneal por el cociente de vergencias (~1.4 aquí) queda por debajo de medio escalón.
+  const pasoMax = Math.max(...CATALOGO_TEST.slice(1).map((c, i) => c - CATALOGO_TEST[i]));
+  assert.ok(Math.abs(r.recommended.residual_cyl_d) < pasoMax / 2,
+    `residual ${r.recommended.residual_cyl_d} > medio escalón (${pasoMax / 2})`);
   assert.ok(Math.abs(r.recommended.residual_cyl_d) <= Math.abs(r.alternative.residual_cyl_d));
   // el residual firmado cruza cero al recorrer el catálogo: con c=0 el meridiano
   // curvo queda miope (signo −) y al añadir cilindro se hipermetropiza (crece)

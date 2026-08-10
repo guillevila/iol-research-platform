@@ -99,6 +99,8 @@ test('focusOfSystem: mejor foco ≈ paraxial con haz bajo y spot pequeño', () =
   const R = 10, n2 = 1.5, fPrime = n2 * R / (n2 - 1);
   const s = [sphericalSurface({ zVertex_mm: 0, radius_mm: R, aperture_mm: 5, n_before: 1, n_after: n2 })];
   const f = focusOfSystem(s, { heights_mm: [0.05, 0.1, 0.15, 0.2], zSearchTo_mm: 50 });
+  // 0.01 mm cubre la suma de dos residuos conocidos: la tolerancia de la búsqueda de
+  // mejor foco (1e-6 mm) y la aberración esférica O(h²) del haz usado
   assert.ok(Math.abs(f.bestFocus_mm - fPrime) < 0.01, `foco ${f.bestFocus_mm} vs ${fPrime}`);
   assert.ok(f.spotRms_mm < 1e-4);
   assert.ok(Math.abs(f.paraxialNumeric_mm - fPrime) < 1e-3);

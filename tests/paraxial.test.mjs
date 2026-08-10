@@ -75,21 +75,54 @@ test('paraxial: física cualitativa correcta', () => {
   assert.ok(r1 < 0 && r2 > 0);
 });
 
-test('paraxial: LIO gruesa genérica converge a la delgada cuando t→0', () => {
+/*
+ * V0.5 / H10 — este test tenía tolerancias sueltas (0.06 D y 0.5 D) sin justificar. Se
+ * sustituyen por la AFIRMACIÓN FÍSICA que en realidad se quiere comprobar:
+ *
+ *   La lente gruesa y la delgada de la misma potencia no difieren por un error numérico,
+ *   sino porque los planos principales de la gruesa están separados. Esa separación es
+ *   proporcional al espesor, luego la diferencia de refracción debe ser LINEAL en t y
+ *   extrapolar EXACTAMENTE a 0 cuando t → 0.
+ *
+ * Una cota fija no distingue "converge linealmente" de "no converge pero es pequeña".
+ * La pendiente medida (≈ 0.2159 D/mm para este ojo) es una propiedad EMERGENTE del
+ * modelo, no una diana: el test fija su linealidad y su intercepto, no su valor.
+ */
+test('paraxial: LIO gruesa converge a la delgada linealmente en t, con intercepto 0', () => {
   const eye = { corneaPower_d: 43.5, al_m: 0.0235 };
   const plane = 0.0049;
   const P = 21;
   const thin = predictedRefraction({ ...eye, iolPlane_m: plane, iolPower_d: P });
-  const thick = createGenericThickIOL({ power_d: P, thickness_mm: 0.1 });
-  // situar la gruesa con su CENTRO en el plano de la delgada
-  const t_m = thick.geometry.central_thickness_mm / 1000;
-  const rThick = predictedRefractionThickIOL({ ...eye, iolAnterior_m: plane - t_m / 2, iol: thick });
-  assert.ok(Math.abs(rThick - thin) < 0.06, `thin ${thin} vs thick ${rThick}`);
-  // y con espesor clínico la diferencia sigue acotada (documenta el orden de magnitud)
-  const thick08 = createGenericThickIOL({ power_d: P, thickness_mm: 0.8 });
-  const t08 = thick08.geometry.central_thickness_mm / 1000;
-  const r08 = predictedRefractionThickIOL({ ...eye, iolAnterior_m: plane - t08 / 2, iol: thick08 });
-  assert.ok(Math.abs(r08 - thin) < 0.5, `divergencia gruesa excesiva: ${r08} vs ${thin}`);
+  // diferencia gruesa−delgada situando la gruesa con su CENTRO en el plano de la delgada
+  const dif = t_mm => {
+    const lente = createGenericThickIOL({ power_d: P, thickness_mm: t_mm });
+    return predictedRefractionThickIOL({
+      ...eye, iolAnterior_m: plane - (t_mm / 1000) / 2, iol: lente,
+    }) - thin;
+  };
+  const espesores = [0.05, 0.10, 0.20, 0.40];
+  const pendientes = espesores.map(t => dif(t) / t);
+  // 1) linealidad: la pendiente local apenas varía en el rango de espesores de LIO
+  const disp = Math.max(...pendientes) - Math.min(...pendientes);
+  assert.ok(disp < 0.005, `la diferencia no es lineal en t: pendientes ${pendientes}`);
+  // 2) intercepto en t→0. La diferencia es a·t + b·t²+…, así que una extrapolación
+  //    LINEAL deja el término cuadrático (≈3e-5 D aquí); se usa la cuadrática de Lagrange
+  //    sobre tres espesores, que lo elimina y deja el intercepto verdadero.
+  const [t1, t2, t3] = [0.05, 0.10, 0.20];
+  const [y1, y2, y3] = [dif(t1), dif(t2), dif(t3)];
+  const intercepto = y1 * (t2 * t3) / ((t1 - t2) * (t1 - t3))
+                   + y2 * (t1 * t3) / ((t2 - t1) * (t2 - t3))
+                   + y3 * (t1 * t2) / ((t3 - t1) * (t3 - t2));
+  assert.ok(Math.abs(intercepto) < 1e-6,
+    `la gruesa NO converge a la delgada: intercepto ${intercepto} D`);
+  //    y la extrapolación lineal debe mejorar al usar espesores más finos (orden O(t²))
+  const interLineal = (a, b) => Math.abs((b * dif(a) - a * dif(b)) / (b - a));
+  // (0.05 mm es el espesor mínimo admitido por la fábrica de LIO, así que el par más
+  //  fino disponible es 0.05/0.10 y el más grueso 0.20/0.40)
+  assert.ok(interLineal(0.05, 0.10) < interLineal(0.20, 0.40) / 3,
+    'el residuo de la extrapolación lineal debe caer con el espesor');
+  // 3) y el signo es el esperado: separar los planos principales acerca el foco
+  assert.ok(pendientes.every(s => s > 0), 'la diferencia debe crecer con el espesor');
 });
 
 test('paraxial: guardas de dominio y singularidades', () => {

@@ -71,6 +71,7 @@ test('genérica: la rama elegida de la ecuación cuadrática es la continua con 
   const P = 21, n = 1.49, nm = 1.336;
   const fino = new GenericIOLFactory({ thickness_mm: 0.05 }).create({ power_d: P });
   const rDelgada = 2 * (n - nm) * 1000 / P;
+  // la separación con la delgada es O(t): a t=0.05 mm son ~0.02 mm de radio sobre 14.7 mm
   assert.ok(Math.abs(fino.geometry.r_anterior_mm - rDelgada) < 0.05,
     `r=${fino.geometry.r_anterior_mm} vs delgada ${rDelgada}`);
   assert.ok(fino.geometry.r_anterior_mm > 0 && fino.geometry.r_posterior_mm < 0, 'debe ser biconvexa');
@@ -79,6 +80,8 @@ test('genérica: la rama elegida de la ecuación cuadrática es la continua con 
 test('genérica: gruesa≈delgada a primer orden y se declara como sustituto de simulación', () => {
   const eye = buildParaxialEye(postopOf());
   const iol = createGenericThickIOL({ power_d: 21, thickness_mm: 0.1 });
+  // 0.06 D es la cota del mismo efecto O(t) medido en paraxial.test.mjs para t=0.1 mm
+  // (allí se demuestra que la diferencia es lineal en t con intercepto 0)
   assert.ok(Math.abs(eye.refractionForIOL(iol) - eye.refractionForThinPower(21)) < 0.06);
   assert.equal(iol.geometry_status, GeometryStatus.DERIVED_GENERIC);
   assert.equal(iol.is_simulation_surrogate, true);

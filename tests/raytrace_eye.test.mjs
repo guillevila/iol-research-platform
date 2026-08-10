@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createPreopEye, createPredictedPostopEye } from '../src/core/eye.mjs';
 import { createGenericThickIOL } from '../src/core/iol_factory.mjs';
-import { buildRaytraceEye, paraxialFocusOfRaytraceEye, compareParaxialVsRaytrace } from '../src/optics/eyebuilder.mjs';
+import { buildParaxialEye, buildRaytraceEye, paraxialFocusOfRaytraceEye, compareParaxialVsRaytrace } from '../src/optics/eyebuilder.mjs';
 
 function eyeOf({ al = 23.5, k = 43.5, radios = false } = {}) {
   return createPreopEye({
@@ -57,12 +57,39 @@ test('raytrace-eye: con pupila clínica aparece aberración esférica (foco se a
   assert.ok(clinico.spotRms_mm > paraxial.spotRms_mm);
 });
 
-test('raytrace-eye: foco paraxial cerca de retina cuando la potencia es la óptima delgada', () => {
-  // la potencia óptima se calculó con LIO delgada: la gruesa genérica desplaza el foco
-  // de forma acotada (mismo orden que el test paraxial thin↔thick)
-  const iol = createGenericThickIOL({ power_d: 21 });
+/*
+ * V0.5 / H10 — este test aceptaba |foco − retina| < 0.6 mm sin justificar el 0.6, y además
+ * mezclaba dos efectos: usaba P = 21 D cuando la potencia delgada exacta de este ojo es
+ * 20.07 D, de modo que el desplazamiento medido estaba dominado por un error de potencia
+ * de 0.93 D, no por el espesor. Se separan los dos efectos y cada uno se afirma por su ley.
+ */
+test('raytrace-eye: con la potencia delgada EXACTA, el foco converge a la retina como O(t)', () => {
   const post = createPredictedPostopEye(eyeOf(), { iol_position_mm: 4.9, position_source: 'test' });
-  const eye = buildRaytraceEye(post, iol);
-  const zPar = paraxialFocusOfRaytraceEye(eye);
-  assert.ok(Math.abs(zPar - eye.retina_z_mm) < 0.6, `foco ${zPar} vs retina ${eye.retina_z_mm}`);
+  const Pexacta = buildParaxialEye(post).exactPowerFor(0);
+  const desvio = t_mm => {
+    const eye = buildRaytraceEye(post, createGenericThickIOL({ power_d: Pexacta, thickness_mm: t_mm }));
+    return paraxialFocusOfRaytraceEye(eye) - eye.retina_z_mm;
+  };
+  const espesores = [0.05, 0.10, 0.20, 0.40];
+  const pendientes = espesores.map(t => desvio(t) / t);
+  assert.ok(Math.max(...pendientes) - Math.min(...pendientes) < 0.002,
+    `el desvío no es lineal en el espesor: ${pendientes}`);
+  // extrapolación lineal a t→0: con la potencia exacta el foco cae EN la retina
+  const intercepto = 2 * desvio(0.05) - desvio(0.10);
+  assert.ok(Math.abs(intercepto) < 1e-4, `foco fuera de retina en t→0: ${intercepto} mm`);
+  // a espesor clínico el desvío es de decenas de micras, no de décimas de mm
+  assert.ok(Math.abs(desvio(0.8)) < 0.1, `desvío a t=0.8: ${desvio(0.8)} mm`);
+});
+
+test('raytrace-eye: un exceso de potencia adelanta el foco por delante de la retina', () => {
+  const post = createPredictedPostopEye(eyeOf(), { iol_position_mm: 4.9, position_source: 'test' });
+  const Pexacta = buildParaxialEye(post).exactPowerFor(0);
+  const foco = P => {
+    const eye = buildRaytraceEye(post, createGenericThickIOL({ power_d: P, thickness_mm: 0.8 }));
+    return paraxialFocusOfRaytraceEye(eye) - eye.retina_z_mm;
+  };
+  // signo: más potencia ⇒ foco más cerca (miopización). Monótona estricta.
+  const serie = [-2, -1, 0, 1, 2].map(d => foco(Pexacta + d));
+  for (let i = 1; i < serie.length; i++) assert.ok(serie[i] < serie[i - 1], `no monótona: ${serie}`);
+  assert.ok(foco(Pexacta + 1) < 0 && foco(Pexacta - 1) > 0);
 });

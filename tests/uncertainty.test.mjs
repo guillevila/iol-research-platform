@@ -21,6 +21,10 @@ test('gauss: media y sigma correctas; sigma 0 degenerada; sigma negativa rechaza
   const xs = Array.from({ length: 20000 }, () => g(1.5, 0.4));
   const mean = xs.reduce((a, b) => a + b, 0) / xs.length;
   const sd = Math.sqrt(xs.reduce((a, b) => a + (b - mean) ** 2, 0) / xs.length);
+  // Tolerancias DERIVADAS del tamaño muestral, no elegidas (V0.5 / H10):
+  //   error típico de la media  = σ/√n     = 0.4/√20000 = 0.00283  → 0.02 ≈ 7 SE
+  //   error típico de la sd     ≈ σ/√(2n)  = 0.4/√40000 = 0.00200  → 0.02 ≈ 10 SE
+  // Con semilla fija el valor es determinista; el margen cubre cualquier semilla razonable.
   assert.ok(Math.abs(mean - 1.5) < 0.02, 'media ' + mean);
   assert.ok(Math.abs(sd - 0.4) < 0.02, 'sd ' + sd);
   assert.equal(g(2.2, 0), 2.2);
