@@ -1,0 +1,200 @@
+{
+ "models": [
+  {
+   "value": "Posterior",
+   "label": "Posterior"
+  },
+  {
+   "value": "Anterior",
+   "label": "Anterior"
+  },
+  {
+   "value": "Bitoric",
+   "label": "Bitoric"
+  },
+  {
+   "value": "Tecnis",
+   "label": "Tecnis"
+  },
+  {
+   "value": "SA6ATx",
+   "label": "Alcon SA6ATx"
+  },
+  {
+   "value": "SN6ATx",
+   "label": "Alcon SN6ATx"
+  },
+  {
+   "value": "CNW0Tx",
+   "label": "Alcon CNW0Tx"
+  },
+  {
+   "value": "Vivity",
+   "label": "Alcon Vivity"
+  },
+  {
+   "value": "Panoptix",
+   "label": "Alcon Panoptix"
+  },
+  {
+   "value": "MX60T",
+   "label": "B&L MX60T"
+  },
+  {
+   "value": "MX60ET",
+   "label": "B&L MX60ET/PT"
+  },
+  {
+   "value": "Aspire",
+   "label": "B&L Aspire"
+  },
+  {
+   "value": "Envy",
+   "label": "B&L Envy"
+  },
+  {
+   "value": "LuxGood",
+   "label": "B&L LuxGood"
+  },
+  {
+   "value": "LuxSmart",
+   "label": "B&L LuxSmart"
+  },
+  {
+   "value": "LuxLife",
+   "label": "B&L LuxLife"
+  },
+  {
+   "value": "ZCU",
+   "label": "J&J ZCU"
+  },
+  {
+   "value": "Eyhance",
+   "label": "J&J Eyhance"
+  },
+  {
+   "value": "PureSee",
+   "label": "J&J PureSee"
+  },
+  {
+   "value": "Synergy",
+   "label": "J&J Synergy"
+  },
+  {
+   "value": "Odyssey",
+   "label": "J&J Odyssey"
+  },
+  {
+   "value": "Kowa",
+   "label": "Kowa Toric"
+  },
+  {
+   "value": "Nidek",
+   "label": "Nidek NP-T"
+  },
+  {
+   "value": "EMV",
+   "label": "Rayner EMV"
+  },
+  {
+   "value": "Galaxy",
+   "label": "Rayner Galaxy"
+  },
+  {
+   "value": "Simedice",
+   "label": "Simedice Toric"
+  },
+  {
+   "value": "709M/MP",
+   "label": "Zeiss 709M/MP"
+  },
+  {
+   "value": "929M/MP",
+   "label": "Zeiss 929M/MP"
+  },
+  {
+   "value": "939M/MP",
+   "label": "Zeiss 939M/MP"
+  }
+ ],
+ "kidx": [
+  {
+   "value": "1.3375",
+   "label": "1.3375"
+  },
+  {
+   "value": "1.3315",
+   "label": "1.3315"
+  },
+  {
+   "value": "1.332",
+   "label": "1.332"
+  }
+ ],
+ "lasik": [
+  {
+   "value": "0",
+   "label": "No"
+  },
+  {
+   "value": "1",
+   "label": "Myopic"
+  },
+  {
+   "value": "2",
+   "label": "Hyperopic"
+  },
+  {
+   "value": "3",
+   "label": "Radial Keratotomy"
+  }
+ ],
+ "biom": [
+  {
+   "value": "IOLMaster 700",
+   "label": "IOLMaster 700"
+  },
+  {
+   "value": "Eyestar 900",
+   "label": "Eyestar 900"
+  },
+  {
+   "value": "Anterion",
+   "label": "Anterion"
+  },
+  {
+   "value": "Dream",
+   "label": "Dream"
+  },
+  {
+   "value": "MS39",
+   "label": "MS39"
+  },
+  {
+   "value": "Zalioth",
+   "label": "Zalioth"
+  },
+  {
+   "value": "Galilei",
+   "label": "Galilei"
+  },
+  {
+   "value": "Pentacam",
+   "label": "Pentacam"
+  },
+  {
+   "value": "Sirius",
+   "label": "Sirius"
+  }
+ ],
+ "argos": [
+  {
+   "value": "0",
+   "label": "No"
+  },
+  {
+   "value": "1",
+   "label": "Yes"
+  }
+ ]
+}

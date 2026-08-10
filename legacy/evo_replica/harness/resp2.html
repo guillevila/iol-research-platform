@@ -1,0 +1,403 @@
+
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="keywords" content="evo, emmetropia, verifying, optical, formula, iol, intraocular, lens, toric, cataract, posterior, cornea, astigmatism, calculator, 人工晶体, 公式, 计算机, 散光" /><meta name="description" content="EVO Toric IOL Calculator" /><title>
+	EVO Toric IOL Calculator v2.0
+</title>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NH99BNEHH8"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-NH99BNEHH8');
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600&amp;display=swap" rel="stylesheet" />
+
+    <style type="text/css">
+        :root {
+            --ink: #1a1a1a;
+            --accent: #595959;
+            --accent-strong: #2e2e2e;
+            --green: #7d9c3a;
+            --wordmark-grey: #6e6e6e;
+            --mist: #fafafa;
+            --line: #d6d6d6;
+            --note-red: #cc3300;
+            --panel: #f4f5ff;
+            --argos-green: #339933;
+            --info-blue: #0066cc;
+            --display: 'Space Grotesk', system-ui, sans-serif;
+            --body: 'Source Serif 4', Georgia, serif;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #ffffff;
+            color: var(--ink);
+            font-family: var(--body);
+            line-height: 1.55;
+        }
+        .shell { max-width: 920px; margin: 0 auto; padding: 0 16px 64px; }
+
+        /* ---------- masthead ---------- */
+        .mast { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 24px 0 18px; border-bottom: 2px solid var(--line); margin-bottom: 24px; }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand img { height: 48px; width: auto; }
+        .wordmark { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 5vw, 36px); letter-spacing: 0.04em; color: var(--wordmark-grey); }
+        .wordmark span { color: var(--green); margin-left: 12px; }
+        .byline { font-family: var(--display); font-size: 13px; color: #8a8a8a; }
+
+        /* ---------- form panel ---------- */
+        .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: clamp(18px, 3vw, 30px); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 36px; }
+        .field { display: grid; grid-template-columns: 170px 1fr; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .field.spacer { height: 33px; }
+        .flabel { font-family: var(--display); font-size: 15px; color: var(--accent-strong); }
+        .flabel sup { font-size: 10px; color: var(--info-blue); font-weight: 400; }
+        .divider { border-top: 2px solid #8a8a8a; margin: 6px 0 20px; }
+        .minwrap { position: relative; }
+        .minwrap .minus { position: absolute; left: -18px; top: 50%; transform: translateY(-50%); font-family: var(--display); font-size: 17px; color: var(--accent-strong); }
+        .degwrap { position: relative; display: inline-block; width: 100%; max-width: 180px; }
+        .degwrap .tb { max-width: 100%; }
+        .degwrap .deg { position: absolute; right: -16px; top: 50%; transform: translateY(-50%); font-family: var(--display); font-size: 16px; color: var(--accent-strong); }
+
+        .tb, .dd {
+            font-family: var(--display); font-size: 15px; color: var(--ink);
+            border: 1px solid #666; border-radius: 4px; padding: 6px 8px;
+            width: 100%; max-width: 180px; background: #fff;
+        }
+        .tb:focus, .dd:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        .tb[disabled] { background: #eee; color: #888; }
+
+        .radio-row { font-family: var(--display); font-size: 15px; color: var(--accent-strong); }
+        .radio-row label { margin-right: 18px; cursor: pointer; }
+        .radio-row input { margin-right: 5px; }
+
+        .err-label { display: block; font-family: var(--display); font-size: 11.5px; font-style: italic; color: var(--note-red); margin-top: 2px; }
+
+        .section-title { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 26px 0 12px; padding-top: 18px; border-top: 2px solid #8a8a8a; }
+        .subnote { font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--info-blue); margin: 0 0 10px; }
+
+        .btn-row { display: flex; gap: 16px; margin-top: 26px; flex-wrap: wrap; }
+        .btn {
+            font-family: var(--display); font-weight: 700; font-size: 15px;
+            border: 1px solid #444; border-radius: 6px; padding: 9px 0;
+            width: 130px; text-align: center;
+            cursor: pointer; background: #fff; color: var(--accent-strong);
+        }
+        .btn:hover { background: #f0f0f0; }
+        .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+        /* ---------- results panel ---------- */
+        .results { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: clamp(18px, 3vw, 30px); }
+        .res-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start; font-family: var(--display); }
+        .res-name { font-size: 24px; font-weight: 700; display: block; }
+        .res-id { font-size: 17px; font-weight: 700; display: block; }
+        .res-surgeon { font-size: 15px; color: var(--accent); display: block; }
+        .res-right { text-align: right; }
+        .res-eye-main { font-size: 24px; font-weight: 700; display: block; }
+        .res-eye-sub { font-size: 17px; font-weight: 700; display: block; }
+        .argos-badge { display: inline-block; font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--argos-green); margin-top: 0; }
+        .res-params { font-family: var(--display); font-size: 13px; color: var(--accent); text-align: center; margin: 14px 0 6px; white-space: pre-wrap; }
+        .base-line { font-family: var(--display); font-size: 15px; margin: 12px 0 0; }
+        .res-cols .base-line { margin-top: 0; }
+        .res-cols + .res-cols { margin-top: 16px; }
+
+        table.pred { width: 100%; max-width: 560px; margin: 18px auto 0; border-collapse: collapse; font-family: var(--display); }
+        table.pred th { background: #eef1e6; font-size: 15px; padding: 8px 10px; border-top: 2px solid #fff; border-bottom: 2px solid #fff; font-weight: 700; }
+        table.pred td { background: #f5f8fa; font-size: 15px; text-align: center; padding: 7px 10px; height: 34px; border-top: 2px solid #fff; border-bottom: 2px solid #fff; }
+        table.pred tr.recommended td { background: #e3eefc; font-weight: 700; }
+
+        table.toric { width: 100%; margin: 18px auto 0; border-collapse: collapse; table-layout: fixed; font-family: var(--display); }
+        table.toric th { background: #eef1e6; font-size: 14px; padding: 8px 8px; border-top: 2px solid #fff; border-bottom: 2px solid #fff; font-weight: 700; }
+        table.toric td { background: #f5f8fa; font-size: 14px; text-align: center; padding: 7px 8px; height: 32px; border-top: 2px solid #fff; border-bottom: 2px solid #fff; }
+        table.toric tr.recommended td { background: #e3eefc; font-weight: 700; }
+
+        .cyl-toggle { font-family: var(--display); font-size: 15px; text-align: center; margin: 14px 0 4px; }
+        .cyl-toggle label { margin: 0 10px; cursor: pointer; }
+        .cyl-toggle input { margin-right: 5px; }
+
+        .res-cols { display: grid; grid-template-columns: 1fr 240px; gap: 24px; align-items: start; }
+        .res-side { padding-top: 0; }
+        .res-side-flush { padding-top: 41px; }
+        .res-side-up { margin-top: -24px; }
+        .res-side-up .iol-figure { margin-top: 24px; }
+        .res-side .rec-box:first-child { margin-top: 0; }
+        .iol-figure { text-align: center; font-family: var(--display); }
+        .iol-figure img { max-width: 190px; height: auto; }
+        .iol-sia { display: block; font-size: 11px; color: var(--ink); margin-top: 4px; }
+        .rec-box { border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; margin: 6px auto 0; width: 190px; max-width: 100%; font-family: var(--display); font-size: 11.5px; line-height: 1.25; }
+        .rec-box h5 { margin: 0 0 2px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); text-decoration: underline; }
+        .rec-box span.val { font-weight: 400; }
+
+        .small-note { display: block; font-family: var(--display); font-size: 12.5px; color: var(--ink); text-align: center; margin-top: 6px; }
+        .lasik-flag { font-family: var(--display); font-weight: 700; color: var(--note-red); text-align: center; margin: 10px 0 0; display: block; }
+        .limit-msg { display: block; font-family: var(--display); font-weight: 700; color: var(--info-blue); text-align: center; margin-top: 8px; }
+        .posbio-note { font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--info-blue); text-align: center; margin-top: 8px; display: block; }
+        .posbio-para { font-family: var(--display); font-size: 13px; color: var(--ink); text-align: center; display: block; }
+
+        /* ---------- debug panels ---------- */
+        .dbg h4 { font-family: var(--display); font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; margin: 18px 0 6px; color: var(--accent-strong); }
+        .dbg-grid { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+        .dbg-grid label { font-family: var(--display); font-size: 12px; color: var(--accent); display: block; }
+        .dbg-grid input { display: block; font-family: var(--display); font-size: 12px; width: 100px; border: 1px solid #666; border-radius: 3px; padding: 3px 5px; }
+
+        @media (max-width: 700px) {
+            .grid { grid-template-columns: 1fr; }
+            .field { grid-template-columns: 1fr; gap: 2px; }
+            .tb, .dd { max-width: 100%; }
+            .degwrap { max-width: calc(100% - 22px); }
+            .res-cols { grid-template-columns: 1fr; }
+        }
+@media print {
+    @page { size: A4 portrait; margin: 10mm 12mm; }
+
+    body { background: #fff; }
+    .shell { max-width: 100%; padding: 0; }
+
+    /* Print only the results: hide the input form and debug panels */
+    .panel, .dbg, .btn-row, .mast .byline { display: none !important; }
+
+    /* Compact masthead */
+    .mast { padding: 0 0 6px; margin-bottom: 10px; border-bottom-width: 1px; }
+    .wordmark { font-size: 20px; }
+
+    .results { border: none; padding: 0; }
+
+    /* Tighten tables so everything fits one page */
+    table.pred th, table.pred td { font-size: 11px; padding: 4px 8px; }
+    table.toric th, table.toric td { font-size: 10.5px; padding: 4px 6px; }
+    table.pred td, table.toric td { height: 24px; }
+    table.pred, table.toric { margin-top: 8px; }
+
+    /* Slim down the side column and IOL diagram */
+    .res-cols { grid-template-columns: 1fr 200px; gap: 12px; }
+    .res-cols + .res-cols { margin-top: 8px; }
+    .iol-figure img { width: 150px !important; height: 150px !important; }
+    .rec-box { width: 170px; font-size: 10.5px; }
+
+    /* Hide the interactive -ve/+ve cyl radio buttons (optional) */
+    .cyl-toggle { display: none; }
+
+    /* Never split a table, box, or the diagram across two pages */
+    table.pred, table.toric, .rec-box, .iol-figure {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* Keep the shaded "recommended" rows and table headers visible in print */
+    table.pred th, table.pred td,
+    table.toric th, table.toric td {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+        
+    </style>
+</head>
+<body>
+    <form method="post" action="./toric.aspx" id="form1">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__LASTFOCUS" id="__LASTFOCUS" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="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" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="E2FE294F" />
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="lUVbqKr5cvdzyGEyJzl6gU/rTbgz14mbCQD9u3LeqhpbCEYez/wAD8kltxFwak0MHL0XIjdgPm/IS2P2TFX04eyRnZGazZi2ki1h8b/GUGH+/Wmvy135vwbJ7AR0AFiP64QV4u7s8CK4rlmsvgWCeYytPhaoBzKq8XxqX6NiWG1IOdlmci6DcqS0UiRnF62ZwMy+MoIIuzVg/QBl3sxL0A==" />
+</div>
+        <div class="shell">
+
+            <!-- ===================== MASTHEAD ===================== -->
+            <div class="mast">
+                <div class="brand">
+                    
+                    
+                    <a href="Start.aspx" style="text-decoration: none;"><span class="wordmark">EVO<span>TORIC IOL CALCULATOR v2.0</span></span></a>
+                </div>
+                <span class="byline">Tun Kuan Yeo</span>
+            </div>
+
+            <!-- ===================== INPUT PANEL ===================== -->
+            
+
+            <!-- ===================== TORIC STEP PANEL (server-side hidden, as before) ===================== -->
+            
+
+            <!-- ===================== RESULTS PANEL ===================== -->
+            <div id="PnPred" class="results">
+	
+
+                <div class="res-head">
+                    <span>
+                        <span id="Labelname" class="res-name">T</span>
+                        <span id="LabelID" class="res-id">1</span>
+                        <span id="LabelSurgeon" class="res-surgeon">Surgeon: D</span>
+                    </span>
+                    <span class="res-right">
+                        <span id="LabelODOS" class="res-eye-main">OD</span>
+                        <span id="LabelRL" class="res-eye-sub">RIGHT</span>
+                        
+                    </span>
+                </div>
+
+                <p class="res-params"><span id="Labelpara1">A Constant: 119.3&nbsp;&nbsp;Toric Model: Tecnis&nbsp;&nbsp;K Index: 1.3375</span></p>
+                <p class="res-params"><span id="Labelpara2">AL: 23.5&nbsp;&nbsp;K1: 43&nbsp;@&nbsp;180°&nbsp;&nbsp;K2: 45&nbsp;@&nbsp;90°&nbsp;&nbsp;ACD: 3.2&nbsp;&nbsp;LT: 4.5&nbsp;&nbsp;CCT: 550&nbsp;&nbsp;Ref: 0</span></p>
+
+                <p class="base-line">Toric: <span id="LabelBaseToric">1.5</span></p>
+
+                <div class="res-cols">
+                    <div>
+                        <table class="pred">
+                            <tr>
+                                <th>IOL Power (SE)</th>
+                                <th>Refraction (SE)</th>
+                            </tr>
+                            <tr>
+                                <td><span id="lblResult_IOL1">20</span></td>
+                                <td><span id="lblResult_Refraction1">0.74</span></td>
+                            </tr>
+                            <tr>
+                                <td><span id="lblResult_IOL2">20.5</span></td>
+                                <td><span id="lblResult_Refraction2">0.44</span></td>
+                            </tr>
+                            <tr class="recommended">
+                                <td><span id="lblResult_IOL3">21</span></td>
+                                <td><span id="lblResult_Refraction3">0.13</span></td>
+                            </tr>
+                            <tr>
+                                <td><span id="lblResult_IOL4">21.5</span></td>
+                                <td><span id="lblResult_Refraction4">-0.19</span></td>
+                            </tr>
+                            <tr>
+                                <td><span id="lblResult_IOL5">22</span></td>
+                                <td><span id="lblResult_Refraction5">-0.5</span></td>
+                            </tr>
+                        </table>
+
+                        
+                    </div>
+
+                    <div class="res-side res-side-up">
+                        <div class="cyl-toggle">
+                            <span id="RadioBtnCyl" class="radio-row"><input id="RadioBtnCyl_0" type="radio" name="RadioBtnCyl" value="0" checked="checked" /><label for="RadioBtnCyl_0">-ve cyl</label><input id="RadioBtnCyl_1" type="radio" name="RadioBtnCyl" value="1" onclick="javascript:setTimeout(&#39;__doPostBack(\&#39;RadioBtnCyl$1\&#39;,\&#39;\&#39;)&#39;, 0)" /><label for="RadioBtnCyl_1">+ve cyl</label></span>
+                        </div>
+                        <div class="iol-figure">
+                            <img id="ImageIOL" src="/89.jpg" align="top" style="height:190px;width:190px;" />
+                            <span id="LabelSIA" class="iol-sia">SIA: 0.1&nbsp;&nbsp;Incision: 100°</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="res-cols">
+                    <div>
+                        <p class="base-line">IOL (SE): <span id="LabelBaseIOL">21</span></p>
+
+                        <table class="toric">
+                            <tr>
+                                <th>Toric</th>
+                                <th>IOL Axis</th>
+                                <th>Refraction</th>
+                                <th>Residual Cyl</th>
+                                <th>Axis</th>
+                            </tr>
+                            <tr>
+                                <td><span id="LblToric1">1</span></td>
+                                <td><span id="LblIOLAxis1">89°</span></td>
+                                <td><span id="LblToricRef1">0.12</span></td>
+                                <td><span id="LblResiCyl1">-0.43</span></td>
+                                <td><span id="LblToricAxis1">179°</span></td>
+                            </tr>
+                            <tr class="recommended">
+                                <td><span id="LblToric2">1.5</span></td>
+                                <td><span id="LblIOLAxis2">89°</span></td>
+                                <td><span id="LblToricRef2">0.13</span></td>
+                                <td><span id="LblResiCyl2">-0.1</span></td>
+                                <td><span id="LblToricAxis2">179°</span></td>
+                            </tr>
+                            <tr>
+                                <td><span id="LblToric3">2.25</span></td>
+                                <td><span id="LblIOLAxis3">89°</span></td>
+                                <td><span id="LblToricRef3">0.15</span></td>
+                                <td><span id="LblResiCyl3">-0.41</span></td>
+                                <td><span id="LblToricAxis3">89°</span></td>
+                            </tr>
+                        </table>
+
+                        
+                        
+                        
+                    </div>
+
+                    <div class="res-side res-side-flush">
+                        <div class="rec-box">
+                            <h5>Recommendation</h5>
+                            IOL (SE): <span id="LabelRecIOL" class="val">21</span><br />
+                            Toric: <span id="LabelRecToric" class="val">1.5</span>&nbsp;<span id="LblRecT" class="val"></span><br />
+                            IOL Axis: <span id="LabelRecAxis" class="val">89°</span>
+                        </div>
+                        <div class="rec-box">
+                            <h5>Prediction</h5>
+                            Ref (SE): <span id="LabelPredRef" class="val">0.13</span><br />
+                            Cyl: <span id="LabelPredCyl" class="val">-0.1</span><br />
+                            Axis: <span id="LabelPredAxis" class="val">179°</span><br />
+                            Defocus Eq: <span id="LabelPredDE" title="Defocus Equivalent" class="val">0.18</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 12px;">
+                    
+                    
+                    
+                </div>
+
+                <div style="text-align: center; margin-top: 10px;">
+                    
+                    <span id="LabelPosBio2" class="posbio-note">Predicted Posterior Cornea</span>
+                    
+                    
+                </div>
+
+                <script type="text/javascript">function PrintPage() { window.print(); }</script>
+
+                <div class="btn-row" style="justify-content: center;">
+                    <input type="submit" name="btnPrint" value="Print" onclick="javascript:PrintPage(); return false;" id="btnPrint" tabindex="14" class="btn" />
+                    <input type="submit" name="btnBack" value="Back" id="btnBack" tabindex="15" class="btn" />
+                </div>
+
+            
+</div>
+
+            <!-- ===================== DEBUG PANEL (server-side hidden, as before) ===================== -->
+            
+
+        </div>
+    </form>
+</body>
+</html>

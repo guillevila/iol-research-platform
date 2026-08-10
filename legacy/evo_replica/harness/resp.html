@@ -1,0 +1,528 @@
+
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="keywords" content="evo, emmetropia, verifying, optical, formula, iol, intraocular, lens, toric, cataract, posterior, cornea, astigmatism, calculator, 人工晶体, 公式, 计算机, 散光" /><meta name="description" content="EVO Toric IOL Calculator" /><title>
+	EVO Toric IOL Calculator v2.0
+</title>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NH99BNEHH8"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-NH99BNEHH8');
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600&amp;display=swap" rel="stylesheet" />
+
+    <style type="text/css">
+        :root {
+            --ink: #1a1a1a;
+            --accent: #595959;
+            --accent-strong: #2e2e2e;
+            --green: #7d9c3a;
+            --wordmark-grey: #6e6e6e;
+            --mist: #fafafa;
+            --line: #d6d6d6;
+            --note-red: #cc3300;
+            --panel: #f4f5ff;
+            --argos-green: #339933;
+            --info-blue: #0066cc;
+            --display: 'Space Grotesk', system-ui, sans-serif;
+            --body: 'Source Serif 4', Georgia, serif;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #ffffff;
+            color: var(--ink);
+            font-family: var(--body);
+            line-height: 1.55;
+        }
+        .shell { max-width: 920px; margin: 0 auto; padding: 0 16px 64px; }
+
+        /* ---------- masthead ---------- */
+        .mast { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 24px 0 18px; border-bottom: 2px solid var(--line); margin-bottom: 24px; }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand img { height: 48px; width: auto; }
+        .wordmark { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 5vw, 36px); letter-spacing: 0.04em; color: var(--wordmark-grey); }
+        .wordmark span { color: var(--green); margin-left: 12px; }
+        .byline { font-family: var(--display); font-size: 13px; color: #8a8a8a; }
+
+        /* ---------- form panel ---------- */
+        .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: clamp(18px, 3vw, 30px); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 36px; }
+        .field { display: grid; grid-template-columns: 170px 1fr; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .field.spacer { height: 33px; }
+        .flabel { font-family: var(--display); font-size: 15px; color: var(--accent-strong); }
+        .flabel sup { font-size: 10px; color: var(--info-blue); font-weight: 400; }
+        .divider { border-top: 2px solid #8a8a8a; margin: 6px 0 20px; }
+        .minwrap { position: relative; }
+        .minwrap .minus { position: absolute; left: -18px; top: 50%; transform: translateY(-50%); font-family: var(--display); font-size: 17px; color: var(--accent-strong); }
+        .degwrap { position: relative; display: inline-block; width: 100%; max-width: 180px; }
+        .degwrap .tb { max-width: 100%; }
+        .degwrap .deg { position: absolute; right: -16px; top: 50%; transform: translateY(-50%); font-family: var(--display); font-size: 16px; color: var(--accent-strong); }
+
+        .tb, .dd {
+            font-family: var(--display); font-size: 15px; color: var(--ink);
+            border: 1px solid #666; border-radius: 4px; padding: 6px 8px;
+            width: 100%; max-width: 180px; background: #fff;
+        }
+        .tb:focus, .dd:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        .tb[disabled] { background: #eee; color: #888; }
+
+        .radio-row { font-family: var(--display); font-size: 15px; color: var(--accent-strong); }
+        .radio-row label { margin-right: 18px; cursor: pointer; }
+        .radio-row input { margin-right: 5px; }
+
+        .err-label { display: block; font-family: var(--display); font-size: 11.5px; font-style: italic; color: var(--note-red); margin-top: 2px; }
+
+        .section-title { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 26px 0 12px; padding-top: 18px; border-top: 2px solid #8a8a8a; }
+        .subnote { font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--info-blue); margin: 0 0 10px; }
+
+        .btn-row { display: flex; gap: 16px; margin-top: 26px; flex-wrap: wrap; }
+        .btn {
+            font-family: var(--display); font-weight: 700; font-size: 15px;
+            border: 1px solid #444; border-radius: 6px; padding: 9px 0;
+            width: 130px; text-align: center;
+            cursor: pointer; background: #fff; color: var(--accent-strong);
+        }
+        .btn:hover { background: #f0f0f0; }
+        .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+        /* ---------- results panel ---------- */
+        .results { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: clamp(18px, 3vw, 30px); }
+        .res-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start; font-family: var(--display); }
+        .res-name { font-size: 24px; font-weight: 700; display: block; }
+        .res-id { font-size: 17px; font-weight: 700; display: block; }
+        .res-surgeon { font-size: 15px; color: var(--accent); display: block; }
+        .res-right { text-align: right; }
+        .res-eye-main { font-size: 24px; font-weight: 700; display: block; }
+        .res-eye-sub { font-size: 17px; font-weight: 700; display: block; }
+        .argos-badge { display: inline-block; font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--argos-green); margin-top: 0; }
+        .res-params { font-family: var(--display); font-size: 13px; color: var(--accent); text-align: center; margin: 14px 0 6px; white-space: pre-wrap; }
+        .base-line { font-family: var(--display); font-size: 15px; margin: 12px 0 0; }
+        .res-cols .base-line { margin-top: 0; }
+        .res-cols + .res-cols { margin-top: 16px; }
+
+        table.pred { width: 100%; max-width: 560px; margin: 18px auto 0; border-collapse: collapse; font-family: var(--display); }
+        table.pred th { background: #eef1e6; font-size: 15px; padding: 8px 10px; border-top: 2px solid #fff; border-bottom: 2px solid #fff; font-weight: 700; }
+        table.pred td { background: #f5f8fa; font-size: 15px; text-align: center; padding: 7px 10px; height: 34px; border-top: 2px solid #fff; border-bottom: 2px solid #fff; }
+        table.pred tr.recommended td { background: #e3eefc; font-weight: 700; }
+
+        table.toric { width: 100%; margin: 18px auto 0; border-collapse: collapse; table-layout: fixed; font-family: var(--display); }
+        table.toric th { background: #eef1e6; font-size: 14px; padding: 8px 8px; border-top: 2px solid #fff; border-bottom: 2px solid #fff; font-weight: 700; }
+        table.toric td { background: #f5f8fa; font-size: 14px; text-align: center; padding: 7px 8px; height: 32px; border-top: 2px solid #fff; border-bottom: 2px solid #fff; }
+        table.toric tr.recommended td { background: #e3eefc; font-weight: 700; }
+
+        .cyl-toggle { font-family: var(--display); font-size: 15px; text-align: center; margin: 14px 0 4px; }
+        .cyl-toggle label { margin: 0 10px; cursor: pointer; }
+        .cyl-toggle input { margin-right: 5px; }
+
+        .res-cols { display: grid; grid-template-columns: 1fr 240px; gap: 24px; align-items: start; }
+        .res-side { padding-top: 0; }
+        .res-side-flush { padding-top: 41px; }
+        .res-side-up { margin-top: -24px; }
+        .res-side-up .iol-figure { margin-top: 24px; }
+        .res-side .rec-box:first-child { margin-top: 0; }
+        .iol-figure { text-align: center; font-family: var(--display); }
+        .iol-figure img { max-width: 190px; height: auto; }
+        .iol-sia { display: block; font-size: 11px; color: var(--ink); margin-top: 4px; }
+        .rec-box { border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; margin: 6px auto 0; width: 190px; max-width: 100%; font-family: var(--display); font-size: 11.5px; line-height: 1.25; }
+        .rec-box h5 { margin: 0 0 2px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); text-decoration: underline; }
+        .rec-box span.val { font-weight: 400; }
+
+        .small-note { display: block; font-family: var(--display); font-size: 12.5px; color: var(--ink); text-align: center; margin-top: 6px; }
+        .lasik-flag { font-family: var(--display); font-weight: 700; color: var(--note-red); text-align: center; margin: 10px 0 0; display: block; }
+        .limit-msg { display: block; font-family: var(--display); font-weight: 700; color: var(--info-blue); text-align: center; margin-top: 8px; }
+        .posbio-note { font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--info-blue); text-align: center; margin-top: 8px; display: block; }
+        .posbio-para { font-family: var(--display); font-size: 13px; color: var(--ink); text-align: center; display: block; }
+
+        /* ---------- debug panels ---------- */
+        .dbg h4 { font-family: var(--display); font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; margin: 18px 0 6px; color: var(--accent-strong); }
+        .dbg-grid { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+        .dbg-grid label { font-family: var(--display); font-size: 12px; color: var(--accent); display: block; }
+        .dbg-grid input { display: block; font-family: var(--display); font-size: 12px; width: 100px; border: 1px solid #666; border-radius: 3px; padding: 3px 5px; }
+
+        @media (max-width: 700px) {
+            .grid { grid-template-columns: 1fr; }
+            .field { grid-template-columns: 1fr; gap: 2px; }
+            .tb, .dd { max-width: 100%; }
+            .degwrap { max-width: calc(100% - 22px); }
+            .res-cols { grid-template-columns: 1fr; }
+        }
+@media print {
+    @page { size: A4 portrait; margin: 10mm 12mm; }
+
+    body { background: #fff; }
+    .shell { max-width: 100%; padding: 0; }
+
+    /* Print only the results: hide the input form and debug panels */
+    .panel, .dbg, .btn-row, .mast .byline { display: none !important; }
+
+    /* Compact masthead */
+    .mast { padding: 0 0 6px; margin-bottom: 10px; border-bottom-width: 1px; }
+    .wordmark { font-size: 20px; }
+
+    .results { border: none; padding: 0; }
+
+    /* Tighten tables so everything fits one page */
+    table.pred th, table.pred td { font-size: 11px; padding: 4px 8px; }
+    table.toric th, table.toric td { font-size: 10.5px; padding: 4px 6px; }
+    table.pred td, table.toric td { height: 24px; }
+    table.pred, table.toric { margin-top: 8px; }
+
+    /* Slim down the side column and IOL diagram */
+    .res-cols { grid-template-columns: 1fr 200px; gap: 12px; }
+    .res-cols + .res-cols { margin-top: 8px; }
+    .iol-figure img { width: 150px !important; height: 150px !important; }
+    .rec-box { width: 170px; font-size: 10.5px; }
+
+    /* Hide the interactive -ve/+ve cyl radio buttons (optional) */
+    .cyl-toggle { display: none; }
+
+    /* Never split a table, box, or the diagram across two pages */
+    table.pred, table.toric, .rec-box, .iol-figure {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* Keep the shaded "recommended" rows and table headers visible in print */
+    table.pred th, table.pred td,
+    table.toric th, table.toric td {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+        
+    </style>
+</head>
+<body>
+    <form method="post" action="./toric.aspx" id="form1">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__LASTFOCUS" id="__LASTFOCUS" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="er9e44AQ+So+DhJ2kEnrjQdR4idcFZ85k2v8W+16C7nsh7p+XO608vVBNSws+UnESZuqAEvBwTDyQ7TmN9xeWioF6Oj1g0RbAKNWMVFehqB/Cat5FtS7gX6aY9E4SnSxTzpzw+FooV4zyHMvCv88+61JV7n0Y47ffIJnGRPtnbXWQSfNM8BHBX8JpJu4X3fLnBrW6C06GRza5LTRSIxlfDeFN8tGv8u+lRzZLuJTFfQ=" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="E2FE294F" />
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="QOuuusYtwTFg696D+4fpgcqJy0jQsMhlXUx4IF92m1wvVfOjCowjIZ0jUOQVbiVwdrhomftX+5pac5OcJ5/fVGVxNu3bl2Dy4T8himVq6uGH/lsKil1+a6sT4FdwCwNZPjNEzr09DeDjGWilBtt/dyAwkycfFjMQkfVRlvVCsJ/lkaReKK5mjf1ymtVusFhvWLPRb48NhtJKKsrgXRBV8/qHhJoZW095MPaB7Gg/fsuaYIDoUGF4ibKJknuVaObT19pwUSw7aqkQkng91Sx6Wj7fhHVjAVWQOf2GMf4YSygweO8Jl0txE7GllnK1rmDoewzFP9oavRvcNSMflSGFVYNp9d4AMyFnVzXFx+usm1IRz0T4C3wmmAz3X+j89Q75zFkUO+zXfGmUY//w1v7F140bXEvHGkdaT7DAi6mlK9cF9YdkEWo+drMDnw7thgO4CkD7lKQc6GusZrC2P4E8Xr7ZgdwZG7fp/8CVIEKzoiVfS9CMNsDruH3CxAeQycfjA2fjEt4z/IrdRF4Mllc21ecfAO4s9P3UjVLdrY/1f/M+iDlpcGFA6Q1t7sYWkD7J7dviI8CD8wUIf6mgK4myar01QY+7xasdG7TVdae9RhAOC4u5UE9cbmp1dBSTsiUZ3Cz20sconJmua7AQB55VVDVp9E5PJLVY/4tIcYbn5RsWjcNfqDFCO7JP1ZkPsY0X6U+Se5o4xXd0/FT1Nr27UC+LK77rl0Sg3znQwDsdpAlbwNNjIEpioQcuIf57bDQ+k0AEjE0Y4PeAZeIgw88FzaFp5Jj1DbFWgn5jm8FFXl9XfyZ36r5ReIK4O1I0cC2+CL+RhkpftcaITZYZ2OsCKqlIwBA6/Q302ZfLxhl4Z4rMYiUWZJWgOhVixz1ox20KiY+E2tVNZjykbvgssq8CTb3NuPRgksNoEtntsF5q8EccAZRFzS6RhI6cU/4kn80FlPpokNfLy20DWtuizo/4EMsgJ1Ho7XfYrLrfbz6AuEjJ/mb0gcf2Ls2DZgAJPggnUgwOnO4ldDdLy6Xy4Cg8MZccjdXns33Pqhki0TB0e2Ib+HZrw2kkDuBlHyRLVlHR9XKOyEDX681n3LDd+j4MOlWTMSB2Op5DbwglqWFTxQ7xf27IoKkua+rCgkbEzDxAR0R/Yf0WYlATODjdEp98nIVAVNPANcQOAUIqzIO0bCaHDRDT/lc9Og4DHJvZh04cEhzmSIJNzQQI9CHypMi+oin/YQAA72KuefDZT+5x2iOMPyrvrRrXRA5dzAuCD9+tXUx5dpos/M/TIRmCMQH4G6+/XUuOCav9LMENlH33tIY70D/NI5xi1ZkHacINDnH2tUhJPOhgTfbO/g6x/czuu3BFE4vbCpqZ8c7D0ky70EqDXFv0Btso8apOmKf22DGtMb82+H4NAAh5k9ULkUQMyA+TYEWTLEyhdKDba6/I97qq1HxSugdpt+SfiFTULD1oYrihtT5eSwT0kkKPqBndV575pl3XSuU3L3h5TY5GveBxcrJ1BDxYQeT/z/8yttvyxkh1tX6FU4UVY3R6hqHjuV9SCRUzv1rqjmT79enqNcqM/A7jNlB0LJKjVxwfUrRvAm6/q0JpBajmrdpcqmrfN34i3Gq95PMQC70Q6q5l1ksoc7hMabBlBvLCXwKgW8DUGAWIQ+jxNZdXTian3Sl8/df/28St86z/zin+fE6Sjx1TagEUP5UVB1eosA1c3HvSxW6J9f1WfByQPSlUX0h+hVHqMWKK+R6uazxmQGFFRCc=" />
+</div>
+        <div class="shell">
+
+            <!-- ===================== MASTHEAD ===================== -->
+            <div class="mast">
+                <div class="brand">
+                    
+                    
+                    <a href="Start.aspx" style="text-decoration: none;"><span class="wordmark">EVO<span>TORIC IOL CALCULATOR v2.0</span></span></a>
+                </div>
+                <span class="byline">Tun Kuan Yeo</span>
+            </div>
+
+            <!-- ===================== INPUT PANEL ===================== -->
+            <div id="PnInput" class="panel">
+	
+
+                <!-- Patient information block -->
+                <div class="grid">
+                    <div>
+                        <div class="field">
+                            <span class="flabel">Patient Name</span>
+                            <span>
+                                <input name="TextBoxName" type="text" value="T" maxlength="30" id="TextBoxName" tabindex="1" class="tb" />
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">Patient Identifier</span>
+                            <input name="TextBoxID" type="text" value="1" maxlength="30" id="TextBoxID" tabindex="2" class="tb" />
+                        </div>
+                        <div class="field">
+                            <span class="flabel">Surgeon</span>
+                            <input name="TextBoxSurgeon" type="text" value="D" maxlength="30" id="TextBoxSurgeon" tabindex="3" class="tb" />
+                        </div>
+                    </div>
+                    <div>
+                        <div class="field">
+                            <span class="flabel">Argos Biometer</span>
+                            <select name="DropDownArgos" onchange="javascript:setTimeout(&#39;__doPostBack(\&#39;DropDownArgos\&#39;,\&#39;\&#39;)&#39;, 0)" id="DropDownArgos" tabindex="27" title="Select Yes for Argos biometry" class="dd">
+		<option selected="selected" value="0">No</option>
+		<option value="1">Yes</option>
+
+	</select>
+                        </div>
+                        <div class="field spacer" aria-hidden="true"></div>
+                            <div class="field" style="white-space: nowrap;">
+                                <span class="flabel">Eye</span>
+                                <span id="RadioButtonRLEye" class="radio-row"><input id="RadioButtonRLEye_0" type="radio" name="RadioButtonRLEye" value="1" checked="checked" /><label for="RadioButtonRLEye_0">Right</label><input id="RadioButtonRLEye_1" type="radio" name="RadioButtonRLEye" value="0" /><label for="RadioButtonRLEye_1">Left</label></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Biometry block -->
+                <div class="grid">
+                    <div>
+                        <div class="field">
+                            <span class="flabel">Axial Length</span>
+                            <span>
+                                <input name="txtAL" type="text" value="23.50" maxlength="6" id="txtAL" tabindex="4" class="tb" />
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">K1 (Flat)</span>
+                            <span>
+                                <input name="txtK1" type="text" value="43.00" maxlength="6" id="txtK1" tabindex="5" class="tb" />
+                                
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">K1 Axis</span>
+                            <span>
+                                <span class="degwrap"><input name="TxtK1Axis" type="text" value="180" maxlength="3" id="TxtK1Axis" tabindex="6" class="tb" /><span class="deg">&deg;</span></span>
+                                
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">K2 (Steep)</span>
+                            <span>
+                                <input name="txtK2" type="text" value="45.00" maxlength="6" id="txtK2" tabindex="7" class="tb" />
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">K2 Axis</span>
+                            <span>
+                                <span class="degwrap"><input name="TxtK2Axis" type="text" value="90" maxlength="3" id="TxtK2Axis" tabindex="8" class="tb" /><span class="deg">&deg;</span></span>
+                                
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">Optical ACD</span>
+                            <span>
+                                <input name="txtACD" type="text" value="3.20" maxlength="5" id="txtACD" tabindex="9" title="Optional but accuracy higher with ACD" class="tb" />
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">Lens Thickness <sup>Optional</sup></span>
+                            <span>
+                                <input name="txtLT" type="text" value="4.50" maxlength="5" id="txtLT" tabindex="10" title="Optional but accuracy higher with LT" class="tb" />
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">CCT <sup>Optional</sup></span>
+                            <span>
+                                <input name="txtCCT" type="text" value="550" maxlength="5" id="txtCCT" tabindex="11" title="Optional but accuracy higher with CCT" class="tb" />
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">Target Refraction</span>
+                            <span>
+                                <input name="txtRefraction" type="text" value="0" maxlength="5" id="txtRefraction" tabindex="12" class="tb" />
+                                
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="field">
+                            <span class="flabel">A Constant</span>
+                            <span>
+                                <input name="txtAConstant" type="text" maxlength="6" id="txtAConstant" tabindex="13" title="Use ULIB SKR/T A Constant for Optical Biometry. Use Manufacturer&#39;s Ultrasound A Constant for A-Scan Biometry." class="tb" />
+                                <span id="error_aconstant" class="err-label">* Range 110 to 125</span>
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">Toric Model</span>
+                            <select name="DropDownToric" onchange="javascript:setTimeout(&#39;__doPostBack(\&#39;DropDownToric\&#39;,\&#39;\&#39;)&#39;, 0)" id="DropDownToric" tabindex="14" title="Select Posterior, Anterior or Bitoric" class="dd">
+		<option value="Posterior">Posterior</option>
+		<option value="Anterior">Anterior</option>
+		<option value="Bitoric">Bitoric</option>
+		<option selected="selected" value="Tecnis">Tecnis</option>
+		<option value="SA6ATx">Alcon SA6ATx</option>
+		<option value="SN6ATx">Alcon SN6ATx</option>
+		<option value="CNW0Tx">Alcon CNW0Tx</option>
+		<option value="Vivity">Alcon Vivity</option>
+		<option value="Panoptix">Alcon Panoptix</option>
+		<option value="MX60T">B&amp;L MX60T</option>
+		<option value="MX60ET">B&amp;L MX60ET/PT</option>
+		<option value="Aspire">B&amp;L Aspire</option>
+		<option value="Envy">B&amp;L Envy</option>
+		<option value="LuxGood">B&amp;L LuxGood</option>
+		<option value="LuxSmart">B&amp;L LuxSmart</option>
+		<option value="LuxLife">B&amp;L LuxLife</option>
+		<option value="ZCU">J&amp;J ZCU</option>
+		<option value="Eyhance">J&amp;J Eyhance</option>
+		<option value="PureSee">J&amp;J PureSee</option>
+		<option value="Synergy">J&amp;J Synergy</option>
+		<option value="Odyssey">J&amp;J Odyssey</option>
+		<option value="Kowa">Kowa Toric</option>
+		<option value="Nidek">Nidek NP-T</option>
+		<option value="EMV">Rayner EMV</option>
+		<option value="Galaxy">Rayner Galaxy</option>
+		<option value="Simedice">Simedice Toric</option>
+		<option value="709M/MP">Zeiss 709M/MP</option>
+		<option value="929M/MP">Zeiss 929M/MP</option>
+		<option value="939M/MP">Zeiss 939M/MP</option>
+
+	</select>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">K Index</span>
+                            <select name="DropDownKIndex" onchange="javascript:setTimeout(&#39;__doPostBack(\&#39;DropDownKIndex\&#39;,\&#39;\&#39;)&#39;, 0)" id="DropDownKIndex" tabindex="15" class="dd">
+		<option selected="selected" value="1.3375">1.3375</option>
+		<option value="1.3315">1.3315</option>
+		<option value="1.332">1.332</option>
+
+	</select>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">SIA</span>
+                            <span>
+                                <input name="TxtSIA" type="text" value="0.10" maxlength="5" id="TxtSIA" tabindex="16" class="tb" />
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">Incision Axis</span>
+                            <span>
+                                <span class="degwrap"><input name="TxtSIAaxis" type="text" value="100" maxlength="3" id="TxtSIAaxis" tabindex="17" class="tb" /><span class="deg">&deg;</span></span>
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">Post LASIK/PRK/RK</span>
+                            <select name="DropDownLASIK" onchange="javascript:setTimeout(&#39;__doPostBack(\&#39;DropDownLASIK\&#39;,\&#39;\&#39;)&#39;, 0)" id="DropDownLASIK" tabindex="18" title="Select if previous LASIK/PRK" class="dd">
+		<option selected="selected" value="0">No</option>
+		<option value="1">Myopic</option>
+		<option value="2">Hyperopic</option>
+		<option value="3">Radial Keratotomy</option>
+
+	</select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced options -->
+                <div class="section-title">Advanced Options</div>
+                <div class="grid">
+                    <div>
+                        <p class="subnote">Measured Posterior Cornea (D)</p>
+                        <div class="field">
+                            <span class="flabel">Biometer</span>
+                            <select name="DropDownListPK" onchange="javascript:setTimeout(&#39;__doPostBack(\&#39;DropDownListPK\&#39;,\&#39;\&#39;)&#39;, 0)" id="DropDownListPK" tabindex="20" title="Select biometer for posterior cornea measurement" class="dd">
+		<option selected="selected" value="IOLMaster 700">IOLMaster 700</option>
+		<option value="Eyestar 900">Eyestar 900</option>
+		<option value="Anterion">Anterion</option>
+		<option value="Dream">Dream</option>
+		<option value="MS39">MS39</option>
+		<option value="Zalioth">Zalioth</option>
+		<option value="Galilei">Galilei</option>
+		<option value="Pentacam">Pentacam</option>
+		<option value="Sirius">Sirius</option>
+
+	</select>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">PK1</span>
+                            <span class="minwrap"><span class="minus">&minus;</span>
+                                <input name="txtPK1" type="text" maxlength="6" id="txtPK1" tabindex="21" class="tb" />
+                                
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">PK1 Axis</span>
+                            <span>
+                                <span class="degwrap"><input name="TxtPK1axis" type="text" maxlength="6" id="TxtPK1axis" tabindex="22" class="tb" /><span class="deg">&deg;</span></span>
+                                
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">PK2</span>
+                            <span class="minwrap"><span class="minus">&minus;</span>
+                                <input name="txtPK2" type="text" maxlength="6" id="txtPK2" tabindex="23" class="tb" />
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">PK2 Axis</span>
+                            <span>
+                                <span class="degwrap"><input name="TxtPK2axis" type="text" maxlength="6" id="TxtPK2axis" tabindex="24" class="tb" /><span class="deg">&deg;</span></span>
+                                
+                                
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="subnote">Refractive History (Myopic LASIK/PRK)</p>
+                        <div class="field">
+                            <span class="flabel">Pre LASIK SE</span>
+                            <span>
+                                <input name="txtPreLASIK" type="text" maxlength="6" id="txtPreLASIK" disabled="disabled" tabindex="25" title="Pre LASIK spherical equivalent refraction" class="aspNetDisabled tb" />
+                                
+                            </span>
+                        </div>
+                        <div class="field">
+                            <span class="flabel">Post LASIK SE</span>
+                            <span>
+                                <input name="txtPostLASIK" type="text" maxlength="6" id="txtPostLASIK" disabled="disabled" tabindex="26" title="Post LASIK spherical equivalent refraction" class="aspNetDisabled tb" />
+                                
+                                
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-row" style="justify-content: center;">
+                    <input type="submit" name="btnCalculate" value="Calculate" id="btnCalculate" tabindex="19" class="btn" />
+                    <input type="submit" name="btnReset" value="Clear" id="btnReset" tabindex="28" class="btn" />
+                </div>
+
+            
+</div>
+
+            <!-- ===================== TORIC STEP PANEL (server-side hidden, as before) ===================== -->
+            
+
+            <!-- ===================== RESULTS PANEL ===================== -->
+            
+
+            <!-- ===================== DEBUG PANEL (server-side hidden, as before) ===================== -->
+            
+
+        </div>
+    </form>
+</body>
+</html>

@@ -1,0 +1,974 @@
+[
+ {
+  "input": {
+   "id": "tipico_tecnis",
+   "al_mm": 23.5,
+   "k1_d": 43,
+   "k1_axis_deg": 180,
+   "k2_d": 45,
+   "k2_axis_deg": 90,
+   "acd_mm": 3.2,
+   "lt_mm": 4.5,
+   "cct_um": 550,
+   "target_d": 0,
+   "a_constant": 119.3,
+   "iol_model": "Tecnis",
+   "k_index": 1.3375,
+   "sia_d": 0.1,
+   "sia_axis_deg": 100
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": 0.11012042030108429,
+   "predicted_sphere": 0.16055296307516534,
+   "predicted_cylinder": -0.10086508554816209,
+   "predicted_axis": 179,
+   "recommended_power": 21,
+   "recommended_toric": 1.5,
+   "recommended_axis": 89,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 20,
+      "ref": 0.7369362999546368
+     },
+     {
+      "iol": 20.5,
+      "ref": 0.42685978889982235
+     },
+     {
+      "iol": 21,
+      "ref": 0.11386858842758989
+     },
+     {
+      "iol": 21.5,
+      "ref": -0.2020785922274728
+     },
+     {
+      "iol": 22,
+      "ref": -0.5210238274552359
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 1,
+      "ref": 0.11085248289502095,
+      "resiCyl": -0.4153325035526722,
+      "resiAxis": 179
+     },
+     {
+      "cyl": 1.5,
+      "ref": 0.11012042030108429,
+      "resiCyl": -0.10086508554816209,
+      "resiAxis": 179
+     },
+     {
+      "cyl": 2.25,
+      "ref": 0.10762945895069936,
+      "resiCyl": -0.370881298477141,
+      "resiAxis": 89
+     }
+    ],
+    "tca_d": 1.2604548533891018,
+    "tca_axis_deg": 89,
+    "defocus_equivalent": 0.16055296307516534
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "generico_posterior",
+   "al_mm": 23.5,
+   "k1_d": 43,
+   "k1_axis_deg": 180,
+   "k2_d": 45,
+   "k2_axis_deg": 90,
+   "acd_mm": 3.2,
+   "lt_mm": 4.5,
+   "cct_um": 550,
+   "target_d": 0,
+   "a_constant": 119.3,
+   "iol_model": "Posterior",
+   "k_index": 1.3375,
+   "sia_d": 0,
+   "sia_axis_deg": 0
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": 0.0874111406865535,
+   "predicted_sphere": 0.23412374767356273,
+   "predicted_cylinder": -0.29342521397401844,
+   "predicted_axis": 90,
+   "recommended_power": 21,
+   "recommended_toric": 2.25,
+   "recommended_axis": 90,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 20,
+      "ref": 0.7169362999546368
+     },
+     {
+      "iol": 20.5,
+      "ref": 0.40685978889982233
+     },
+     {
+      "iol": 21,
+      "ref": 0.09386858842758988
+     },
+     {
+      "iol": 21.5,
+      "ref": -0.22207859222747278
+     },
+     {
+      "iol": 22,
+      "ref": -0.5410238274552359
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 1.5,
+      "ref": 0.08977726326247706,
+      "resiCyl": -0.17831736749224203,
+      "resiAxis": 180
+     },
+     {
+      "cyl": 2.25,
+      "ref": 0.0874111406865535,
+      "resiCyl": -0.29342521397401844,
+      "resiAxis": 90
+     },
+     {
+      "cyl": 3,
+      "ref": 0.08337199497582734,
+      "resiCyl": -0.7652522852605561,
+      "resiAxis": 90
+     }
+    ],
+    "tca_d": 1.3539599999999998,
+    "tca_axis_deg": 90,
+    "defocus_equivalent": 0.23412374767356273
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "miopia_magna_od",
+   "al_mm": 29.39,
+   "k1_d": 35.11,
+   "k1_axis_deg": 99,
+   "k2_d": 37.47,
+   "k2_axis_deg": 9,
+   "acd_mm": 4.15,
+   "lt_mm": 3.63,
+   "cct_um": 472,
+   "target_d": 0,
+   "a_constant": 119.1,
+   "iol_model": "Aspire",
+   "k_index": 1.3375,
+   "sia_d": 0,
+   "sia_axis_deg": 0
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": 0.027193197917200183,
+   "predicted_sphere": 0.03133276191532573,
+   "predicted_cylinder": -0.0082791279962511,
+   "predicted_axis": 97,
+   "recommended_power": 14.5,
+   "recommended_toric": 3.5,
+   "recommended_axis": 7,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 13.5,
+      "ref": 0.7360122869019446
+     },
+     {
+      "iol": 14,
+      "ref": 0.39859597085700726
+     },
+     {
+      "iol": 14.5,
+      "ref": 0.05752375615523133
+     },
+     {
+      "iol": 15,
+      "ref": -0.2872640982268298
+     },
+     {
+      "iol": 15.5,
+      "ref": -0.635828642078523
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 3,
+      "ref": 0.030191070511997625,
+      "resiCyl": -0.35206936358705715,
+      "resiAxis": 97
+     },
+     {
+      "cyl": 3.5,
+      "ref": 0.027193197917200183,
+      "resiCyl": -0.0082791279962511,
+      "resiAxis": 97
+     },
+     {
+      "cyl": 4.25,
+      "ref": 0.020943412554611546,
+      "resiCyl": -0.5075207993380584,
+      "resiAxis": 7
+     }
+    ],
+    "tca_d": 2.8067882577635523,
+    "tca_axis_deg": 7,
+    "defocus_equivalent": 0.03133276191532573
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "miopia_magna_os",
+   "al_mm": 31.1,
+   "k1_d": 35.52,
+   "k1_axis_deg": 62,
+   "k2_d": 35.93,
+   "k2_axis_deg": 152,
+   "acd_mm": 4.14,
+   "lt_mm": 3.64,
+   "cct_um": 457,
+   "target_d": 0,
+   "a_constant": 119.28,
+   "iol_model": "Envy",
+   "k_index": 1.3375,
+   "sia_d": 0,
+   "sia_axis_deg": 0
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": -0.09396965869164153,
+   "predicted_sphere": -0.0766929935084334,
+   "predicted_cylinder": -0.03455333036641629,
+   "predicted_axis": 77,
+   "recommended_power": 12,
+   "recommended_toric": 0.9,
+   "recommended_axis": 167,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 11,
+      "ref": 0.5891882586811218
+     },
+     {
+      "iol": 11.5,
+      "ref": 0.2509516540654158
+     },
+     {
+      "iol": 12,
+      "ref": -0.0910074465282702
+     },
+     {
+      "iol": 12.5,
+      "ref": -0.4367508355709055
+     },
+     {
+      "iol": 13,
+      "ref": -0.7863416807951819
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 0,
+      "ref": -0.09388292913349358,
+      "resiCyl": -0.6536899436869406,
+      "resiAxis": 77
+     },
+     {
+      "cyl": 0.9,
+      "ref": -0.09396965869164153,
+      "resiCyl": -0.03455333036641629,
+      "resiAxis": 77
+     },
+     {
+      "cyl": 1.25,
+      "ref": -0.09483184042964038,
+      "resiCyl": -0.20623586102986546,
+      "resiAxis": 167
+     }
+    ],
+    "tca_d": 0.7473913418045496,
+    "tca_axis_deg": 167,
+    "defocus_equivalent": 0.11124632387484967
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "astig_alto_od_sia",
+   "al_mm": 22.53,
+   "k1_d": 42.03,
+   "k1_axis_deg": 176,
+   "k2_d": 45.55,
+   "k2_axis_deg": 86,
+   "acd_mm": 3.1,
+   "lt_mm": null,
+   "cct_um": null,
+   "target_d": 0,
+   "a_constant": 119.1,
+   "iol_model": "Aspire",
+   "k_index": 1.3375,
+   "sia_d": 0.25,
+   "sia_axis_deg": 135
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": -0.06328340378751367,
+   "predicted_sphere": 0.000027770579475477897,
+   "predicted_cylinder": -0.1266223487339783,
+   "predicted_axis": 83,
+   "recommended_power": 25,
+   "recommended_toric": 4.25,
+   "recommended_axis": 83,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 24,
+      "ref": 0.4801034139306211
+     },
+     {
+      "iol": 24.5,
+      "ref": 0.1871721200577395
+     },
+     {
+      "iol": 25,
+      "ref": -0.028819695355080444
+     },
+     {
+      "iol": 25.5,
+      "ref": -0.3529164385729094
+     },
+     {
+      "iol": 26,
+      "ref": -0.6801633791123023
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 3.5,
+      "ref": -0.09231317272797236,
+      "resiCyl": -0.2887840964451487,
+      "resiAxis": 173
+     },
+     {
+      "cyl": 4.25,
+      "ref": -0.06328340378751367,
+      "resiCyl": -0.1266223487339783,
+      "resiAxis": 83
+     },
+     {
+      "cyl": 5,
+      "ref": -0.0647366129550359,
+      "resiCyl": -0.5996654423607705,
+      "resiAxis": 83
+     }
+    ],
+    "tca_d": 2.8379726948830006,
+    "tca_axis_deg": 83,
+    "defocus_equivalent": 0.1265945781545028
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "astig_alto_os_sia",
+   "al_mm": 22.57,
+   "k1_d": 43.1,
+   "k1_axis_deg": 3,
+   "k2_d": 45.24,
+   "k2_axis_deg": 93,
+   "acd_mm": 3.09,
+   "lt_mm": null,
+   "cct_um": null,
+   "target_d": 0,
+   "a_constant": 119.1,
+   "iol_model": "Aspire",
+   "k_index": 1.3375,
+   "sia_d": 0.25,
+   "sia_axis_deg": 135
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": 0.10522310508633526,
+   "predicted_sphere": 0.1295171677383869,
+   "predicted_cylinder": -0.048588125304103266,
+   "predicted_axis": 179,
+   "recommended_power": 24,
+   "recommended_toric": 2,
+   "recommended_axis": 89,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 23,
+      "ref": 0.6566764894883458
+     },
+     {
+      "iol": 23.5,
+      "ref": 0.3423063343302639
+     },
+     {
+      "iol": 24,
+      "ref": 0.06993018139501461
+     },
+     {
+      "iol": 24.5,
+      "ref": -0.22549529132702456
+     },
+     {
+      "iol": 25,
+      "ref": -0.44401424233138226
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 1.5,
+      "ref": 0.08040649211842119,
+      "resiCyl": -0.3150228239861432,
+      "resiAxis": 179
+     },
+     {
+      "cyl": 2,
+      "ref": 0.10522310508633526,
+      "resiCyl": -0.048588125304103266,
+      "resiAxis": 179
+     },
+     {
+      "cyl": 2.5,
+      "ref": 0.10302939701822686,
+      "resiCyl": -0.27037670047865336,
+      "resiAxis": 89
+     }
+    ],
+    "tca_d": 1.426765874452928,
+    "tca_axis_deg": 89,
+    "defocus_equivalent": 0.1295171677383869
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "kindex_1_3315",
+   "al_mm": 24.1,
+   "k1_d": 42.5,
+   "k1_axis_deg": 10,
+   "k2_d": 43.8,
+   "k2_axis_deg": 100,
+   "acd_mm": 3.4,
+   "lt_mm": 4.2,
+   "cct_um": 530,
+   "target_d": -0.5,
+   "a_constant": 118.9,
+   "iol_model": "SN6ATx",
+   "k_index": 1.3315,
+   "sia_d": 0,
+   "sia_axis_deg": 0
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": -0.5114386602793884,
+   "predicted_sphere": -0.5031666693687166,
+   "predicted_cylinder": -0.016543981821343756,
+   "predicted_axis": 17,
+   "recommended_power": 19.5,
+   "recommended_toric": 1,
+   "recommended_axis": 107,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 18.5,
+      "ref": 0.13625898208455156
+     },
+     {
+      "iol": 19,
+      "ref": -0.18532602121030967
+     },
+     {
+      "iol": 19.5,
+      "ref": -0.5099861927897331
+     },
+     {
+      "iol": 20,
+      "ref": -0.837765854179593
+     },
+     {
+      "iol": 20.5,
+      "ref": -1.1687101827421285
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 0,
+      "ref": -0.511368241165842,
+      "resiCyl": -0.6690137804596904,
+      "resiAxis": 17
+     },
+     {
+      "cyl": 1,
+      "ref": -0.5114386602793884,
+      "resiCyl": -0.016543981821343756,
+      "resiAxis": 17
+     },
+     {
+      "cyl": 1.5,
+      "ref": -0.5126478363645386,
+      "resiCyl": -0.3097152695813776,
+      "resiAxis": 107
+     }
+    ],
+    "tca_d": 0.785259656690723,
+    "tca_axis_deg": 107,
+    "defocus_equivalent": 0.5197106511900603
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "zeiss_709_rejilla",
+   "al_mm": 23.5,
+   "k1_d": 43,
+   "k1_axis_deg": 180,
+   "k2_d": 45.5,
+   "k2_axis_deg": 90,
+   "acd_mm": 3.2,
+   "lt_mm": 4.5,
+   "cct_um": 550,
+   "target_d": 0,
+   "a_constant": 119.3,
+   "iol_model": "709M/MP",
+   "k_index": 1.3375,
+   "sia_d": 0,
+   "sia_axis_deg": 0
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": 0.04417266827955668,
+   "predicted_sphere": 0.05892760936623974,
+   "predicted_cylinder": -0.029509882173366114,
+   "predicted_axis": 90,
+   "recommended_power": 20.75,
+   "recommended_toric": 2.5,
+   "recommended_axis": 90,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 19.75,
+      "ref": 0.6753526715645477
+     },
+     {
+      "iol": 20.25,
+      "ref": 0.36585439715145246
+     },
+     {
+      "iol": 20.75,
+      "ref": 0.05345188185540128
+     },
+     {
+      "iol": 21.25,
+      "ref": -0.2618959458399968
+     },
+     {
+      "iol": 21.75,
+      "ref": -0.5802309355587366
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 2,
+      "ref": 0.0458488597044538,
+      "resiCyl": -0.2844121560849839,
+      "resiAxis": 180
+     },
+     {
+      "cyl": 2.5,
+      "ref": 0.04417266827955668,
+      "resiCyl": -0.029509882173366114,
+      "resiAxis": 90
+     },
+     {
+      "cyl": 3,
+      "ref": 0.04175338692848614,
+      "resiCyl": -0.3434649484575548,
+      "resiAxis": 90
+     }
+    ],
+    "tca_d": 1.8518124999999999,
+    "tca_axis_deg": 90,
+    "defocus_equivalent": 0.05892760936623974
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "ojo_corto_bl",
+   "al_mm": 21.2,
+   "k1_d": 44.6,
+   "k1_axis_deg": 75,
+   "k2_d": 46.1,
+   "k2_axis_deg": 165,
+   "acd_mm": 2.8,
+   "lt_mm": 4.9,
+   "cct_um": 505,
+   "target_d": -0.25,
+   "a_constant": 119.1,
+   "iol_model": "MX60ET",
+   "k_index": 1.3375,
+   "sia_d": 0,
+   "sia_axis_deg": 0
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": -0.13695287818270258,
+   "predicted_sphere": -0.08151759533049996,
+   "predicted_cylinder": -0.11087056570440523,
+   "predicted_axis": 170,
+   "recommended_power": 29,
+   "recommended_toric": 3,
+   "recommended_axis": 170,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 28,
+      "ref": 0.4407888916745078
+     },
+     {
+      "iol": 28.5,
+      "ref": 0.12025140784969074
+     },
+     {
+      "iol": 29,
+      "ref": -0.17817752496807926
+     },
+     {
+      "iol": 29.5,
+      "ref": -0.36953783369679516
+     },
+     {
+      "iol": 30,
+      "ref": -0.6838701837678822
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 2.5,
+      "ref": -0.13207990900350103,
+      "resiCyl": -0.20415301331312163,
+      "resiAxis": 80
+     },
+     {
+      "cyl": 3,
+      "ref": -0.13695287818270258,
+      "resiCyl": -0.11087056570440523,
+      "resiAxis": 170
+     },
+     {
+      "cyl": 3.5,
+      "ref": -0.12630825098546078,
+      "resiCyl": -0.3884328441232615,
+      "resiAxis": 170
+     }
+    ],
+    "tca_d": 2.114782232847336,
+    "tca_axis_deg": 170,
+    "defocus_equivalent": 0.1923881610349052
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "jj_alta_potencia",
+   "al_mm": 21,
+   "k1_d": 41.5,
+   "k1_axis_deg": 20,
+   "k2_d": 42.4,
+   "k2_axis_deg": 110,
+   "acd_mm": 3,
+   "lt_mm": 4.7,
+   "cct_um": 560,
+   "target_d": 0,
+   "a_constant": 119.3,
+   "iol_model": "ZCU",
+   "k_index": 1.3375,
+   "sia_d": 0,
+   "sia_axis_deg": 0
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": -0.17665232251747082,
+   "predicted_sphere": -0.0271684063869162,
+   "predicted_cylinder": -0.29896783226110923,
+   "predicted_axis": 143,
+   "recommended_power": 33,
+   "recommended_toric": 1,
+   "recommended_axis": 143,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 32,
+      "ref": 0.5298353067432995
+     },
+     {
+      "iol": 32.5,
+      "ref": 0.1789417036008072
+     },
+     {
+      "iol": 33,
+      "ref": -0.16984625024463124
+     },
+     {
+      "iol": 33.5,
+      "ref": -0.5315685167638814
+     },
+     {
+      "iol": 34,
+      "ref": -0.8462657969964137
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 0,
+      "ref": -0.1707585308189939,
+      "resiCyl": -0.41155007731622517,
+      "resiAxis": 53
+     },
+     {
+      "cyl": 1,
+      "ref": -0.17665232251747082,
+      "resiCyl": -0.29896783226110923,
+      "resiAxis": 143
+     },
+     {
+      "cyl": 1.5,
+      "ref": -0.166950446852431,
+      "resiCyl": -0.6317519542555166,
+      "resiAxis": 143
+     }
+    ],
+    "tca_d": 0.5872125966753426,
+    "tca_axis_deg": 143,
+    "defocus_equivalent": 0.32613623864802543
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "largo_k_plana",
+   "al_mm": 30,
+   "k1_d": 39,
+   "k1_axis_deg": 5,
+   "k2_d": 40.2,
+   "k2_axis_deg": 95,
+   "acd_mm": 3.8,
+   "lt_mm": 4,
+   "cct_um": 540,
+   "target_d": -0.75,
+   "a_constant": 119.4,
+   "iol_model": "Vivity",
+   "k_index": 1.3375,
+   "sia_d": 0,
+   "sia_axis_deg": 0
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": -0.6553634512427879,
+   "predicted_sphere": -0.6226327856698337,
+   "predicted_cylinder": -0.06546133114590857,
+   "predicted_axis": 7,
+   "recommended_power": 10,
+   "recommended_toric": 1,
+   "recommended_axis": 97,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 9,
+      "ref": 0.005710891793000134
+     },
+     {
+      "iol": 9.5,
+      "ref": -0.3220261032779277
+     },
+     {
+      "iol": 10,
+      "ref": -0.653227232074269
+     },
+     {
+      "iol": 10.5,
+      "ref": -0.9879477095088789
+     },
+     {
+      "iol": 11,
+      "ref": -1.3262439301914946
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 0,
+      "ref": -0.6556353830367129,
+      "resiCyl": -0.7314398090270162,
+      "resiAxis": 7
+     },
+     {
+      "cyl": 1,
+      "ref": -0.6553634512427879,
+      "resiCyl": -0.06546133114590857,
+      "resiAxis": 7
+     },
+     {
+      "cyl": 1.5,
+      "ref": -0.6565471877817887,
+      "resiCyl": -0.26753951046866664,
+      "resiAxis": 97
+     }
+    ],
+    "tca_d": 0.7987693136360123,
+    "tca_axis_deg": 97,
+    "defocus_equivalent": 0.6880941168157422
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ },
+ {
+  "input": {
+   "id": "sia_grande",
+   "al_mm": 24.8,
+   "k1_d": 43.2,
+   "k1_axis_deg": 140,
+   "k2_d": 44.9,
+   "k2_axis_deg": 50,
+   "acd_mm": 3.6,
+   "lt_mm": 4.4,
+   "cct_um": 590,
+   "target_d": 0.25,
+   "a_constant": 120,
+   "iol_model": "Panoptix",
+   "k_index": 1.3375,
+   "sia_d": 0.5,
+   "sia_axis_deg": 45
+  },
+  "expected": {
+   "engine": "evo_replica_frozen_v1",
+   "predicted_refraction": 0.34188173408282696,
+   "predicted_sphere": 0.3957446345468596,
+   "predicted_cylinder": -0.10772580092806522,
+   "predicted_axis": 129,
+   "recommended_power": 17,
+   "recommended_toric": 1.5,
+   "recommended_axis": 39,
+   "intermediate_values": {
+    "sphere_table": [
+     {
+      "iol": 16,
+      "ref": 0.931400292491543
+     },
+     {
+      "iol": 16.5,
+      "ref": 0.6398344877064613
+     },
+     {
+      "iol": 17,
+      "ref": 0.34550225109011484
+     },
+     {
+      "iol": 17.5,
+      "ref": 0.04836402231719146
+     },
+     {
+      "iol": 18,
+      "ref": -0.25162051684053505
+     }
+    ],
+    "toric_table": [
+     {
+      "cyl": 1,
+      "ref": 0.34254731306432995,
+      "resiCyl": -0.40351240504774943,
+      "resiAxis": 129
+     },
+     {
+      "cyl": 1.5,
+      "ref": 0.34188173408282696,
+      "resiCyl": -0.10772580092806522,
+      "resiAxis": 129
+     },
+     {
+      "cyl": 2.25,
+      "ref": 0.3395663648963623,
+      "resiCyl": -0.33599455327613115,
+      "resiAxis": 39
+     }
+    ],
+    "tca_d": 1.1644524713263071,
+    "tca_axis_deg": 39,
+    "defocus_equivalent": 0.3957446345468596
+   },
+   "uncertainty": null,
+   "warnings": [
+    "RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING",
+    "Motor benchmark congelado: réplica empírica de EVO Toric v2.0, no física independiente."
+   ]
+  }
+ }
+]
