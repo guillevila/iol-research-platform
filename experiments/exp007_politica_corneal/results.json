@@ -1,0 +1,452 @@
+{
+ "config": {
+  "id": "exp007_politica_corneal",
+  "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO",
+  "pregunta": "Divergencia de potencia recomendada por convención queratométrica y por política corneal",
+  "predictor": "ConstantOffsetPredictor(1.7) — offset declarado, no calibrado",
+  "politicas": [
+   "KERATOMETRIC_READING",
+   "SINGLE_SURFACE_FROM_RADIUS"
+  ],
+  "indices": [
+   {
+    "n_k": 1.3375,
+    "etiqueta": "1.3375 (IOLMaster/Lenstar)"
+   },
+   {
+    "n_k": 1.3315,
+    "etiqueta": "1.3315 (índice corneal neto)"
+   },
+   {
+    "n_k": 1.332,
+    "etiqueta": "1.332  (algunos topógrafos)"
+   }
+  ],
+  "radios_mm": [
+   7,
+   7.35,
+   7.7,
+   8.05,
+   8.4
+  ],
+  "al_mm": [
+   21,
+   22.5,
+   23.5,
+   25,
+   27,
+   30
+  ],
+  "fijos": {
+   "acd_mm": 3.2,
+   "lt_mm": 4.5,
+   "cct_um": 550,
+   "target_d": 0
+  },
+  "rejilla_d": 0.5
+ },
+ "timestamp": "2026-08-10T10:11:18.186Z",
+ "commit": "dd33362f934eb89e9ea180143c898e5688fbe6c8",
+ "resumen": {
+  "n_casos": 30,
+  "max_rango_entre_aparatos_lectura_d": 1.2602,
+  "max_rango_entre_aparatos_radio_d": 0,
+  "casos_con_recomendacion_distinta_por_marca": 27,
+  "fraccion_casos_que_cambian": 0.9,
+  "delta_politicas_min_d": 0.2454,
+  "delta_politicas_max_d": 0.3159,
+  "delta_politicas_medio_d": 0.2785
+ },
+ "rows": [
+  {
+   "r_mm": 7,
+   "al_mm": 21,
+   "k_por_indice": {
+    "1.3375": 48.214,
+    "1.3315": 47.357,
+    "1.332": 47.429
+   },
+   "rango_entre_aparatos_lectura_d": 1.2602,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.3159
+  },
+  {
+   "r_mm": 7,
+   "al_mm": 22.5,
+   "k_por_indice": {
+    "1.3375": 48.214,
+    "1.3315": 47.357,
+    "1.332": 47.429
+   },
+   "rango_entre_aparatos_lectura_d": 1.2602,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.3159
+  },
+  {
+   "r_mm": 7,
+   "al_mm": 23.5,
+   "k_por_indice": {
+    "1.3375": 48.214,
+    "1.3315": 47.357,
+    "1.332": 47.429
+   },
+   "rango_entre_aparatos_lectura_d": 1.2602,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.3159
+  },
+  {
+   "r_mm": 7,
+   "al_mm": 25,
+   "k_por_indice": {
+    "1.3375": 48.214,
+    "1.3315": 47.357,
+    "1.332": 47.429
+   },
+   "rango_entre_aparatos_lectura_d": 1.2602,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.3159
+  },
+  {
+   "r_mm": 7,
+   "al_mm": 27,
+   "k_por_indice": {
+    "1.3375": 48.214,
+    "1.3315": 47.357,
+    "1.332": 47.429
+   },
+   "rango_entre_aparatos_lectura_d": 1.2602,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.3159
+  },
+  {
+   "r_mm": 7,
+   "al_mm": 30,
+   "k_por_indice": {
+    "1.3375": 48.214,
+    "1.3315": 47.357,
+    "1.332": 47.429
+   },
+   "rango_entre_aparatos_lectura_d": 1.2602,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 1,
+   "delta_politicas_d": 0.3159
+  },
+  {
+   "r_mm": 7.35,
+   "al_mm": 21,
+   "k_por_indice": {
+    "1.3375": 45.918,
+    "1.3315": 45.102,
+    "1.332": 45.17
+   },
+   "rango_entre_aparatos_lectura_d": 1.1762,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.2948
+  },
+  {
+   "r_mm": 7.35,
+   "al_mm": 22.5,
+   "k_por_indice": {
+    "1.3375": 45.918,
+    "1.3315": 45.102,
+    "1.332": 45.17
+   },
+   "rango_entre_aparatos_lectura_d": 1.1762,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.2948
+  },
+  {
+   "r_mm": 7.35,
+   "al_mm": 23.5,
+   "k_por_indice": {
+    "1.3375": 45.918,
+    "1.3315": 45.102,
+    "1.332": 45.17
+   },
+   "rango_entre_aparatos_lectura_d": 1.1762,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 3,
+   "delta_politicas_d": 0.2948
+  },
+  {
+   "r_mm": 7.35,
+   "al_mm": 25,
+   "k_por_indice": {
+    "1.3375": 45.918,
+    "1.3315": 45.102,
+    "1.332": 45.17
+   },
+   "rango_entre_aparatos_lectura_d": 1.1762,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.2948
+  },
+  {
+   "r_mm": 7.35,
+   "al_mm": 27,
+   "k_por_indice": {
+    "1.3375": 45.918,
+    "1.3315": 45.102,
+    "1.332": 45.17
+   },
+   "rango_entre_aparatos_lectura_d": 1.1762,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.2948
+  },
+  {
+   "r_mm": 7.35,
+   "al_mm": 30,
+   "k_por_indice": {
+    "1.3375": 45.918,
+    "1.3315": 45.102,
+    "1.332": 45.17
+   },
+   "rango_entre_aparatos_lectura_d": 1.1762,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 1,
+   "delta_politicas_d": 0.2948
+  },
+  {
+   "r_mm": 7.7,
+   "al_mm": 21,
+   "k_por_indice": {
+    "1.3375": 43.831,
+    "1.3315": 43.052,
+    "1.332": 43.117
+   },
+   "rango_entre_aparatos_lectura_d": 1.1026,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.2763
+  },
+  {
+   "r_mm": 7.7,
+   "al_mm": 22.5,
+   "k_por_indice": {
+    "1.3375": 43.831,
+    "1.3315": 43.052,
+    "1.332": 43.117
+   },
+   "rango_entre_aparatos_lectura_d": 1.1026,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 3,
+   "delta_politicas_d": 0.2763
+  },
+  {
+   "r_mm": 7.7,
+   "al_mm": 23.5,
+   "k_por_indice": {
+    "1.3375": 43.831,
+    "1.3315": 43.052,
+    "1.332": 43.117
+   },
+   "rango_entre_aparatos_lectura_d": 1.1026,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.2763
+  },
+  {
+   "r_mm": 7.7,
+   "al_mm": 25,
+   "k_por_indice": {
+    "1.3375": 43.831,
+    "1.3315": 43.052,
+    "1.332": 43.117
+   },
+   "rango_entre_aparatos_lectura_d": 1.1026,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.2763
+  },
+  {
+   "r_mm": 7.7,
+   "al_mm": 27,
+   "k_por_indice": {
+    "1.3375": 43.831,
+    "1.3315": 43.052,
+    "1.332": 43.117
+   },
+   "rango_entre_aparatos_lectura_d": 1.1026,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 3,
+   "delta_politicas_d": 0.2763
+  },
+  {
+   "r_mm": 7.7,
+   "al_mm": 30,
+   "k_por_indice": {
+    "1.3375": 43.831,
+    "1.3315": 43.052,
+    "1.332": 43.117
+   },
+   "rango_entre_aparatos_lectura_d": 1.1026,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.2763
+  },
+  {
+   "r_mm": 8.05,
+   "al_mm": 21,
+   "k_por_indice": {
+    "1.3375": 41.925,
+    "1.3315": 41.18,
+    "1.332": 41.242
+   },
+   "rango_entre_aparatos_lectura_d": 1.0375,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.26
+  },
+  {
+   "r_mm": 8.05,
+   "al_mm": 22.5,
+   "k_por_indice": {
+    "1.3375": 41.925,
+    "1.3315": 41.18,
+    "1.332": 41.242
+   },
+   "rango_entre_aparatos_lectura_d": 1.0375,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.26
+  },
+  {
+   "r_mm": 8.05,
+   "al_mm": 23.5,
+   "k_por_indice": {
+    "1.3375": 41.925,
+    "1.3315": 41.18,
+    "1.332": 41.242
+   },
+   "rango_entre_aparatos_lectura_d": 1.0375,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 3,
+   "delta_politicas_d": 0.26
+  },
+  {
+   "r_mm": 8.05,
+   "al_mm": 25,
+   "k_por_indice": {
+    "1.3375": 41.925,
+    "1.3315": 41.18,
+    "1.332": 41.242
+   },
+   "rango_entre_aparatos_lectura_d": 1.0375,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.26
+  },
+  {
+   "r_mm": 8.05,
+   "al_mm": 27,
+   "k_por_indice": {
+    "1.3375": 41.925,
+    "1.3315": 41.18,
+    "1.332": 41.242
+   },
+   "rango_entre_aparatos_lectura_d": 1.0375,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.26
+  },
+  {
+   "r_mm": 8.05,
+   "al_mm": 30,
+   "k_por_indice": {
+    "1.3375": 41.925,
+    "1.3315": 41.18,
+    "1.332": 41.242
+   },
+   "rango_entre_aparatos_lectura_d": 1.0375,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.26
+  },
+  {
+   "r_mm": 8.4,
+   "al_mm": 21,
+   "k_por_indice": {
+    "1.3375": 40.179,
+    "1.3315": 39.464,
+    "1.332": 39.524
+   },
+   "rango_entre_aparatos_lectura_d": 0.9795,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 1,
+   "delta_politicas_d": 0.2454
+  },
+  {
+   "r_mm": 8.4,
+   "al_mm": 22.5,
+   "k_por_indice": {
+    "1.3375": 40.179,
+    "1.3315": 39.464,
+    "1.332": 39.524
+   },
+   "rango_entre_aparatos_lectura_d": 0.9795,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 3,
+   "delta_politicas_d": 0.2454
+  },
+  {
+   "r_mm": 8.4,
+   "al_mm": 23.5,
+   "k_por_indice": {
+    "1.3375": 40.179,
+    "1.3315": 39.464,
+    "1.332": 39.524
+   },
+   "rango_entre_aparatos_lectura_d": 0.9795,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.2454
+  },
+  {
+   "r_mm": 8.4,
+   "al_mm": 25,
+   "k_por_indice": {
+    "1.3375": 40.179,
+    "1.3315": 39.464,
+    "1.332": 39.524
+   },
+   "rango_entre_aparatos_lectura_d": 0.9795,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 3,
+   "delta_politicas_d": 0.2454
+  },
+  {
+   "r_mm": 8.4,
+   "al_mm": 27,
+   "k_por_indice": {
+    "1.3375": 40.179,
+    "1.3315": 39.464,
+    "1.332": 39.524
+   },
+   "rango_entre_aparatos_lectura_d": 0.9795,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 3,
+   "delta_politicas_d": 0.2454
+  },
+  {
+   "r_mm": 8.4,
+   "al_mm": 30,
+   "k_por_indice": {
+    "1.3375": 40.179,
+    "1.3315": 39.464,
+    "1.332": 39.524
+   },
+   "rango_entre_aparatos_lectura_d": 0.9795,
+   "rango_entre_aparatos_radio_d": 0,
+   "escalones_distintos_en_rejilla": 2,
+   "delta_politicas_d": 0.2454
+  }
+ ]
+}

@@ -11,22 +11,27 @@
  */
 import { mmToM, assertFinite } from '../core/units.mjs';
 import { assertTraceableGeometry } from '../core/iol.mjs';
-import { corneaPowerTwoSurfaces, predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, refract, transfer } from './paraxial.mjs';
+import { predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, refract, transfer } from './paraxial.mjs';
+import { buildCorneaModel, CorneaPolicy, singleSurfacePowerFromRadiusMm } from './cornea.mjs';
 import { N_AIR, N_AQUEOUS, N_CORNEA, N_VITREOUS } from './constants.mjs';
 import { sphericalSurface } from './raytrace/surfaces.mjs';
 import { focusOfSystem } from './raytrace/trace.mjs';
 
-export function corneaModelOf(preop) {
+/**
+ * Modelo corneal del ojo. Si hay radios y CCT MEDIDOS se usa la córnea física de dos
+ * superficies (la política más completa disponible); si no, se aplica la política
+ * declarada en `opts.cornea` (por defecto la del dispositivo, ver cornea.mjs).
+ *
+ * La política elegida viaja en el objeto devuelto: ninguna capa de arriba puede
+ * afirmar una potencia corneal sin poder decir bajo qué convención se obtuvo (H1).
+ */
+export function corneaModelOf(preop, opts = {}) {
   const c = preop.cornea;
-  if (typeof c.r_anterior_mm === 'number' && typeof c.r_posterior_mm === 'number' && typeof preop.cct_um === 'number') {
-    const { power_d } = corneaPowerTwoSurfaces({
-      r_anterior_m: mmToM(c.r_anterior_mm),
-      r_posterior_m: mmToM(c.r_posterior_mm),
-      cct_m: preop.cct_um / 1e6,
-    });
-    return { power_d, kind: 'two_surface_physical' };
-  }
-  return { power_d: preop.mean_k_d, kind: 'keratometric_reading' };
+  const medida = typeof c.r_anterior_mm === 'number'
+    && typeof c.r_posterior_mm === 'number'
+    && typeof preop.cct_um === 'number';
+  const policy = medida && !opts.policy ? CorneaPolicy.TWO_SURFACE_MEASURED : opts.policy;
+  return buildCorneaModel(preop, { ...opts, ...(policy ? { policy } : {}) });
 }
 
 /**
@@ -41,9 +46,9 @@ export function corneaModelOf(preop) {
  * La API anterior (`refractionFor(power)` que ignoraba `power` cuando había una LIO
  * gruesa inyectada) queda eliminada.
  */
-export function buildParaxialEye(postop) {
+export function buildParaxialEye(postop, { cornea: corneaOpts = {} } = {}) {
   const preop = postop.preop;
-  const cornea = corneaModelOf(preop);
+  const cornea = corneaModelOf(preop, corneaOpts);
   const base = {
     corneaPower_d: cornea.power_d,
     al_m: mmToM(preop.al_mm),
@@ -51,6 +56,8 @@ export function buildParaxialEye(postop) {
   };
   return {
     cornea_kind: cornea.kind,
+    cornea_policy: cornea.policy,
+    cornea,
     corneaPower_d: cornea.power_d,
     al_mm: preop.al_mm,
     iol_position_mm: postop.iol_position_mm,
@@ -97,27 +104,33 @@ export function buildParaxialEye(postop) {
  * LIO: requiere geometría numérica completa (la genérica etiquetada la aporta);
  * se centra en `postop.iol_position_mm` (cara anterior en pos − t/2).
  */
-export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5 } = {}) {
+export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corneaOpts = {} } = {}) {
   const preop = postop.preop;
   assertTraceableGeometry(iol, 'buildRaytraceEye');
   const g = iol.geometry;
   const surfaces = [];
-  const c = preop.cornea;
+  const cornea = corneaModelOf(preop, corneaOpts);
   let cornea_kind;
-  if (typeof c.r_anterior_mm === 'number' && typeof c.r_posterior_mm === 'number' && typeof preop.cct_um === 'number') {
-    cornea_kind = 'two_surface_physical';
-    surfaces.push(sphericalSurface({ id: 'cornea_ant', zVertex_mm: 0, radius_mm: c.r_anterior_mm, aperture_mm, n_before: N_AIR, n_after: N_CORNEA }));
-    surfaces.push(sphericalSurface({ id: 'cornea_post', zVertex_mm: preop.cct_um / 1000, radius_mm: c.r_posterior_mm, aperture_mm, n_before: N_CORNEA, n_after: N_AQUEOUS }));
+  if (cornea.r_posterior_mm !== null && typeof preop.cct_um === 'number') {
+    cornea_kind = cornea.kind;                    // physical | assumed_ratio: dos superficies reales
+    surfaces.push(sphericalSurface({ id: 'cornea_ant', zVertex_mm: 0, radius_mm: cornea.r_anterior_mm, aperture_mm, n_before: N_AIR, n_after: N_CORNEA }));
+    surfaces.push(sphericalSurface({ id: 'cornea_post', zVertex_mm: preop.cct_um / 1000, radius_mm: cornea.r_posterior_mm, aperture_mm, n_before: N_CORNEA, n_after: N_AQUEOUS }));
   } else {
+    // UNA superficie aire→acuoso cuyo radio reproduce EXACTAMENTE la potencia que el
+    // paraxial usa bajo la misma política ⇒ ambos motores son comparables sin supuestos
+    // ocultos, cualquiera que sea la política elegida.
     cornea_kind = 'equivalent_single_surface';
-    const r_mm = (N_AQUEOUS - 1) * 1000 / preop.mean_k_d;
+    const r_mm = (N_AQUEOUS - N_AIR) * 1000 / cornea.power_d;
     surfaces.push(sphericalSurface({ id: 'cornea_eq', zVertex_mm: 0, radius_mm: r_mm, aperture_mm, n_before: N_AIR, n_after: N_AQUEOUS }));
   }
   const t = g.central_thickness_mm;
   const zAnt = postop.iol_position_mm - t / 2;
   surfaces.push(sphericalSurface({ id: 'iol_ant', zVertex_mm: zAnt, radius_mm: g.r_anterior_mm, aperture_mm, n_before: N_AQUEOUS, n_after: g.refractive_index }));
   surfaces.push(sphericalSurface({ id: 'iol_post', zVertex_mm: zAnt + t, radius_mm: g.r_posterior_mm, aperture_mm, n_before: g.refractive_index, n_after: N_VITREOUS }));
-  return { surfaces, cornea_kind, retina_z_mm: preop.al_mm, iol_back_z_mm: zAnt + t };
+  return {
+    surfaces, cornea_kind, cornea_policy: cornea.policy, cornea,
+    retina_z_mm: preop.al_mm, iol_back_z_mm: zAnt + t,
+  };
 }
 
 /**

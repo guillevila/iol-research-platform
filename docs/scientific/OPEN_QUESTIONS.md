@@ -75,3 +75,32 @@ evidencia, nunca con suposición.
 - **Acción:** repetibilidad de dispositivo con fichas técnicas citables y, para la
   posición, datos postoperatorios reales (postop.schema.json).
 - **Datos requeridos:** especificaciones de biómetro y cohorte con posición medida.
+
+## #7 · ¿Qué política corneal predice mejor la refracción real?
+
+- **Pregunta:** para un ojo sin radios corneales medidos, ¿debe el motor usar la
+  lectura queratométrica como potencia (`KERATOMETRIC_READING`) o recuperar el radio
+  físico con el índice del dispositivo (`SINGLE_SURFACE_FROM_RADIUS`)?
+- **Por qué importa:** no es una sutileza de convención. exp007 muestra que bajo la
+  política de lectura la potencia recomendada **depende de la marca del biómetro**
+  (hasta 1.26 D de dispersión entre 1.3375 / 1.3315 / 1.332, y cambio del escalón de
+  0.5 D en 27 de 30 casos simulados). La política de radio elimina esa dependencia por
+  construcción, pero desplaza la predicción en bloque ~0.25–0.32 D respecto a la de
+  lectura.
+- **Evidencia disponible:** solo la incoherencia interna cuantificada (exp007). NO hay
+  evidencia sobre cuál se acerca más a la refracción postoperatoria real, porque eso
+  exige datos postoperatorios de los que el proyecto carece.
+- **Por qué no se puede zanjar razonando:** las fórmulas clásicas están calibradas
+  **sobre** la convención del dispositivo; sus constantes absorben el sesgo. Cambiar la
+  política sin recalibrar simultáneamente el predictor de posición mueve el sesgo de
+  sitio, no lo elimina. Los dos grados de libertad están confundidos y solo se separan
+  con datos.
+- **Acción:** mantener `KERATOMETRIC_READING` por defecto (elección declarada, no
+  heredada) y registrar `cornea_policy` en toda salida. Al disponer de la primera
+  cohorte postoperatoria (PROTOCOL_FIRST_CLINICAL_BATCH.md), comparar el error de
+  predicción de ambas políticas **con el predictor de posición reajustado en cada una**,
+  no a predictor fijo.
+- **Datos requeridos:** cohorte con biómetro identificado (y su índice queratométrico
+  declarado) + refracción postoperatoria estabilizada.
+- **PROHIBIDO:** elegir política, índice o ratio posterior por proximidad a EVO o a
+  cualquier otra calculadora.

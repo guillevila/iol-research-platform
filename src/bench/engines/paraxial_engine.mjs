@@ -29,7 +29,9 @@ export class ParaxialEngine {
       al_mm: c.al_mm, k1_d: c.k1_d, k1_axis_deg: c.k1_axis_deg ?? 0,
       k2_d: c.k2_d, k2_axis_deg: c.k2_axis_deg ?? 90,
       acd_mm: c.acd_mm ?? null, lt_mm: c.lt_mm ?? null, cct_um: c.cct_um ?? null,
-      keratometric_index: c.k_index ?? 1.3375,
+      // se propaga el índice del caso si lo trae; NO se inventa uno (P0.1/H1). El motor
+      // corre bajo la política del dispositivo, que no lo necesita.
+      keratometric_index: c.k_index ?? null,
       meta: { source: c.meta?.source ?? 'synthetic' },
     });
     const pos = this.predictor.predict(preop);
