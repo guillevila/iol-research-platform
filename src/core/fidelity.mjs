@@ -18,6 +18,30 @@
  *                       ejecutarse la validación clínica futura (VALIDATION_STRATEGY,
  *                       nivel 3). NO es aún el defecto: decisión explícita del encargo.
  *
+ * QUÉ SIGNIFICA STRICT — y qué NO significa
+ * ------------------------------------------
+ * STRICT = "sin sustituciones/imputaciones registradas DEL CASO". Tres conceptos que
+ * este módulo mantiene separados y que no deben confundirse:
+ *
+ *   PROCEDENCIA DEL DATO    de dónde sale cada dato del caso (medido, convención
+ *                           declarada del dispositivo, ficha de fabricante). Viaja en
+ *                           `provenance`, `geometry_status`, `keratometric_index`,
+ *                           `meta.source`. STRICT no la mejora: la exige completa.
+ *   PREDICCIÓN DEL MODELO   lo que el cálculo PRODUCE (posición prevista, refracción
+ *                           prevista). No es un dato faltante y STRICT nunca la
+ *                           bloquea; su procedencia viaja aparte (`position_source`).
+ *   SUPUESTO / IMPUTACIÓN   rellenar un parámetro DEL CASO desconocido (o ignorar uno
+ *                           medido) con un valor asumido. Esto es lo ÚNICO que STRICT
+ *                           prohíbe, y a través de su registro.
+ *
+ * En consecuencia, STRICT NO significa "sin supuestos de modelo" — los índices oculares
+ * convencionales, la elección de método o el vértice declarado siguen ahí, documentados
+ * como frontera — ni "máxima fidelidad física": un cálculo paraxial de lente delgada
+ * puede pasar STRICT siendo físicamente más reducido que un trazado RESEARCH con
+ * asfericidad asumida. STRICT responde a una sola pregunta: ¿este resultado depende de
+ * algún dato del caso que no tenemos (o que tenemos y no honramos) y se ha imputado?
+ * Si sí, no se entrega.
+ *
  * ARQUITECTURA — por qué la puerta es el registro de supuestos
  * ------------------------------------------------------------
  * Los puntos de sustitución YA registran sus supuestos (disciplina construida en

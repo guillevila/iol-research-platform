@@ -61,6 +61,11 @@
    validación clínica futura (VALIDATION_STRATEGY, nivel 3) deberá ejecutarse en STRICT.
    Límite honesto: la puerta garantiza que ningún supuesto REGISTRADO la atraviesa; que
    todo supuesto esté registrado es una disciplina vigilada por tests, no un teorema.
+   Semántica exacta: STRICT significa "sin sustituciones/imputaciones registradas del
+   caso" — NO "sin supuestos de modelo" (índices convencionales, método y vértice
+   permanecen, documentados) ni "máxima fidelidad física": procedencia del dato,
+   predicción del modelo e imputación son tres conceptos separados (cabecera de
+   `src/core/fidelity.mjs`).
 
 ## Limitaciones del benchmark legacy (heredadas y documentadas en EVO_BASELINE.md)
 
