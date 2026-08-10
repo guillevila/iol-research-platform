@@ -114,7 +114,7 @@ test('V1.13: la convergencia es O(pupila²) en TODA la rejilla, no solo en el oj
     'la divergencia no se comporta como aberración esférica en:\n' + malos.join('\n'));
 });
 
-test('V1.13: los tres objetivos coinciden entre sí en TODA la rejilla con pupila→0', () => {
+test('V1.13: los objetivos coinciden entre sí en TODA la rejilla con pupila→0', () => {
   const malos = [];
   for (const ojo of REJILLA) {
     const postop = postopDe(ojo);

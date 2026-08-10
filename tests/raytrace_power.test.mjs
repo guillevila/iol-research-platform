@@ -41,7 +41,7 @@ function paraxialDelSistemaTrazado(postop, factory = new GenericIOLFactory()) {
   return (lo + hi) / 2;
 }
 
-test('V1.1: los tres objetivos convergen ENTRE SÍ al cerrar la pupila', () => {
+test('V1.1: los objetivos convergen ENTRE SÍ al cerrar la pupila', () => {
   const post = ojo();
   for (const pupil_mm of [0.5, 0.2, 0.05]) {
     const potencias = Object.values(ObjectiveKind).map(objective =>
@@ -198,7 +198,8 @@ test('V1.1: toda salida declara sus parámetros de simulación y su etiqueta', (
 
 test('V1.1: comparar objetivos no declara ninguno preferible', () => {
   const c = compareObjectives({ postop: ojo(), pupil_mm: 4 });
-  assert.equal(Object.keys(c.por_objetivo).length, 3);
+  // dos objetivos tras la revisión pre-V1.2: B≡C demostrado (objective_equivalence.test.mjs)
+  assert.equal(Object.keys(c.por_objetivo).length, 2);
   assert.ok(c.rango_potencia_d >= 0);
   assert.match(c.nota, /No se declara ninguno preferible/);
   assert.match(c.nota, /OPEN_QUESTIONS #7/);

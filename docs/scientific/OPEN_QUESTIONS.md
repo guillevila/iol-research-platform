@@ -108,14 +108,26 @@ evidencia, nunca con suposición.
 ## #8 · ¿Qué criterio óptico debe optimizar el trazado?
 
 - **Pregunta:** con pupila real los rayos no cortan todos en el mismo punto, así que
-  "enfocar en la retina" no está definido. ¿Debe minimizarse el RMS del spot en retina (A),
-  llevarse el plano de mejor foco a la retina (B), o anularse el desenfoque equivalente (C)?
-- **Por qué importa:** son criterios distintos y, con geometría suficientemente asimétrica,
-  dan potencias distintas. Elegir uno sin declararlo esconde una decisión de modelado.
+  "enfocar en la retina" no está definido. ¿Debe minimizarse el RMS del spot en retina (A)
+  o anularse el desenfoque equivalente del mejor foco (C)?
+- **Resolución parcial (pre-V1.2):** el conjunto inicial tenía TRES criterios; B (mejor
+  foco sobre la retina, coste en mm) resultó ser **equivalente a C como criterio de
+  optimización** — mismo argmin, misma computación, distinta unidad (demostración en
+  `objective.mjs`, tests en `objective_equivalence.test.mjs`). B pasó a métrica
+  reportada. La única salvedad: al desempatar entre dos escalones de catálogo a lados
+  OPUESTOS del óptimo, la asimetría de la escala dióptrica (~2 % por semiescalón) podría
+  en teoría hacer elegir distinto; solo afecta a empates al filo.
+- **Por qué importa lo que queda:** A y C sí son criterios distintos y, con geometría
+  suficientemente asimétrica, darán potencias distintas. Elegir uno sin declararlo
+  esconde una decisión de modelado.
 - **Evidencia disponible:** exp008 mide que **con superficies esféricas apenas importa**:
-  los tres coinciden dentro de 0.0397 D en el peor caso (pupila 6 mm), muy por debajo del
+  A y C coinciden dentro de 0.0397 D en el peor caso (pupila 6 mm), muy por debajo del
   escalón comercial de 0.5 D. Es un resultado negativo útil, no una respuesta: la simetría
   de revolución de las superficies esféricas es la que hoy los iguala.
+- **Candidato a tercer criterio genuinamente independiente** (no implementado): métrica
+  robusta integrada en profundidad de foco (p. ej. RMS promediado sobre ±0.25 D de
+  desenfoque), que penaliza soluciones frágiles. Solo tendrá sentido implementarlo cuando
+  asfericidad/tilt hagan que A y C se separen de verdad.
 - **Qué lo cambiaría:** asfericidad (V1.2), tilt y descentración (V1.3) y tórico (V1.6)
   rompen esa simetría. La comparación debe **repetirse** tras cada uno de esos sprints.
 - **Lo que exige zanjarlo:** cohorte postoperatoria. Ningún criterio se declara preferible

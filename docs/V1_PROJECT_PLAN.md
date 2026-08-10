@@ -49,8 +49,9 @@ Tres controles, aplicados en todos los sprints:
 - **Cada grado de libertad nuevo entra apagado por defecto.** Asfericidad, tilt y
   descentración valen `UNKNOWN` mientras no haya dato o ficha; activarlos exige
   declararlos. Un grado de libertad sin procedencia no puede influir en un resultado.
-- **Ningún objetivo óptico se elige por dar mejores números.** Los tres se implementan,
-  se comparan entre sí, y la elección queda abierta hasta tener datos postoperatorios.
+- **Ningún objetivo óptico se elige por dar mejores números.** Los criterios
+  independientes se implementan, se comparan entre sí, y la elección queda abierta hasta
+  tener datos postoperatorios.
 
 ## 3. Sprints
 
@@ -61,15 +62,24 @@ Interfaz de objetivo óptico con tres implementaciones, todas sobre el mismo tra
 | Objetivo | Criterio | Qué privilegia |
 |---|---|---|
 | **A · Mínimo RMS en retina** | minimiza el radio RMS del spot **en el plano retiniano** | nitidez en el plano real de la imagen |
-| **B · Mejor foco en retina** | lleva el plano de mejor foco (mínimo RMS axial) **a** la retina | coincidencia foco↔retina |
-| **C · Desenfoque equivalente nulo** | anula el desenfoque equivalente en dioptrías respecto a la retina | comparabilidad con el paraxial y con la clínica |
+| **C · Desenfoque equivalente nulo** | lleva el plano de mejor foco a la retina, con coste en dioptrías | coincidencia foco↔retina, en la unidad clínica |
 
-No son equivalentes en presencia de aberración esférica: A penaliza la aberración, B la
-ignora si el foco cae donde debe, C traduce a dioptrías. **No se declara ninguno
-preferible.** El optimizador acepta el objetivo como parámetro.
+> **Revisión pre-V1.2.** El plan original enumeraba un tercer criterio, B (mejor foco
+> sobre la retina, coste en mm). La revisión demostró que **B ≡ C como criterios de
+> optimización**: mismo argmin, ambos derivados de la misma computación de mejor foco,
+> distinta unidad de coste (demostración en `objective.mjs`; tests en
+> `objective_equivalence.test.mjs`). Mantener los tres habría sido conservar una
+> redundancia por fidelidad a la especificación. B es ahora métrica reportada
+> (`detail.desplazamiento_mm`). Un tercer criterio genuinamente independiente
+> (métrica robusta integrada en profundidad de foco) queda registrado en
+> OPEN_QUESTIONS #8 para cuando la asfericidad/tilt rompan la simetría actual.
+
+A y C no son equivalentes en presencia de aberración esférica: A penaliza la aberración,
+C la ignora si el foco cae donde debe (exp008 mide la separación). **No se declara
+ninguno preferible.** El optimizador acepta el objetivo como parámetro.
 
 Criterios de aceptación:
-- los tres objetivos coinciden entre sí y con el paraxial dentro de 10⁻³ D cuando la
+- los objetivos coinciden entre sí y con el paraxial dentro de 10⁻³ D cuando la
   apertura → 0 (si no coinciden, hay un defecto: sin aberración no hay diferencia posible);
 - con apertura clínica difieren de forma **medida y reportada**, no supuesta;
 - el optimizador devuelve la potencia continua y la de catálogo, con su segunda opción;
@@ -77,10 +87,15 @@ Criterios de aceptación:
 - test: una lente comercial `UNKNOWN` hace fallar el optimizador, no lo degrada a genérica.
 
 ### V1.2 · Superficies cónicas
-`z = c·r²/(1 + √(1 − (1+k)c²r²))`. Asfericidad **apagada por defecto** (`UNKNOWN` → esfera).
+`z = c·r²/(1 + √(1 − (1+k)c²r²))`. La asfericidad distingue TRES estados y ninguno se
+convierte en otro en silencio: `k` numérico documentado → superficie cónica;
+`ASSUMED_SPHERICAL` → esfera por SUPUESTO DECLARADO (la genérica de simulación);
+`UNKNOWN` → esfera con el supuesto REGISTRADO en la salida (`assumptions`), nunca
+convertido tácitamente en Q=0.
 Aceptación: con `k = 0` reproduce la esfera bit a bit; con `k = −1` (parábola) el foco
 marginal coincide con la solución cerrada de la parábola; ninguna lente comercial recibe
-un `k` inventado (OPEN_QUESTIONS #4).
+un `k` inventado (OPEN_QUESTIONS #4); el estado de asfericidad de cada superficie es
+auditable en la salida.
 
 ### V1.3 · Tilt y descentración
 Transformación rígida por superficie. Aceptación: tilt/descentración nulos reproducen el

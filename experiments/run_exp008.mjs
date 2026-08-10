@@ -4,15 +4,21 @@
  * SIMULACIÓN / NO GROUND TRUTH CLÍNICO · RESEARCH USE ONLY
  *
  * Pregunta (V1.1): con pupila real los rayos no cortan todos en el mismo punto, así que
- * "enfocar en la retina" deja de estar definido y hay que declarar qué se optimiza. Se
- * implementaron tres criterios defendibles:
- *   A · mínimo RMS del spot EN la retina
- *   B · plano de mejor foco SOBRE la retina
- *   C · desenfoque equivalente nulo respecto a la retina
- * ¿Cuánta potencia separa a unos de otros? ¿Y cuánto separa el trazado del paraxial?
+ * "enfocar en la retina" deja de estar definido y hay que declarar qué se optimiza.
+ *
+ * REVISIÓN (pre-V1.2). La primera versión comparaba TRES criterios (A: mínimo RMS en
+ * retina; B: mejor foco sobre la retina; C: desenfoque equivalente nulo). La revisión
+ * demostró que B y C son EQUIVALENTES como criterios de optimización — mismo argmin,
+ * ambos derivados de la misma llamada a bestFocus, solo cambia la unidad del coste
+ * (demostración en objective.mjs; tests en objective_equivalence.test.mjs). La tabla de
+ * la primera versión ya lo delataba: las columnas B y C eran idénticas fila a fila, y su
+ * "acuerdo" era estructural, no un hallazgo. B quedó como métrica reportada; la
+ * comparación real siempre fue A frente a (B≡C), y así se presenta ahora. Los valores de
+ * A y C no cambian con la revisión; el rango A–C es numéricamente el mismo que el antiguo
+ * rango "A–B–C" precisamente porque B≡C.
  *
  * Método: rejilla de ojos sintéticos declarada × pupilas de 2 a 6 mm. Para cada
- * combinación se optimiza con los tres criterios (potencia continua, sin catálogo, para
+ * combinación se optimiza con ambos criterios (potencia continua, sin catálogo, para
  * no mezclar el efecto del escalón) y se compara además con dos referencias paraxiales:
  *   - el paraxial de LENTE DELGADA (lo que hace V0);
  *   - el paraxial DEL MISMO SISTEMA GRUESO (la referencia correcta para aislar aberración).
@@ -145,21 +151,30 @@ const md = [
   '## Pregunta',
   '',
   'Con pupila real los rayos no cortan todos en el mismo punto: no existe "el foco", y',
-  '"enfocar en la retina" deja de estar definido. V1.1 implementa tres criterios defendibles',
-  '(mínimo RMS en retina, mejor foco sobre retina, desenfoque equivalente nulo). Este',
-  'experimento mide cuánta potencia los separa, y cuánto separan al trazado del paraxial.',
+  '"enfocar en la retina" deja de estar definido. V1.1 implementa dos criterios',
+  'independientes: **A** (mínimo RMS del spot en retina) y **C** (desenfoque equivalente',
+  'nulo, es decir, mejor foco sobre la retina medido en dioptrías). Este experimento mide',
+  'cuánta potencia los separa, y cuánto separan al trazado del paraxial.',
+  '',
+  '> **Revisión pre-V1.2.** La primera versión presentaba TRES criterios; B (mejor foco',
+  '> sobre retina, en mm) y C se demostraron equivalentes como criterios de optimización:',
+  '> mismo argmin, misma computación de mejor foco, distinta unidad. Sus columnas eran',
+  '> idénticas fila a fila — acuerdo estructural, no hallazgo. B es ahora una métrica',
+  '> reportada (`detail.desplazamiento_mm`) y la comparación se presenta como lo que',
+  '> siempre fue: A frente a C. Demostración: `objective.mjs` /',
+  '> `tests/objective_equivalence.test.mjs`. Los valores de A y C no cambiaron.',
   '',
   '## Resultado',
   '',
   '| Fuente de divergencia | Magnitud |',
   '|---|---|',
-  `| **Entre los tres criterios ópticos** | ${R.rango_entre_objetivos_medio_d.toFixed(4)} D de media, **${R.rango_entre_objetivos_max_d.toFixed(4)} D como máximo** |`,
+  `| **Entre los dos criterios independientes (A vs C)** | ${R.rango_entre_objetivos_medio_d.toFixed(4)} D de media, **${R.rango_entre_objetivos_max_d.toFixed(4)} D como máximo** |`,
   `| Aberración esférica (trazado − paraxial del mismo sistema) | ${fmt(R.aberracion_min_d)} … ${fmt(R.aberracion_max_d)} D |`,
   `| Espesor de la lente (paraxial del sistema − paraxial delgado) | ${fmt(R.espesor_min_d)} … ${fmt(R.espesor_max_d)} D |`,
   '',
   '### Lectura, en orden de importancia',
   '',
-  '1. **El criterio elegido casi no importa** con superficies esféricas: los tres coinciden',
+  '1. **El criterio elegido casi no importa** con superficies esféricas: A y C coinciden',
   `   dentro de ${R.rango_entre_objetivos_max_d.toFixed(4)} D en el peor caso, muy por debajo del escalón`,
   '   comercial de 0.5 D. Es un resultado **negativo y útil**: con la geometría actual, la',
   '   angustia sobre "qué optimizar" no está justificada. Debería reevaluarse al introducir',
@@ -171,13 +186,13 @@ const md = [
   '',
   '## Detalle',
   '',
-  '| Ojo | AL | K | Pupila | Paraxial delgada | Paraxial sistema | A (RMS) | B (foco) | C (desenf.) | Rango A-B-C | Aberración | Espesor |',
-  '|---|---|---|---|---|---|---|---|---|---|---|---|',
-  ...rows.map(r => `| ${r.ojo} | ${r.al_mm} | ${r.k_d} | ${r.pupil_mm} | ${r.paraxial_delgada_d} | ${r.paraxial_sistema_d} | ${r.por_objetivo_d.SPOT_RMS_AT_RETINA} | ${r.por_objetivo_d.BEST_FOCUS_ON_RETINA} | ${r.por_objetivo_d.EQUIVALENT_DEFOCUS} | ${r.rango_entre_objetivos_d} | ${fmt(r.aberracion_d)} | ${fmt(r.espesor_d)} |`),
+  '| Ojo | AL | K | Pupila | Paraxial delgada | Paraxial sistema | A (RMS) | C (desenf.) | Rango A-C | Aberración | Espesor |',
+  '|---|---|---|---|---|---|---|---|---|---|---|',
+  ...rows.map(r => `| ${r.ojo} | ${r.al_mm} | ${r.k_d} | ${r.pupil_mm} | ${r.paraxial_delgada_d} | ${r.paraxial_sistema_d} | ${r.por_objetivo_d.SPOT_RMS_AT_RETINA} | ${r.por_objetivo_d.EQUIVALENT_DEFOCUS} | ${r.rango_entre_objetivos_d} | ${fmt(r.aberracion_d)} | ${fmt(r.espesor_d)} |`),
   '',
   '## Lo que este experimento NO demuestra',
   '',
-  'Cuál de los tres criterios predice mejor la refracción postoperatoria real, ni que el',
+  'Cuál de los criterios predice mejor la refracción postoperatoria real, ni que el',
   'trazado prediga mejor que el paraxial. Ambas cosas exigen una cohorte postoperatoria',
   '(OPEN_QUESTIONS #7). Lo que se mide aquí es **estructura del modelo**, no acierto.',
   '',
