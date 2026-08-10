@@ -1,0 +1,117 @@
+{
+ "config": {
+  "id": "exp003_paraxial_vs_raytrace",
+  "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO",
+  "iol": "GENERICA equibiconvexa (n=1.49, t=0.8 mm) — geometría comercial UNKNOWN",
+  "predictor": "ConstantOffsetPredictor(1.7)",
+  "haces": {
+   "validacion_mm": [
+    0.02,
+    0.05,
+    0.08
+   ],
+   "clinico_mm": [
+    0.3,
+    0.6,
+    0.9,
+    1.2,
+    1.5
+   ]
+  },
+  "ojos": [
+   {
+    "id": "corto",
+    "al_mm": 21,
+    "k_d": 44
+   },
+   {
+    "id": "normal",
+    "al_mm": 23.5,
+    "k_d": 43.5
+   },
+   {
+    "id": "largo",
+    "al_mm": 27,
+    "k_d": 42.5
+   },
+   {
+    "id": "muy_largo",
+    "al_mm": 30,
+    "k_d": 42
+   }
+  ],
+  "fijos": {
+   "acd_mm": 3.2,
+   "lt_mm": 4.5,
+   "cct_um": 550
+  }
+ },
+ "timestamp": "2026-08-10T08:52:12.805Z",
+ "commit": "db8b0ad7beb98cd300571d006b4b0517ad2c21ac",
+ "rows": [
+  {
+   "id": "corto",
+   "al_mm": 21,
+   "k_d": 44,
+   "potencia_d": 30.5,
+   "posicion_mm": 4.9,
+   "validacion": {
+    "delta_mm": -0.0005,
+    "delta_d": -0.0029
+   },
+   "clinico_3mm": {
+    "delta_mm": -0.174,
+    "delta_d": -0.949,
+    "spot_rms_mm": 0.0039
+   }
+  },
+  {
+   "id": "normal",
+   "al_mm": 23.5,
+   "k_d": 43.5,
+   "potencia_d": 20,
+   "posicion_mm": 4.9,
+   "validacion": {
+    "delta_mm": -0.0005,
+    "delta_d": -0.0021
+   },
+   "clinico_3mm": {
+    "delta_mm": -0.166,
+    "delta_d": -0.67,
+    "spot_rms_mm": 0.0032
+   }
+  },
+  {
+   "id": "largo",
+   "al_mm": 27,
+   "k_d": 42.5,
+   "potencia_d": 10,
+   "posicion_mm": 4.9,
+   "validacion": {
+    "delta_mm": -0.0006,
+    "delta_d": -0.0016
+   },
+   "clinico_3mm": {
+    "delta_mm": -0.178,
+    "delta_d": -0.505,
+    "spot_rms_mm": 0.0029
+   }
+  },
+  {
+   "id": "muy_largo",
+   "al_mm": 30,
+   "k_d": 42,
+   "potencia_d": 3.5,
+   "posicion_mm": 4.9,
+   "validacion": {
+    "delta_mm": -0.0006,
+    "delta_d": -0.0014
+   },
+   "clinico_3mm": {
+    "delta_mm": -0.203,
+    "delta_d": -0.445,
+    "spot_rms_mm": 0.0029
+   }
+  }
+ ]
+}
