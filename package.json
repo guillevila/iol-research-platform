@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Plataforma de investigacion en calculo de LIO. RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING.",
   "scripts": {
-    "test": "node --test tests",
+    "test": "node --test",
     "baseline:metrics": "node legacy/evo_replica/harness/replay_metrics.mjs --write",
     "baseline:golden": "node legacy/evo_replica/harness/make_golden.mjs",
     "baseline:hashes": "node legacy/evo_replica/harness/make_hashes.mjs"
