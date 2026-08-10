@@ -15,7 +15,7 @@ import { FidelityMode, DEFAULT_FIDELITY_MODE, assertFidelityMode, enforceStrictn
 import { predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, refract, transfer } from './paraxial.mjs';
 import { buildCorneaModel, CorneaPolicy } from './cornea.mjs';
 import { N_AIR, N_AQUEOUS, N_CORNEA, N_VITREOUS } from './constants.mjs';
-import { sphericalSurface } from './raytrace/surfaces.mjs';
+import { sphericalSurface, conicSurface } from './raytrace/surfaces.mjs';
 import { focusOfSystem } from './raytrace/trace.mjs';
 
 /**
@@ -223,40 +223,46 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
 
   // Asfericidad de cada superficie de la LIO: tres estados, ninguno se convierte en otro
   // en silencio (misma disciplina que el índice queratométrico en P0.1).
-  //   número           → Q documentada: este trazador aún no implementa cónicas → FALLA,
-  //                      porque trazar la esfera equivaldría a ignorar un dato documentado;
-  //   ASSUMED_SPHERICAL→ esfera por supuesto DECLARADO (nada que registrar);
+  //   número           → constante cónica: se TRAZA como superficie cónica (V1.2);
+  //   ASSUMED_SPHERICAL→ esfera por supuesto DECLARADO (sin nota en el sustituto, cuya
+  //                      geometría entera ya está registrada; CON nota en lente real);
   //   UNKNOWN          → esfera con el supuesto REGISTRADO en la salida.
   const qDe = (q, id) => {
-    if (typeof q === 'number') {
-      throw new TypeError(`buildRaytraceEye: ${id} tiene asfericidad Q=${q} documentada, `
-        + 'pero el trazador aún no implementa superficies cónicas. Se rechaza en lugar de '
-        + 'ignorar un dato documentado (superficies cónicas: ver V1_PROJECT_PLAN.md).');
-    }
+    if (typeof q === 'number') return;            // documentada/declarada: se traza tal cual
     if (q !== ASSUMED_SPHERICAL) {
       assumptions.push(`${id}: asfericidad no documentada (${String(q ?? UNKNOWN)}); `
         + 'superficie trazada como ESFERA — SUPUESTO registrado, no verificado');
     } else if (!iol.is_simulation_surrogate) {
-      // en el sustituto la esfericidad forma parte de la geometría declarada (ya
-      // registrada como supuesto entero); en una lente REAL, ASSUMED_SPHERICAL es un
-      // supuesto del modelador sobre datos de fabricante y debe quedar registrado —
-      // si no, atravesaría STRICT llevando un supuesto declarado (hallazgo adversarial)
       assumptions.push(`${id}: esfericidad ASUMIDA por el modelador (ASSUMED_SPHERICAL) `
         + 'sobre lente de fabricante — supuesto declarado, no dato');
     }
   };
   qDe(g.asphericity_q_anterior, 'iol_ant');
   qDe(g.asphericity_q_posterior, 'iol_post');
+  /** esfera o cónica según el estado de Q — el despacho de V1.2 */
+  const superficie = ({ id, zVertex_mm, radius_mm, q, n_before, n_after }) =>
+    typeof q === 'number'
+      ? conicSurface({ id, zVertex_mm, radius_mm, k: q, aperture_mm, n_before, n_after })
+      : sphericalSurface({ id, zVertex_mm, radius_mm, aperture_mm, n_before, n_after });
 
-  // La córnea (cualquier política) se traza con superficies esféricas: la asfericidad
-  // corneal no se modela todavía. Supuesto declarado en la salida, no tácito.
-  assumptions.push('cornea: superficies trazadas como esféricas (asfericidad corneal no modelada)');
+  // Asfericidad corneal: si está MEDIDA (topografía) se traza cónica; si no, esfera
+  // con el supuesto registrado POR SUPERFICIE. La superficie equivalente (política sin
+  // radios) es una construcción, no una medida: lleva su propia nota.
+  const qCorneaAnt = preop.cornea?.asphericity_q_anterior ?? null;
+  const qCorneaPost = preop.cornea?.asphericity_q_posterior ?? null;
   let cornea_kind;
   if (cornea.r_posterior_mm !== null && typeof preop.cct_um === 'number') {
     cornea_kind = cornea.kind;                    // physical | assumed_ratio: dos superficies reales
-    surfaces.push(sphericalSurface({ id: 'cornea_ant', zVertex_mm: 0, radius_mm: cornea.r_anterior_mm, aperture_mm, n_before: N_AIR, n_after: N_CORNEA }));
-    surfaces.push(sphericalSurface({ id: 'cornea_post', zVertex_mm: preop.cct_um / 1000, radius_mm: cornea.r_posterior_mm, aperture_mm, n_before: N_CORNEA, n_after: N_AQUEOUS }));
+    if (qCorneaAnt === null) {
+      assumptions.push('cornea_ant: asfericidad no medida; superficie trazada como ESFERA — SUPUESTO registrado');
+    }
+    if (qCorneaPost === null) {
+      assumptions.push('cornea_post: asfericidad no medida; superficie trazada como ESFERA — SUPUESTO registrado');
+    }
+    surfaces.push(superficie({ id: 'cornea_ant', zVertex_mm: 0, radius_mm: cornea.r_anterior_mm, q: qCorneaAnt, n_before: N_AIR, n_after: N_CORNEA }));
+    surfaces.push(superficie({ id: 'cornea_post', zVertex_mm: preop.cct_um / 1000, radius_mm: cornea.r_posterior_mm, q: qCorneaPost, n_before: N_CORNEA, n_after: N_AQUEOUS }));
   } else {
+    assumptions.push('cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)');
     // UNA superficie aire→acuoso cuyo radio reproduce EXACTAMENTE la potencia que el
     // paraxial usa bajo la misma política ⇒ ambos motores son comparables sin supuestos
     // ocultos, cualquiera que sea la política elegida.
@@ -266,8 +272,8 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
   }
   const t = g.central_thickness_mm;
   const zAnt = postop.iol_position_mm - t / 2;
-  surfaces.push(sphericalSurface({ id: 'iol_ant', zVertex_mm: zAnt, radius_mm: g.r_anterior_mm, aperture_mm, n_before: N_AQUEOUS, n_after: g.refractive_index }));
-  surfaces.push(sphericalSurface({ id: 'iol_post', zVertex_mm: zAnt + t, radius_mm: g.r_posterior_mm, aperture_mm, n_before: g.refractive_index, n_after: N_VITREOUS }));
+  surfaces.push(superficie({ id: 'iol_ant', zVertex_mm: zAnt, radius_mm: g.r_anterior_mm, q: g.asphericity_q_anterior, n_before: N_AQUEOUS, n_after: g.refractive_index }));
+  surfaces.push(superficie({ id: 'iol_post', zVertex_mm: zAnt + t, radius_mm: g.r_posterior_mm, q: g.asphericity_q_posterior, n_before: g.refractive_index, n_after: N_VITREOUS }));
   // La puerta STRICT: con supuestos registrados, el trazado no se entrega. Se evalúa al
   // FINAL para que el error enumere TODOS los supuestos, no solo el primero.
   enforceStrictness(fidelity, assumptions, 'buildRaytraceEye');

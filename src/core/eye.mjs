@@ -31,6 +31,11 @@ function opt(v, range, name) {
   if (v === null || v === undefined) return null;
   return assertInRange(v, range[0], range[1], name);
 }
+function optQ(v, name) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  throw new TypeError(`${name} debe ser un número finito (Q medida) o ausente; recibido: ${String(v)}`);
+}
 function optAxis(v, name) {
   if (v === null || v === undefined) return null;
   assertFinite(v, name);
@@ -71,6 +76,10 @@ export function createPreopEye(f) {
       posterior_k1_d: f.cornea?.posterior_k1_d ?? null,
       posterior_k2_d: f.cornea?.posterior_k2_d ?? null,
       posterior_axis_deg: optAxis(f.cornea?.posterior_axis_deg, 'posterior_axis_deg'),
+      // asfericidad corneal MEDIDA (constante cónica Q del topógrafo/tomógrafo);
+      // null = no medida (el trazador registrará el supuesto de esfera)
+      asphericity_q_anterior: optQ(f.cornea?.asphericity_q_anterior, 'cornea.asphericity_q_anterior'),
+      asphericity_q_posterior: optQ(f.cornea?.asphericity_q_posterior, 'cornea.asphericity_q_posterior'),
     },
     cct_um: opt(f.cct_um, PLAUSIBLE.cct_um, 'cct_um'),
     acd_mm: opt(f.acd_mm, PLAUSIBLE.acd_mm, 'acd_mm'),

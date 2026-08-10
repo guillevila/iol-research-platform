@@ -102,10 +102,15 @@ convierte en otro en silencio: `k` numérico documentado → superficie cónica;
 `ASSUMED_SPHERICAL` → esfera por SUPUESTO DECLARADO (la genérica de simulación);
 `UNKNOWN` → esfera con el supuesto REGISTRADO en la salida (`assumptions`), nunca
 convertido tácitamente en Q=0.
-Aceptación: con `k = 0` reproduce la esfera bit a bit; con `k = −1` (parábola) el foco
-marginal coincide con la solución cerrada de la parábola; ninguna lente comercial recibe
-un `k` inventado (OPEN_QUESTIONS #4); el estado de asfericidad de cada superficie es
-auditable en la salida.
+Aceptación: con `k = 0` coincide con la esfera a precisión de máquina (≤1e-12 mm en
+intersección, normal y foco — son fórmulas distintas, la identidad bit a bit no es
+demostrable ni necesaria); con `k = −1` (parábola) el cruce de cada rayo coincide con la
+solución cerrada; la cónica CARTESIANA `k = −(n1/n2)²` produce foco PERFECTO (aberración
+esférica exactamente cero — el test más sensible a errores de sagita o normal); ninguna
+lente comercial recibe un `k` inventado (OPEN_QUESTIONS #4); el estado de asfericidad de
+cada superficie es auditable en la salida; y el criterio de salida añadido: el PRIMER
+trazado ejecutable en STRICT cuando córnea y LIO tienen todas sus Q medidas/documentadas,
+manteniendo pupila→0 → paraxial para todo k.
 
 ### V1.3 · Tilt y descentración
 Transformación rígida por superficie. Aceptación: tilt/descentración nulos reproducen el

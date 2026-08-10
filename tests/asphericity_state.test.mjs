@@ -6,8 +6,9 @@
  * (P0.1) y del radio plano. "No sé qué asfericidad tiene" y "decidí modelarla esférica"
  * son afirmaciones distintas y el modelo debe poder distinguirlas:
  *
- *   número            Q documentada  → el trazador la exige implementada o FALLA
- *   ASSUMED_SPHERICAL supuesto DECLARADO → esfera, sin nota (la decisión ya es visible)
+ *   número            Q documentada/declarada → se TRAZA como superficie cónica (V1.2)
+ *   ASSUMED_SPHERICAL supuesto DECLARADO → esfera (sin nota en el sustituto; con nota
+ *                     registrada en una lente real)
  *   UNKNOWN           no documentada → esfera con el supuesto REGISTRADO en la salida
  *
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
@@ -17,7 +18,7 @@ import assert from 'node:assert/strict';
 import { createPreopEye, createPredictedPostopEye } from '../src/core/eye.mjs';
 import { createIOL, ASSUMED_SPHERICAL, UNKNOWN, GeometryStatus } from '../src/core/iol.mjs';
 import { GenericIOLFactory, ManufacturerIOLFactory } from '../src/core/iol_factory.mjs';
-import { buildRaytraceEye } from '../src/optics/eyebuilder.mjs';
+import { buildRaytraceEye, paraxialFocusOfRaytraceEye } from '../src/optics/eyebuilder.mjs';
 import { optimizePowerByRaytrace } from '../src/optimize/raytrace_power.mjs';
 
 function postopOf() {
@@ -71,44 +72,27 @@ test('asfericidad: ASSUMED_SPHERICAL no genera nota — el supuesto ya es visibl
   assert.equal(eye.assumptions.filter(a => /^cornea:/.test(a)).length, 1);
 });
 
-test('asfericidad: una Q NUMÉRICA documentada hace FALLAR el trazado, no se ignora', () => {
+test('asfericidad: una Q NUMÉRICA documentada se TRAZA como cónica, sin nota (V1.2)', () => {
+  // hasta V1.2 el contrato era FALLAR (ignorar un dato documentado falsearía la lente);
+  // desde V1.2 el dato documentado se honra: la superficie es una cónica con k = Q.
   const post = postopOf();
   const conQ = new ManufacturerIOLFactory({
     manufacturer: 'ACME', model: 'M2', provenance: PROV,
     geometryByPower: { 20: { ...GEOM_SIN_Q, asphericity_q_anterior: -0.27 } },
   }).create({ power_d: 20 });
-  assert.throws(() => buildRaytraceEye(post, conQ),
-    /Q=-0\.27 documentada.*no implementa superficies cónicas/s,
-    'trazar la esfera ignorando una Q documentada falsearía un dato de fabricante');
-  // y el optimizador hereda el fallo en vez de degradar. Con una fábrica de fabricante
-  // la búsqueda continua sondea potencias no tabuladas, así que puede saltar ANTES la
-  // guarda de geometría no trazable — ambas son fallos correctos: lo prohibido es que
-  // devuelva un número.
-  const factoryConQ = new ManufacturerIOLFactory({
-    manufacturer: 'ACME', model: 'M2', provenance: PROV,
-    geometryByPower: Object.fromEntries(
-      [18, 19, 20, 21, 22].map(p => [p, { ...GEOM_SIN_Q, asphericity_q_anterior: -0.27 }])),
-  });
-  assert.throws(
-    () => optimizePowerByRaytrace({ postop: post, factory: factoryConQ, pupil_mm: 3, search_d: [15, 25] }),
-    /no implementa superficies cónicas|no tiene geometría trazable/);
-  // con una fábrica que SÍ cubre el continuo (espía que copia la Q sobre la genérica),
-  // la guarda que dispara es exactamente la de la Q documentada
-  const base = new GenericIOLFactory();
-  const espiaConQ = {
-    id: 'espia_q',
-    create: ({ power_d }) => {
-      const iol = base.create({ power_d });
-      return createIOL({
-        manufacturer: 'ACME', model: 'M2c', nominal_power_d: power_d,
-        geometry: { ...iol.geometry, asphericity_q_anterior: -0.27 },
-        geometry_status: GeometryStatus.MANUFACTURER, provenance: PROV,
-      });
-    },
-  };
-  assert.throws(
-    () => optimizePowerByRaytrace({ postop: post, factory: espiaConQ, pupil_mm: 3, search_d: [15, 25] }),
-    /no implementa superficies cónicas/);
+  const eye = buildRaytraceEye(post, conQ);
+  const ant = eye.surfaces.find(s => s.id === 'iol_ant');
+  const post_ = eye.surfaces.find(s => s.id === 'iol_post');
+  assert.equal(ant.kind, 'conic');
+  assert.equal(ant.k, -0.27);
+  assert.equal(post_.kind, 'sphere', 'la cara sin Q sigue siendo esfera (con nota)');
+  // la cara documentada no genera nota; la no documentada sí
+  assert.equal(eye.assumptions.filter(a => /^iol_ant:/.test(a)).length, 0);
+  assert.equal(eye.assumptions.filter(a => /^iol_post:/.test(a)).length, 1);
+  // y el optimizador con una fábrica que cubre el continuo con Q declarada FUNCIONA
+  const conQdeclarada = new GenericIOLFactory({ q_anterior: -0.27, q_posterior: -0.15 });
+  const r = optimizePowerByRaytrace({ postop: post, factory: conQdeclarada, pupil_mm: 3 });
+  assert.ok(Number.isFinite(r.exact_power_d));
 });
 
 test('asfericidad: valores basura se rechazan al construir la LIO', () => {
@@ -128,31 +112,47 @@ test('asfericidad: valores basura se rechazan al construir la LIO', () => {
   }
 });
 
-test('asfericidad: Q=0 numérica NO es lo mismo que ASSUMED_SPHERICAL', () => {
-  // Q=0 es una afirmación de fabricante ("la cara es exactamente esférica, documentado");
-  // ASSUMED_SPHERICAL es una decisión de modelado. El trazador actual rechaza también la
-  // Q=0 numérica: aceptarla exigiría distinguir "documentada como esfera" en la salida,
-  // y eso llega con las superficies cónicas (que con k=0 deben reproducir la esfera).
+test('asfericidad: Q=0 numérica NO es lo mismo que ASSUMED_SPHERICAL — pero traza idéntico', () => {
+  // Q=0 es una afirmación documentada ("la cara ES esférica"); ASSUMED_SPHERICAL es una
+  // decisión de modelado. Semántica distinta (documentada no genera nota en una lente
+  // real; asumida sí), física idéntica: la cónica k=0 ES la esfera.
   const post = postopOf();
   const q0 = new ManufacturerIOLFactory({
     manufacturer: 'ACME', model: 'M3', provenance: PROV,
     geometryByPower: { 20: { ...GEOM_SIN_Q, asphericity_q_anterior: 0, asphericity_q_posterior: 0 } },
   }).create({ power_d: 20 });
-  assert.equal(q0.geometry.asphericity_q_anterior, 0);      // se almacena como dato
-  assert.throws(() => buildRaytraceEye(post, q0), /Q=0 documentada/);
+  assert.equal(q0.geometry.asphericity_q_anterior, 0);
+  const eyeQ0 = buildRaytraceEye(post, q0);
+  assert.equal(eyeQ0.surfaces.find(s => s.id === 'iol_ant').kind, 'conic');
+  assert.equal(eyeQ0.assumptions.filter(a => /^iol_/.test(a)).length, 0,
+    'Q=0 documentada no es un supuesto: no genera nota');
+  // misma lente declarada ASSUMED_SPHERICAL: trazado esférico + nota registrada
+  const asumida = new ManufacturerIOLFactory({
+    manufacturer: 'ACME', model: 'M3b', provenance: PROV,
+    geometryByPower: { 20: { ...GEOM_SIN_Q, asphericity_q_anterior: 'ASSUMED_SPHERICAL', asphericity_q_posterior: 'ASSUMED_SPHERICAL' } },
+  }).create({ power_d: 20 });
+  const eyeAsumida = buildRaytraceEye(post, asumida);
+  assert.equal(eyeAsumida.surfaces.find(s => s.id === 'iol_ant').kind, 'sphere');
+  assert.equal(eyeAsumida.assumptions.filter(a => /esfericidad ASUMIDA por el modelador/.test(a)).length, 2);
+  // física idéntica: mismo foco paraxial a precisión de máquina
+  assert.ok(Math.abs(paraxialFocusOfRaytraceEye(eyeQ0) - paraxialFocusOfRaytraceEye(eyeAsumida)) < 1e-12);
 });
 
-test('asfericidad: una Q solo en la cara POSTERIOR también hace fallar el trazado', () => {
-  // La guarda de la cara anterior se evalúa primero: sin este test, una regresión que
-  // eliminara el chequeo de la posterior pasaría toda la suite (hallazgo de la revisión
-  // adversarial: todos los fixtures anteriores ponían la Q en la cara anterior).
+test('asfericidad: una Q solo en la cara POSTERIOR se traza en ESA cara (cobertura por cara)', () => {
+  // Herencia del hallazgo adversarial (los fixtures solo ponían Q en la anterior): la
+  // cara posterior debe tener su propio despacho, no heredar el de la anterior.
   const post = postopOf();
   const soloPosterior = new ManufacturerIOLFactory({
     manufacturer: 'ACME', model: 'M5', provenance: PROV,
     geometryByPower: { 20: { ...GEOM_SIN_Q, asphericity_q_posterior: -0.15 } },
   }).create({ power_d: 20 });
-  assert.throws(() => buildRaytraceEye(post, soloPosterior),
-    /iol_post tiene asfericidad Q=-0.15/s);
+  const eye = buildRaytraceEye(post, soloPosterior);
+  assert.equal(eye.surfaces.find(s => s.id === 'iol_ant').kind, 'sphere');
+  const sp = eye.surfaces.find(s => s.id === 'iol_post');
+  assert.equal(sp.kind, 'conic');
+  assert.equal(sp.k, -0.15);
+  assert.equal(eye.assumptions.filter(a => /^iol_ant:/.test(a)).length, 1);
+  assert.equal(eye.assumptions.filter(a => /^iol_post:/.test(a)).length, 0);
 });
 
 test('asfericidad: el OPTIMIZADOR expone los supuestos del trazado — la trazabilidad no se pierde', () => {

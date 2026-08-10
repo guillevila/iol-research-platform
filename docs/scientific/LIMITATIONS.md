@@ -26,10 +26,12 @@
 5. **Tórico:** el motor tórico propio existe (vectores de doble ángulo, cálculo por
    meridianos, TCA solo si está MEDIDO). Su limitación real es que sin córnea posterior
    medida el astigmatismo posterior no se estima: queda declarado, no rellenado.
-6. **Ray tracer:** superficies esféricas/planas centradas; sin asfericidad, tilt ni
-   descentración de superficies (Sprint 4/8); métrica de foco = RMS geométrico (sin
+6. **Ray tracer:** superficies esféricas, planas y CÓNICAS (asfericidad Q, desde
+   V1.2) centradas; sin tilt ni descentración de superficies, y la toricidad de LIO no
+   se traza (cilindro declarado ≠ 0 se rechaza); métrica de foco = RMS geométrico (sin
    MTF/difracción). El ojo completo SÍ se traza (`buildRaytraceEye`), validado contra
-   su propio paraxial cuando la altura de rayo → 0.
+   su propio paraxial cuando la altura de rayo → 0 y contra formas cerradas cónicas
+   (paraboloide exacto; cartesiana de foco perfecto).
 7. **Córnea sin radios medidos: la política por defecto NO es invariante al
    dispositivo.** `KERATOMETRIC_READING` usa la lectura K como potencia corneal. La
    conversión radio→K emplea un índice ficticio declarado por convención (1.3375 /
@@ -55,9 +57,10 @@
    con córnea de dos superficies MEDIDA, SIN astigmatismo queratométrico (el colapso a
    EE de un cilindro medido se registra y bloquea) y con lente delgada explícita o de
    fabricante SIMÉTRICA (el centrado geométrico de una asimétrica reinterpreta el datum
-   del plano principal, OQ #3); y la vía tórica con córnea medida INCLUIDA la posterior.
-   Ningún trazado de rayos pasa (asfericidad corneal no modelada; Q de LIO no
-   documentada). La
+   del plano principal, OQ #3); la vía tórica con córnea medida INCLUIDA la posterior; y
+   desde V1.2, el PRIMER TRAZADO DE RAYOS: córnea medida con Q de topografía en ambas
+   caras + lente de fabricante simétrica con Q documentada y cilindro 0 declarado. Sin
+   esas Q, el trazado sigue bloqueando con la superficie nombrada. La
    validación clínica futura (VALIDATION_STRATEGY, nivel 3) deberá ejecutarse en STRICT.
    Límite honesto: la puerta garantiza que ningún supuesto REGISTRADO la atraviesa; que
    todo supuesto esté registrado es una disciplina vigilada por tests, no un teorema.

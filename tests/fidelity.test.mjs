@@ -16,7 +16,9 @@ import { createPreopEye, createPredictedPostopEye } from '../src/core/eye.mjs';
 import { FidelityMode, DEFAULT_FIDELITY_MODE, StrictModeViolation, enforceStrictness } from '../src/core/fidelity.mjs';
 import { GenericIOLFactory, ManufacturerIOLFactory } from '../src/core/iol_factory.mjs';
 import { CorneaPolicy } from '../src/optics/cornea.mjs';
-import { buildParaxialEye, buildRaytraceEye } from '../src/optics/eyebuilder.mjs';
+import { buildParaxialEye, buildRaytraceEye, paraxialFocusOfRaytraceEye } from '../src/optics/eyebuilder.mjs';
+import { ObjectiveKind, evaluateObjective } from '../src/optics/objective.mjs';
+import { defaultBundle } from '../src/optimize/raytrace_power.mjs';
 import { searchBestPower } from '../src/optimize/power_search.mjs';
 import { optimizePowerByRaytrace } from '../src/optimize/raytrace_power.mjs';
 import { recommendToric } from '../src/toric/toric_engine.mjs';
@@ -120,26 +122,75 @@ test('STRICT degradación eje a eje: cada supuesto conocido BLOQUEA con su nombr
   assert.equal(typeof strictEye.refractionForIOL(MFR.create({ power_d: 20 })), 'number');
 });
 
-test('STRICT: hoy NINGÚN trazado de rayos pasa — y que lo diga es la funcionalidad', () => {
-  // Incluso con córnea medida y lente de fabricante, quedan dos supuestos del trazador:
-  // la asfericidad corneal no modelada y la Q de la LIO no documentada. Cuando existan
-  // superficies cónicas (V1.2) y datos de Q, este test debe REVISARSE — su fallo será
-  // la señal de que el primer trazado STRICT es posible.
-  const post = postopDe(ojoCompleto());
+/** Ojo con TODO medido para el trazado: radios + CCT + asfericidad corneal (topografía). */
+function ojoCompletoConQ() {
+  return createPreopEye({
+    al_mm: 23.5, k1_d: 43.5, k1_axis_deg: 180, k2_d: 43.5, k2_axis_deg: 90,
+    acd_mm: 3.2, lt_mm: 4.5, cct_um: 550, keratometric_index: 1.3375,
+    cornea: {
+      r_anterior_mm: 7.7, r_posterior_mm: 6.8,
+      asphericity_q_anterior: -0.18, asphericity_q_posterior: -0.30,
+    },
+    meta: { source: 'synthetic' },
+  });
+}
+/** Lente de fabricante SIMÉTRICA con Q documentada en ambas caras y cilindro 0 declarado. */
+const MFR_CON_Q = new ManufacturerIOLFactory({
+  manufacturer: 'ACME', model: 'MQ', provenance: PROV,
+  geometryByPower: {
+    20: {
+      refractive_index: 1.47, central_thickness_mm: 0.7,
+      r_anterior_mm: 20.0, r_posterior_mm: -20.0,
+      asphericity_q_anterior: -0.10, asphericity_q_posterior: -0.10,
+    },
+  },
+});
+
+test('V1.2 · HITO: el PRIMER trazado de rayos que pasa STRICT — todo documentado, cero imputaciones', () => {
+  // El criterio de salida de V1.2: con todas las superficies y sus Q documentadas
+  // (córnea medida con Q de topografía; lente de fabricante simétrica con Q de ficha y
+  // cilindro 0 declarado), el trazado se ejecuta en STRICT con el registro VACÍO.
+  const post = postopDe(ojoCompletoConQ());
+  const eye = buildRaytraceEye(post, MFR_CON_Q.create({ power_d: 20 }), { fidelity: FidelityMode.STRICT });
+  assert.equal(eye.fidelity, FidelityMode.STRICT);
+  assert.deepEqual(eye.assumptions, []);
+  assert.equal(eye.surfaces.filter(s => s.kind === 'conic').length, 4,
+    'las cuatro superficies (córnea ant/post + LIO ant/post) se trazan cónicas documentadas');
+  // y el trazado ES ejecutable: evaluación completa sin pérdidas
+  const ev = evaluateObjective(eye, defaultBundle(1.5), ObjectiveKind.EQUIVALENT_DEFOCUS);
+  assert.ok(Number.isFinite(ev.cost));
+  assert.equal(ev.raysLost, 0);
+  // idéntico resultado en RESEARCH: el modo no cambia la física
+  const eyeR = buildRaytraceEye(post, MFR_CON_Q.create({ power_d: 20 }));
+  assert.equal(paraxialFocusOfRaytraceEye(eye), paraxialFocusOfRaytraceEye(eyeR));
+});
+
+test('STRICT: sin las Q medidas/documentadas, el trazado sigue bloqueando con nombres por superficie', () => {
+  // el antiguo centinela ("hoy ningún trazado pasa"), degradado por ejes: cada Q que
+  // falta bloquea con su superficie nombrada
+  const post = postopDe(ojoCompleto());       // córnea medida SIN Q
   try {
     buildRaytraceEye(post, MFR.create({ power_d: 20 }), { fidelity: FidelityMode.STRICT });
-    assert.fail('el trazado STRICT no debería ser posible todavía');
+    assert.fail('sin Q corneal ni de LIO no debería pasar');
   } catch (err) {
     assert.ok(err instanceof StrictModeViolation);
-    // el error enumera TODOS los supuestos, no solo el primero
-    assert.ok(err.assumptions.some(a => /^cornea: superficies trazadas como esféricas/.test(a)));
+    assert.ok(err.assumptions.some(a => /^cornea_ant: asfericidad no medida/.test(a)));
+    assert.ok(err.assumptions.some(a => /^cornea_post: asfericidad no medida/.test(a)));
     assert.ok(err.assumptions.some(a => /^iol_ant: asfericidad no documentada/.test(a)));
     assert.ok(err.assumptions.some(a => /^iol_post: asfericidad no documentada/.test(a)));
     assert.ok(err.message.includes('conseguir el dato'));
   }
-  // en RESEARCH el mismo trazado se entrega, con los supuestos registrados
+  // córnea CON Q pero lente sin Q → bloquea solo por la lente
+  try {
+    buildRaytraceEye(postopDe(ojoCompletoConQ()), MFR.create({ power_d: 20 }), { fidelity: FidelityMode.STRICT });
+    assert.fail('sin Q de LIO no debería pasar');
+  } catch (err) {
+    assert.equal(err.assumptions.filter(a => /^cornea/.test(a)).length, 0);
+    assert.equal(err.assumptions.filter(a => /^iol_/.test(a)).length, 2);
+  }
+  // en RESEARCH el trazado sin Q se entrega, con los supuestos registrados
   const eye = buildRaytraceEye(post, MFR.create({ power_d: 20 }));
-  assert.ok(eye.assumptions.length >= 3);
+  assert.ok(eye.assumptions.length >= 4);
   assert.equal(eye.fidelity, FidelityMode.RESEARCH);
 });
 

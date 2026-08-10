@@ -28,15 +28,31 @@ import { N_AQUEOUS } from '../optics/constants.mjs';
  * No representa ninguna lente comercial: `is_simulation_surrogate = true`.
  */
 export class GenericIOLFactory {
-  constructor({ n_iol = 1.49, thickness_mm = 0.8, n_medium = N_AQUEOUS, label = 'GENERIC_EQUICONVEX' } = {}) {
+  /**
+   * `q_anterior`/`q_posterior`: asfericidad DECLARADA de las caras del sustituto de
+   * simulación (número = constante cónica declarada; por defecto ASSUMED_SPHERICAL).
+   * Es un parámetro de simulación más, como el índice o el espesor — NO un dato de
+   * fabricante: la lente sigue siendo is_simulation_surrogate.
+   */
+  constructor({ n_iol = 1.49, thickness_mm = 0.8, n_medium = N_AQUEOUS, label = 'GENERIC_EQUICONVEX',
+    q_anterior = ASSUMED_SPHERICAL, q_posterior = ASSUMED_SPHERICAL } = {}) {
     assertInRange(n_iol, 1.3, 1.8, 'n_iol');
     assertInRange(thickness_mm, 0.05, 2.5, 'thickness_mm');
     assertInRange(n_medium, 1.0, 1.6, 'n_medium');
+    for (const [q, name] of [[q_anterior, 'q_anterior'], [q_posterior, 'q_posterior']]) {
+      if (q !== ASSUMED_SPHERICAL && !(typeof q === 'number' && Number.isFinite(q))) {
+        throw new TypeError(`GenericIOLFactory: ${name} debe ser un número (Q declarada) o ASSUMED_SPHERICAL`);
+      }
+    }
     this.n_iol = n_iol;
     this.thickness_mm = thickness_mm;
     this.n_medium = n_medium;
+    this.q_anterior = q_anterior;
+    this.q_posterior = q_posterior;
     this.label = label;
-    this.id = `generic_n${n_iol}_t${thickness_mm}`;
+    const qTag = (q_anterior === ASSUMED_SPHERICAL && q_posterior === ASSUMED_SPHERICAL)
+      ? '' : `_q${q_anterior}/${q_posterior}`;
+    this.id = `generic_n${n_iol}_t${thickness_mm}${qTag}`;
   }
 
   /**
@@ -73,9 +89,9 @@ export class GenericIOLFactory {
         r_anterior_mm: r1,
         r_posterior_mm: -r1,
         // la genérica es un sustituto de simulación cuya geometría ENTERA es declarada:
-        // sus superficies son esferas por decisión, no por desconocimiento
-        asphericity_q_anterior: ASSUMED_SPHERICAL,
-        asphericity_q_posterior: ASSUMED_SPHERICAL,
+        // esferas por decisión (o la Q declarada del constructor), no por desconocimiento
+        asphericity_q_anterior: this.q_anterior,
+        asphericity_q_posterior: this.q_posterior,
         toric_design: UNKNOWN,
       },
       geometry_status: GeometryStatus.DERIVED_GENERIC,

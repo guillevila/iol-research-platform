@@ -26,6 +26,44 @@ export function planarSurface({ z_mm, aperture_mm = 4, n_before, n_after, id = '
 }
 
 /**
+ * Superficie CÓNICA de revolución (V1.2). Sagita estándar de la óptica oftálmica:
+ *
+ *     z(r) = c·r² / (1 + √(1 − (1+k)·c²·r²)),   c = 1/R,  r² = x²+y²
+ *
+ * donde k es la constante cónica (la "asfericidad Q" oftálmica ES esta k):
+ *     k = 0 esfera · −1<k<0 elipse prolata (córnea típica, Q≈−0.2) · k = −1 parábola
+ *     k < −1 hipérbola · k > 0 elipse oblata.
+ *
+ * Forma implícita equivalente (la que usa la intersección):
+ *     F(x,y,z') = c·(x² + y² + (1+k)·z'²) − 2·z' = 0,   z' = z − z_vértice
+ * Con k = 0 es EXACTAMENTE la esfera de radio R centrada en z_vértice + R.
+ *
+ * La curvatura en el vértice es c independientemente de k: la óptica PARAXIAL de una
+ * cónica es exactamente la de su esfera osculatriz (por eso el paraxial puede ignorar
+ * Q sin imputar nada, y por eso pupila→0 debe converger al mismo límite para todo k).
+ *
+ * Validación de apertura: para (1+k)·c² > 0 la sagita solo existe hasta
+ * r_max = 1/(c·√(1+k)); una apertura mayor pediría puntos fuera de la superficie y se
+ * rechaza al CONSTRUIR, no silenciosamente rayo a rayo.
+ */
+export function conicSurface({ zVertex_mm, radius_mm, k, aperture_mm = 4, n_before, n_after, id = '' }) {
+  for (const [v, name] of [[zVertex_mm, 'zVertex'], [radius_mm, 'radius'], [k, 'k'],
+    [aperture_mm, 'aperture'], [n_before, 'n_before'], [n_after, 'n_after']]) {
+    if (!Number.isFinite(v)) throw new TypeError(`conicSurface: ${name} no finito`);
+  }
+  if (radius_mm === 0) throw new RangeError('radio 0 no es una superficie');
+  const c = 1 / radius_mm;
+  if ((1 + k) * c * c > 0) {
+    const rMax = 1 / (Math.abs(c) * Math.sqrt(1 + k));
+    if (aperture_mm >= rMax) {
+      throw new RangeError(`conicSurface ${id}: apertura ${aperture_mm} mm fuera del dominio de la `
+        + `sagita (r_max = ${rMax.toFixed(4)} mm para R=${radius_mm}, k=${k})`);
+    }
+  }
+  return { kind: 'conic', zVertex_mm, radius_mm, k, aperture_mm, n_before, n_after, id };
+}
+
+/**
  * Intersección rayo–superficie. Rayo: { p:[x,y,z] mm, d:[dx,dy,dz] unitario }.
  * Devuelve { point, normal, t } con `normal` unitaria orientada CONTRA el rayo
  * (dot(normal, d) < 0), o null si no hay intersección válida (t<=eps o fuera de apertura).
@@ -41,6 +79,45 @@ export function intersect(surface, ray) {
     if (Math.hypot(point[0], point[1]) > surface.aperture_mm) return null;
     const normal = ray.d[2] > 0 ? [0, 0, -1] : [0, 0, 1];
     return { point, normal, t };
+  }
+  if (surface.kind === 'conic') {
+    // F(x,y,z') = c·(x²+y²+(1+k)z'²) − 2z' = 0 a lo largo del rayo → cuadrática en t.
+    // Con d axial y k = −1 (paraboloide) el término cuadrático se anula: caso lineal.
+    const cv = 1 / surface.radius_mm, k = surface.k;
+    const px = ray.p[0], py = ray.p[1], pz = ray.p[2] - surface.zVertex_mm;
+    const [dx, dy, dz] = ray.d;
+    const A = cv * (dx * dx + dy * dy + (1 + k) * dz * dz);
+    const B = 2 * (cv * (px * dx + py * dy + (1 + k) * pz * dz) - dz);
+    const C = cv * (px * px + py * py + (1 + k) * pz * pz) - 2 * pz;
+    let ts;
+    if (Math.abs(A) < 1e-14) {
+      if (Math.abs(B) < 1e-14) return null;
+      ts = [-C / B];
+    } else {
+      const disc = B * B - 4 * A * C;
+      if (disc < 0) return null;
+      const s = Math.sqrt(disc);
+      ts = [(-B - s) / (2 * A), (-B + s) / (2 * A)].sort((a, b) => a - b);
+    }
+    // la cuádrica implícita contiene AMBAS ramas; solo es superficie real la que
+    // satisface la sagita (rama "−"): se verifica punto a punto en vez de adivinar
+    const sag = r2 => {
+      const u = 1 - (1 + k) * cv * cv * r2;
+      return u < 0 ? null : cv * r2 / (1 + Math.sqrt(u));
+    };
+    for (const t of ts) {
+      if (t <= EPS) continue;
+      const point = add(ray.p, scale(ray.d, t));
+      const x = point[0], y = point[1], z = point[2] - surface.zVertex_mm;
+      if (Math.hypot(x, y) > surface.aperture_mm) continue;
+      const sg = sag(x * x + y * y);
+      if (sg === null || Math.abs(z - sg) > 1e-9 * Math.max(1, Math.abs(z))) continue;
+      // normal ∝ ∇F = (2c·x, 2c·y, 2c(1+k)z' − 2)
+      let normal = normalize([cv * x, cv * y, cv * (1 + k) * z - 1]);
+      if (dot(normal, ray.d) > 0) normal = scale(normal, -1);
+      return { point, normal, t };
+    }
+    return null;
   }
   // esfera: centro en el eje, a R del vértice
   const c = [0, 0, surface.zVertex_mm + surface.radius_mm];

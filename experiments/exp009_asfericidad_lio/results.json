@@ -1,0 +1,212 @@
+{
+ "config": {
+  "id": "exp009_asfericidad_lio",
+  "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO",
+  "pregunta": "Sensibilidad de la potencia óptima a la Q declarada de la LIO y separación A vs C",
+  "lente": "GenericIOLFactory con Q declarada en ambas caras — SUSTITUTO DE SIMULACIÓN, no comercial",
+  "predictor": "ConstantOffsetPredictor(1.7) — offset declarado, no calibrado",
+  "qs": [
+   -1,
+   -0.5,
+   -0.25,
+   0,
+   0.25,
+   0.5,
+   1
+  ],
+  "pupilas_mm": [
+   3,
+   4.5,
+   6
+  ],
+  "ojo": {
+   "al_mm": 23.5,
+   "k_d": 43.5,
+   "r_ant_mm": 7.7,
+   "r_post_mm": 6.8,
+   "acd_mm": 3.2,
+   "lt_mm": 4.5,
+   "cct_um": 550
+  },
+  "n_anillos": 8,
+  "tol_d": 0.000001
+ },
+ "timestamp": "2026-08-10T15:08:53.881Z",
+ "commit": "4d0996ce99cfb2bef56fe762a95c48c2f42d9f1f",
+ "resumen": {
+  "n_casos": 21,
+  "max_delta_potencia_por_q_d": 0.15109,
+  "max_rango_A_C_d": 0.01527,
+  "rango_A_C_q0_mismo_ojo_d": 0.00808
+ },
+ "rows": [
+  {
+   "q": -1,
+   "pupil_mm": 3,
+   "pA_d": 20.23357,
+   "pC_d": 20.23363,
+   "rango_A_C_d": 0.00006,
+   "delta_vs_q0_d": 0.04939
+  },
+  {
+   "q": -1,
+   "pupil_mm": 4.5,
+   "pA_d": 19.48884,
+   "pC_d": 19.48919,
+   "rango_A_C_d": 0.00035,
+   "delta_vs_q0_d": 0.09988
+  },
+  {
+   "q": -1,
+   "pupil_mm": 6,
+   "pA_d": 18.40625,
+   "pC_d": 18.4075,
+   "rango_A_C_d": 0.00125,
+   "delta_vs_q0_d": 0.15109
+  },
+  {
+   "q": -0.5,
+   "pupil_mm": 3,
+   "pA_d": 20.20859,
+   "pC_d": 20.20889,
+   "rango_A_C_d": 0.0003,
+   "delta_vs_q0_d": 0.02465
+  },
+  {
+   "q": -0.5,
+   "pupil_mm": 4.5,
+   "pA_d": 19.43757,
+   "pC_d": 19.43909,
+   "rango_A_C_d": 0.00151,
+   "delta_vs_q0_d": 0.04978
+  },
+  {
+   "q": -0.5,
+   "pupil_mm": 6,
+   "pA_d": 18.32693,
+   "pC_d": 18.33155,
+   "rango_A_C_d": 0.00462,
+   "delta_vs_q0_d": 0.07514
+  },
+  {
+   "q": -0.25,
+   "pupil_mm": 3,
+   "pA_d": 20.19612,
+   "pC_d": 20.19655,
+   "rango_A_C_d": 0.00043,
+   "delta_vs_q0_d": 0.01231
+  },
+  {
+   "q": -0.25,
+   "pupil_mm": 4.5,
+   "pA_d": 19.41204,
+   "pC_d": 19.41416,
+   "rango_A_C_d": 0.00212,
+   "delta_vs_q0_d": 0.02485
+  },
+  {
+   "q": -0.25,
+   "pupil_mm": 6,
+   "pA_d": 18.28754,
+   "pC_d": 18.29388,
+   "rango_A_C_d": 0.00634,
+   "delta_vs_q0_d": 0.03747
+  },
+  {
+   "q": 0,
+   "pupil_mm": 3,
+   "pA_d": 20.18367,
+   "pC_d": 20.18424,
+   "rango_A_C_d": 0.00057,
+   "delta_vs_q0_d": 0
+  },
+  {
+   "q": 0,
+   "pupil_mm": 4.5,
+   "pA_d": 19.38657,
+   "pC_d": 19.38931,
+   "rango_A_C_d": 0.00274,
+   "delta_vs_q0_d": 0
+  },
+  {
+   "q": 0,
+   "pupil_mm": 6,
+   "pA_d": 18.24833,
+   "pC_d": 18.25641,
+   "rango_A_C_d": 0.00808,
+   "delta_vs_q0_d": 0
+  },
+  {
+   "q": 0.25,
+   "pupil_mm": 3,
+   "pA_d": 20.17123,
+   "pC_d": 20.17193,
+   "rango_A_C_d": 0.0007,
+   "delta_vs_q0_d": -0.01231
+  },
+  {
+   "q": 0.25,
+   "pupil_mm": 4.5,
+   "pA_d": 19.36117,
+   "pC_d": 19.36455,
+   "rango_A_C_d": 0.00338,
+   "delta_vs_q0_d": -0.02476
+  },
+  {
+   "q": 0.25,
+   "pupil_mm": 6,
+   "pA_d": 18.20928,
+   "pC_d": 18.21913,
+   "rango_A_C_d": 0.00985,
+   "delta_vs_q0_d": -0.03728
+  },
+  {
+   "q": 0.5,
+   "pupil_mm": 3,
+   "pA_d": 20.15881,
+   "pC_d": 20.15965,
+   "rango_A_C_d": 0.00085,
+   "delta_vs_q0_d": -0.02459
+  },
+  {
+   "q": 0.5,
+   "pupil_mm": 4.5,
+   "pA_d": 19.33584,
+   "pC_d": 19.33987,
+   "rango_A_C_d": 0.00403,
+   "delta_vs_q0_d": -0.04944
+  },
+  {
+   "q": 0.5,
+   "pupil_mm": 6,
+   "pA_d": 18.17042,
+   "pC_d": 18.18205,
+   "rango_A_C_d": 0.01164,
+   "delta_vs_q0_d": -0.07436
+  },
+  {
+   "q": 1,
+   "pupil_mm": 3,
+   "pA_d": 20.13401,
+   "pC_d": 20.13515,
+   "rango_A_C_d": 0.00114,
+   "delta_vs_q0_d": -0.04909
+  },
+  {
+   "q": 1,
+   "pupil_mm": 4.5,
+   "pA_d": 19.28537,
+   "pC_d": 19.29074,
+   "rango_A_C_d": 0.00537,
+   "delta_vs_q0_d": -0.09857
+  },
+  {
+   "q": 1,
+   "pupil_mm": 6,
+   "pA_d": 18.0932,
+   "pC_d": 18.10847,
+   "rango_A_C_d": 0.01527,
+   "delta_vs_q0_d": -0.14794
+  }
+ ]
+}
