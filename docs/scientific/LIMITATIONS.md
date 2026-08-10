@@ -31,11 +31,13 @@
    MTF/difracción). El ojo completo SÍ se traza (`buildRaytraceEye`), validado contra
    su propio paraxial cuando la altura de rayo → 0.
 7. **Córnea sin radios medidos: la política por defecto NO es invariante al
-   dispositivo.** `KERATOMETRIC_READING` usa la lectura K como potencia corneal. Como
-   cada biómetro convierte radio→K con un índice ficticio propio (1.3375 / 1.3315 /
-   1.332), dos aparatos midiendo la misma córnea producen recomendaciones distintas:
-   **hasta 1.26 D**, y en 27 de 30 casos simulados cambia el escalón de 0.5 D
-   (exp007). Desde V0.5 la política es explícita y viaja en cada salida
+   dispositivo.** `KERATOMETRIC_READING` usa la lectura K como potencia corneal. La
+   conversión radio→K emplea un índice ficticio declarado por convención (1.3375 /
+   1.3315 / 1.332): en simulación, la misma córnea física expresada bajo dos
+   convenciones distintas produce recomendaciones distintas — **hasta 1.26 D**, y en
+   27 de 30 casos simulados cambia el escalón de 0.5 D (exp007). La comparación es
+   entre CONVENCIONES DE LECTURA aplicadas en simulación, no entre dispositivos
+   reales medidos. Desde V0.5 la política es explícita y viaja en cada salida
    (`cornea_policy`), y existe `SINGLE_SURFACE_FROM_RADIUS`, invariante por
    construcción. **Se mantiene la de lectura por defecto** porque cambiarla desplazaría
    en bloque las predicciones sin recalibrar el predictor de posición, y decidir cuál

@@ -53,7 +53,7 @@ puesto donde debería haber un fallo explícito**.
 
 2. **Índice queratométrico rellenado en silencio.** `createPreopEye` ponía
    `keratometric_index ?? 1.3375`. Asumir la convención dominante sobre un dato de otra
-   marca **falsea el radio corneal recuperado**. Ahora queda `null` y las políticas que lo
+   convención **falsea el radio corneal recuperado**. Ahora queda `null` y las políticas que lo
    necesitan fallan diciéndolo.
 
 3. **El baseline "congelado" no lo era fuera de Linux.** Sin `.gitattributes`, un checkout
@@ -72,12 +72,17 @@ Queda registrada en V0_REVIEW en lugar de borrarse.
 
 ## 4. El resultado científico de esta fase
 
-exp007 mide algo que no se sabía: **cuánto depende la recomendación de la marca del
-biómetro**. Sobre 30 casos (radio corneal físico × longitud axial), con la política que V0
-usaba por defecto:
+exp007 mide algo que no se sabía: **cuánto depende la recomendación de la convención de
+índice queratométrico** bajo la que se expresó la medida. Sobre 30 casos (radio corneal
+físico × longitud axial), con la política que V0 usaba por defecto:
+
+> *(Corrección de redacción posterior al cierre: la comparación es entre convenciones de
+> conversión aplicadas en simulación, no entre biómetros reales medidos — dos dispositivos
+> que compartan convención coincidirían. La versión etiquetada de este documento decía
+> "marca del biómetro", que excede lo que los datos muestran.)*
 
 - dispersión entre convenciones (1.3375 / 1.3315 / 1.332): **hasta 1.26 D**;
-- la marca cambia el escalón recomendado de 0.5 D en **27 de 30 casos (90 %)**;
+- la convención cambia el escalón recomendado de 0.5 D en **27 de 30 casos (90 %)**;
 - con la política de radio recuperado la dispersión es **0 D**, por construcción.
 
 Esto **no** demuestra que la política de radio prediga mejor. Las fórmulas clásicas están

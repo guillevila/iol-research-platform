@@ -1,31 +1,41 @@
-# exp007 — Política corneal: ¿depende la recomendación de la marca del biómetro?
+# exp007 — Política corneal: ¿depende la recomendación de la convención de índice queratométrico?
 
-**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `dd33362f93` · 2026-08-10T10:11:18.186Z
+**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `4d14b615db` · 2026-08-10T11:20:43.241Z
 
 ## Pregunta
 
-Un biómetro no mide dioptrías: mide un radio y lo convierte con un índice ficticio propio
-(1.3375, 1.3315, 1.332). Si el motor usa la lectura K **como** potencia corneal, hereda la
-marca del aparato. Este experimento fija el radio corneal **físico**, simula qué leería cada
-aparato, y mide cuánta potencia de LIO se mueve por ese único motivo.
+La lectura K de un queratómetro no es una medida directa de dioptrías: es un radio
+convertido con un índice ficticio declarado por convención (1.3375, 1.3315 y 1.332 son
+convenciones en uso). Si el motor usa la lectura K **como** potencia corneal, hereda la
+convención bajo la que se expresó el dato. Este experimento fija el radio corneal
+**físico**, calcula la K que produciría cada convención, y mide cuánta potencia de LIO
+se mueve por ese único motivo.
+
+## Alcance — qué compara y qué NO
+
+Esto es **sensibilidad sintética a la convención de conversión**, no una comparación de
+biómetros reales: dos dispositivos que compartan convención coincidirían exactamente
+aquí, y los dispositivos reales difieren además por factores no modelados (óptica de
+medida, zona de anillos, algoritmo de promediado). Ninguna fila de este experimento
+procede de un dispositivo físico.
 
 ## Resultado
 
 | Magnitud | Valor |
 |---|---|
 | Casos simulados (radio × AL) | 30 |
-| Dispersión máxima entre aparatos — política `KERATOMETRIC_READING` | **1.2602 D** |
-| Dispersión máxima entre aparatos — política `SINGLE_SURFACE_FROM_RADIUS` | 0 D |
-| Casos en los que la marca cambia el escalón recomendado (rejilla 0.5 D) | 27/30 (90.0%) |
+| Dispersión máxima entre convenciones — política `KERATOMETRIC_READING` | **1.2602 D** |
+| Dispersión máxima entre convenciones — política `SINGLE_SURFACE_FROM_RADIUS` | 0 D |
+| Casos en los que la convención cambia el escalón recomendado (rejilla 0.5 D) | 27/30 (90.0%) |
 | Separación entre políticas (n_k=1.3375) | 0.2454 … 0.3159 D (media 0.2785 D) |
 
-La segunda fila es 0 **por construcción**: recuperar el radio deshace exactamente la conversión
-del fabricante. No es un resultado empírico, es la comprobación de que la implementación cumple
-la invariancia que promete (y el test `P0.1: tres convenciones...` lo fija).
+La segunda fila es 0 **por construcción**: recuperar el radio deshace exactamente la
+conversión declarada. No es un resultado empírico, es la comprobación de que la
+implementación cumple la invariancia que promete (y el test `P0.1: tres convenciones...` lo fija).
 
 ## Detalle por caso
 
-| r (mm) | AL (mm) | K@1.3375 | K@1.3315 | K@1.332 | Rango entre aparatos (D) | ¿Cambia escalón? | Δ políticas (D) |
+| r (mm) | AL (mm) | K bajo 1.3375 | K bajo 1.3315 | K bajo 1.332 | Rango entre convenciones (D) | ¿Cambia escalón? | Δ políticas (D) |
 |---|---|---|---|---|---|---|---|
 | 7.00 | 21 | 48.214 | 47.357 | 47.429 | 1.2602 | SÍ | 0.3159 |
 | 7.00 | 22.5 | 48.214 | 47.357 | 47.429 | 1.2602 | SÍ | 0.3159 |
@@ -60,17 +70,19 @@ la invariancia que promete (y el test `P0.1: tres convenciones...` lo fija).
 
 ## Lectura
 
-1. Bajo la política de V0, la potencia recomendada depende de qué aparato tomó la medida,
-   aunque la córnea sea idéntica. El efecto es sistemático, no ruido.
+1. Bajo la política de V0, la potencia recomendada depende de la convención bajo la que
+   se expresó la medida, aunque la córnea física sea idéntica. El efecto es sistemático,
+   no ruido.
 2. La política de radio recuperado elimina esa dependencia por completo.
 3. Las dos políticas no coinciden entre sí: la de lectura sobreestima la potencia corneal en
    el factor (n_ac−1)/(n_k−1) = 0.9956 para 1.3375, lo que empuja la LIO en sentido contrario.
 
 ## Lo que este experimento NO demuestra
 
-Que la política de radio prediga mejor la refracción postoperatoria real. Las fórmulas clásicas
-están calibradas **sobre** la convención del dispositivo, de modo que cambiar la política sin
-recalibrar el predictor de posición desplaza la predicción en bloque. Decidir cuál es preferible
-exige datos postoperatorios reales: registrado en OPEN_QUESTIONS #2. Por eso la política por
-defecto sigue siendo `KERATOMETRIC_READING` — ahora declarada y registrada en cada salida, no
-heredada por accidente.
+- Diferencias entre **marcas o modelos reales de biómetro**: no se midió ningún dispositivo.
+- Que la política de radio prediga mejor la refracción postoperatoria real. Las fórmulas
+  clásicas están calibradas **sobre** la convención de lectura, de modo que cambiar la
+  política sin recalibrar el predictor de posición desplaza la predicción en bloque.
+  Decidir cuál es preferible exige datos postoperatorios reales: registrado en
+  OPEN_QUESTIONS #7. Por eso la política por defecto sigue siendo `KERATOMETRIC_READING`
+  — ahora declarada y registrada en cada salida, no heredada por accidente.

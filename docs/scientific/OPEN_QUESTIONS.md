@@ -81,10 +81,11 @@ evidencia, nunca con suposición.
 - **Pregunta:** para un ojo sin radios corneales medidos, ¿debe el motor usar la
   lectura queratométrica como potencia (`KERATOMETRIC_READING`) o recuperar el radio
   físico con el índice del dispositivo (`SINGLE_SURFACE_FROM_RADIUS`)?
-- **Por qué importa:** no es una sutileza de convención. exp007 muestra que bajo la
-  política de lectura la potencia recomendada **depende de la marca del biómetro**
-  (hasta 1.26 D de dispersión entre 1.3375 / 1.3315 / 1.332, y cambio del escalón de
-  0.5 D en 27 de 30 casos simulados). La política de radio elimina esa dependencia por
+- **Por qué importa:** exp007 muestra que bajo la política de lectura la potencia
+  recomendada **depende de la convención de índice queratométrico** bajo la que se
+  expresó el dato (hasta 1.26 D de dispersión entre 1.3375 / 1.3315 / 1.332, y cambio
+  del escalón de 0.5 D en 27 de 30 casos simulados; sensibilidad sintética, no
+  comparación de dispositivos reales). La política de radio elimina esa dependencia por
   construcción, pero desplaza la predicción en bloque ~0.25–0.32 D respecto a la de
   lectura.
 - **Evidencia disponible:** solo la incoherencia interna cuantificada (exp007). NO hay

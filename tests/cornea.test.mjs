@@ -1,10 +1,12 @@
 /**
  * Tests de la política corneal explícita (V0.5 / P0.1) — hallazgo H1 de la auditoría.
  *
- * La pregunta que cierran: ¿la física del motor depende de la MARCA del biómetro?
- * Con la política del dispositivo, sí (y se cuantifica aquí). Con la política de radio
- * recuperado, no: tres convenciones distintas (1.3375 / 1.3315 / 1.332) midiendo la
- * MISMA córnea devuelven el MISMO radio y la MISMA potencia.
+ * La pregunta que cierran: ¿la física del motor depende de la CONVENCIÓN de índice
+ * queratométrico bajo la que se expresó el dato? Con la política de lectura, sí (y se
+ * cuantifica aquí). Con la política de radio recuperado, no: tres convenciones distintas
+ * (1.3375 / 1.3315 / 1.332) aplicadas a la MISMA córnea devuelven el MISMO radio y la
+ * MISMA potencia. Nada de esto compara dispositivos reales: es sensibilidad sintética a
+ * la convención declarada.
  *
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
@@ -22,7 +24,7 @@ import { N_AIR, N_AQUEOUS } from '../src/optics/constants.mjs';
 
 const INDICES = [KERATOMETRIC_INDICES.n_1_3375, KERATOMETRIC_INDICES.n_1_3315, KERATOMETRIC_INDICES.n_1_332];
 
-/** Ojo cuya córnea física tiene radio `r_mm`, tal como lo LEERÍA un aparato de índice n_k. */
+/** Ojo cuya córnea física tiene radio `r_mm`, expresado como K bajo la convención n_k. */
 function eyeAsReadBy(r_mm, n_k, extra = {}) {
   const K = keratometryFromRadiusMm(r_mm, n_k);
   return createPreopEye({
@@ -45,9 +47,9 @@ test('keratometría: r→K→r es una identidad exacta para cada convención', (
 test('P0.1: tres convenciones sobre la MISMA córnea → mismo radio y misma potencia física', () => {
   const R = 7.7;
   const lecturas = INDICES.map(n_k => keratometryFromRadiusMm(R, n_k));
-  // premisa del test: los aparatos NO coinciden en la lectura
+  // premisa del test: las convenciones NO coinciden en la lectura
   assert.ok(Math.max(...lecturas) - Math.min(...lecturas) > 0.5,
-    `las lecturas deben diferir entre marcas: ${lecturas}`);
+    `las lecturas deben diferir entre convenciones: ${lecturas}`);
 
   const radios = [], potencias = [];
   for (const n_k of INDICES) {
@@ -58,18 +60,18 @@ test('P0.1: tres convenciones sobre la MISMA córnea → mismo radio y misma pot
   }
   for (const r of radios) assert.ok(Math.abs(r - R) < 1e-12, `radio recuperado ${r} ≠ ${R}`);
   for (const p of potencias) {
-    assert.ok(Math.abs(p - potencias[0]) < 1e-12, `potencia dependiente del aparato: ${potencias}`);
+    assert.ok(Math.abs(p - potencias[0]) < 1e-12, `potencia dependiente de la convención: ${potencias}`);
   }
   // y coincide con la forma cerrada del dioptrio único aire→acuoso
   assert.ok(Math.abs(potencias[0] - (N_AQUEOUS - N_AIR) * 1000 / R) < 1e-12);
 });
 
-test('P0.1: con la política del dispositivo la física SÍ depende de la marca (bug documentado)', () => {
+test('P0.1: con la política de lectura la física SÍ depende de la convención (defecto documentado)', () => {
   const R = 7.7;
   const potencias = INDICES.map(n_k =>
     buildCorneaModel(eyeAsReadBy(R, n_k), { policy: CorneaPolicy.KERATOMETRIC_READING }));
   const rango = Math.max(...potencias.map(p => p.power_d)) - Math.min(...potencias.map(p => p.power_d));
-  assert.ok(rango > 0.5, `se esperaba divergencia entre marcas; obtenido ${rango} D`);
+  assert.ok(rango > 0.5, `se esperaba divergencia entre convenciones; obtenido ${rango} D`);
   for (const p of potencias) {
     assert.equal(p.invariant_to_device_index, false);
     assert.ok(p.assumptions.some(a => /lectura del dispositivo COMO potencia/.test(a)));

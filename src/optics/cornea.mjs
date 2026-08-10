@@ -3,20 +3,20 @@
  *
  * MOTIVO (auditoría V0, hallazgo H1): `keratometric_index` se almacenaba en el ojo
  * pero la física nunca lo consultaba, y `corneaRadiusFromKeratometry` no se invocaba
- * desde ningún sitio. El motor tomaba la lectura K del biómetro COMO SI fuera la
- * potencia corneal física. Eso no es un redondeo: es confundir la convención de un
- * dispositivo con una magnitud óptica.
+ * desde ningún sitio. El motor tomaba la lectura K del dispositivo COMO SI fuera la
+ * potencia corneal física. Eso no es un redondeo: es confundir una convención de
+ * conversión con una magnitud óptica.
  *
  * EL PROBLEMA, EN UNA LÍNEA
  * ------------------------
- * Un biómetro no mide dioptrías: mide un radio y lo convierte con un índice FICTICIO
- * elegido por el fabricante (1.3375, 1.3315, 1.332...):
+ * Una lectura queratométrica no es una medida directa de dioptrías: es un radio
+ * convertido con un índice FICTICIO declarado por convención (1.3375, 1.3315, 1.332...):
  *
  *     K_lectura = (n_k − 1)·1000 / r_mm         [D, r en mm]
  *
- * Dos aparatos midiendo LA MISMA córnea física devuelven K DISTINTAS. Si el motor
- * trata K como potencia, hereda la marca del aparato. Si el motor recupera primero
- * el radio, la física deja de depender del fabricante:
+ * La MISMA córnea física, expresada bajo dos convenciones distintas, produce K
+ * DISTINTAS. Si el motor trata K como potencia, hereda la convención del dato de
+ * entrada. Si recupera primero el radio, la física deja de depender de la convención:
  *
  *     r_mm = (n_k − 1)·1000 / K_lectura         (invariante: recupera SIEMPRE el mismo r)
  *
@@ -24,7 +24,7 @@
  * -----------------------------------------------------------------------------------
  *  KERATOMETRIC_READING       P = K. Compatible con lo publicado en V0 y con la
  *                             mayoría de fórmulas clásicas, que están calibradas sobre
- *                             esta misma confusión. NO es invariante al dispositivo.
+ *                             esta misma confusión. NO es invariante a la convención.
  *  SINGLE_SURFACE_FROM_RADIUS Recupera r con n_k y refracta aire→acuoso en UNA
  *                             superficie:  P = (n_ac − 1)·1000/r.
  *                             SÍ es invariante al dispositivo. No modela la posterior.
@@ -59,11 +59,17 @@ export const CorneaPolicy = Object.freeze({
  */
 export const DEFAULT_CORNEA_POLICY = CorneaPolicy.KERATOMETRIC_READING;
 
-/** Índices queratométricos de biómetros reales (convención de lectura del fabricante). */
+/**
+ * Convenciones de índice queratométrico EN USO. La atribución a dispositivos concretos
+ * es informativa (conocimiento de dominio habitual), NO verificada contra fichas
+ * técnicas en este repositorio: lo que el motor necesita no es la marca sino la
+ * convención bajo la que se generó cada dato de entrada, y esa debe venir DECLARADA
+ * con el dato (keratometric_index), nunca adivinada.
+ */
 export const KERATOMETRIC_INDICES = Object.freeze({
-  n_1_3375: 1.3375,   // IOLMaster, Lenstar y la mayoría de queratómetros
+  n_1_3375: 1.3375,   // convención dominante (habitualmente citada para IOLMaster/Lenstar)
   n_1_3315: 1.3315,   // convención "índice corneal neto"
-  n_1_332: 1.332,     // usada por algunos topógrafos
+  n_1_332: 1.332,     // convención minoritaria en uso en algunos topógrafos
 });
 
 /** r_mm → K [D] con el índice ficticio declarado del dispositivo. */
@@ -76,7 +82,7 @@ export function keratometryFromRadiusMm(r_mm, keratometricIndex = 1.3375) {
 
 /**
  * K [D] → r_mm. Inversa EXACTA de la anterior: es la operación que devuelve la
- * física al terreno del radio, donde la marca del biómetro deja de importar.
+ * física al terreno del radio, donde la convención de conversión deja de importar.
  */
 export function radiusMmFromKeratometry(k_d, keratometricIndex = 1.3375) {
   assertFinite(k_d, 'k_d'); assertFinite(keratometricIndex, 'keratometricIndex');
@@ -213,7 +219,7 @@ export function buildCorneaModel(preop, {
     invariant_to_device_index: false,
     assumptions: [
       'P = K: se usa la lectura del dispositivo COMO potencia física',
-      `depende del índice ficticio del fabricante (n_k=${n_k}); otro biómetro daría otra P`,
+      `depende de la convención de conversión declarada (n_k=${n_k}); otra convención daría otra P`,
     ],
     provenance: 'convención del dispositivo, no magnitud física',
   };
