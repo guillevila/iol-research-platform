@@ -52,6 +52,16 @@ Tres controles, aplicados en todos los sprints:
 - **Ningún objetivo óptico se elige por dar mejores números.** Los criterios
   independientes se implementan, se comparan entre sí, y la elección queda abierta hasta
   tener datos postoperatorios.
+- **Modo de fidelidad (desde V1.2).** `RESEARCH` (defecto) permite sustituir un UNKNOWN
+  ópticamente relevante por un supuesto EXPLÍCITO y registrado en la salida; `STRICT`
+  convierte cada supuesto registrado en un error que enumera qué faltó — es el modo en
+  el que deberá ejecutarse la validación clínica (nivel 3 de VALIDATION_STRATEGY). La
+  puerta es el propio registro de supuestos (`src/core/fidelity.mjs`): ningún supuesto
+  registrado puede atravesarla; que todo supuesto esté registrado es disciplina vigilada
+  por tests diferenciales, no un teorema. STRICT no es aún el defecto (decisión del
+  encargo). Hoy un cálculo paraxial completamente medido con lente de fabricante pasa
+  STRICT; ningún trazado de rayos pasa todavía (asfericidad corneal no modelada y Q de
+  LIO no documentada), y que lo diga con nombres es la funcionalidad.
 
 ## 3. Sprints
 

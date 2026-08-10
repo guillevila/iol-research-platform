@@ -40,6 +40,14 @@ de referencia y sus límites declarados:
      prioritario preespecificado.
   5. Sin datos suficientes para separar ajuste/validación honestamente, no se
      calibra: solo se reporta.
+  6. **Modo de fidelidad STRICT obligatorio** (`src/core/fidelity.mjs`, desde la
+     revisión pre-V1.2): todo cálculo del estudio se ejecuta con
+     `fidelity: STRICT`, de modo que ningún caso validado contenga NINGÚN supuesto
+     — ni siquiera declarado — sobre parámetros ópticamente relevantes: un resultado
+     con supuestos validaría el supuesto, no el motor. Los casos bloqueados por
+     STRICT no se descartan en silencio: `StrictModeViolation` transporta la lista
+     exacta de supuestos, y el estudio reporta cuántos casos quedaron excluidos y
+     por qué dato faltante (eso ES un resultado: mide qué datos exige el motor).
 
 ## Reproducibilidad transversal
 

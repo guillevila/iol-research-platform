@@ -8,6 +8,7 @@
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 import { assertFinite } from '../core/units.mjs';
+import { DEFAULT_FIDELITY_MODE } from '../core/fidelity.mjs';
 import { buildParaxialEye } from '../optics/eyebuilder.mjs';
 import { createPredictedPostopEye } from '../core/eye.mjs';
 
@@ -23,9 +24,9 @@ export function powerGrid(min_d = 0, max_d = 35, step_d = 0.5) {
  * `tieThreshold_d` define "empate": diferencia de error < umbral (por defecto 0.05 D,
  * la mitad del redondeo clínico habitual de 0.1 D en refracción subjetiva escrita).
  */
-export function searchBestPower({ postop, target_d = 0, grid = powerGrid(), tieThreshold_d = 0.05, cornea = {} }) {
+export function searchBestPower({ postop, target_d = 0, grid = powerGrid(), tieThreshold_d = 0.05, cornea = {}, fidelity = DEFAULT_FIDELITY_MODE }) {
   assertFinite(target_d, 'target_d');
-  const eye = buildParaxialEye(postop, { cornea });
+  const eye = buildParaxialEye(postop, { cornea, fidelity });
   const evals = grid.map(p => {
     const ref = eye.refractionForThinPower(p);
     return { power_d: p, predicted_refraction_d: ref, error_d: Math.abs(ref - target_d) };
@@ -35,7 +36,7 @@ export function searchBestPower({ postop, target_d = 0, grid = powerGrid(), tieT
   const h = 0.25;
   const at = dPos => buildParaxialEye(createPredictedPostopEye(postop.preop, {
     iol_position_mm: postop.iol_position_mm + dPos, position_source: 'sensitivity_probe',
-  }), { cornea }).refractionForThinPower(best.power_d);
+  }), { cornea, fidelity }).refractionForThinPower(best.power_d);
   const sens = (at(+h) - at(-h)) / (2 * h);
   return {
     best,
@@ -46,5 +47,7 @@ export function searchBestPower({ postop, target_d = 0, grid = powerGrid(), tieT
     exact_power_d: eye.exactPowerFor(target_d),
     cornea_kind: eye.cornea_kind,
     cornea_policy: eye.cornea_policy,
+    fidelity,
+    supuestos_modelo: eye.assumptions,
   };
 }

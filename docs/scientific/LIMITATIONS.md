@@ -47,19 +47,30 @@
    ratio y procedencia citada explícitos; no hay ratio por defecto, y está prohibido
    derivarlo ajustando contra EVO.
 
+9. **Modo STRICT disponible pero NO por defecto.** Desde la revisión pre-V1.2 existe un
+   modo de fidelidad (`src/core/fidelity.mjs`): `RESEARCH` (defecto) sustituye
+   parámetros desconocidos por supuestos explícitos registrados en cada salida
+   (`assumptions` / `supuestos_trazado` / `supuestos_modelo`); `STRICT` bloquea el
+   cálculo ante cualquier supuesto registrado. Hoy en STRICT solo es computable la vía
+   paraxial con córnea de dos superficies MEDIDA y lente de FABRICANTE; ningún trazado
+   de rayos pasa (asfericidad corneal no modelada; Q de LIO no documentada). La
+   validación clínica futura (VALIDATION_STRATEGY, nivel 3) deberá ejecutarse en STRICT.
+   Límite honesto: la puerta garantiza que ningún supuesto REGISTRADO la atraviesa; que
+   todo supuesto esté registrado es una disciplina vigilada por tests, no un teorema.
+
 ## Limitaciones del benchmark legacy (heredadas y documentadas en EVO_BASELINE.md)
 
-9. Fidelidad a EVO v2.0 en fechas de muestreo; dominio AL 20–32 / K 34–50 / A 110–125;
+10. Fidelidad a EVO v2.0 en fechas de muestreo; dominio AL 20–32 / K 34–50 / A 110–125;
    sin post-refractiva, Argos ni córnea posterior medida; histéresis Zeiss 709/939;
    la propia regla de recomendación de EVO solo se auto-reproduce al 96.2 %.
 
 ## Limitaciones de los datos sintéticos
 
-10. Rangos uniformes declarados, no distribuciones poblacionales: los agregados de
+11. Rangos uniformes declarados, no distribuciones poblacionales: los agregados de
    experimentos aleatorios se leen condicionalmente (OPEN_QUESTIONS #5,
    SYNTHETIC_DATA.md).
 
 ## Regulatorio
 
-11. Todo el software de esta etapa es RESEARCH USE ONLY; ninguna salida constituye
+12. Todo el software de esta etapa es RESEARCH USE ONLY; ninguna salida constituye
     recomendación quirúrgica validada.

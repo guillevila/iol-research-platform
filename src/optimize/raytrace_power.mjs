@@ -24,6 +24,7 @@ import { ObjectiveKind, evaluateObjective, describeObjective } from '../optics/o
 import { generateBundle, SamplingKind, isTwoDimensional } from '../optics/raytrace/bundle.mjs';
 import { GenericIOLFactory } from '../core/iol_factory.mjs';
 import { hasTraceableGeometry } from '../core/iol.mjs';
+import { FidelityMode, DEFAULT_FIDELITY_MODE, assertFidelityMode, StrictModeViolation } from '../core/fidelity.mjs';
 
 /**
  * Haz por defecto: MERIDIONAL con alturas equiespaciadas en área.
@@ -44,7 +45,7 @@ export function defaultBundle(pupil_radius_mm, n_anillos = 5) {
  * Coste del objetivo para una potencia dada. Construye la lente, monta el ojo trazado y
  * evalúa. Si la geometría resultante no es trazable, FALLA — no se degrada a nada.
  */
-function costeDe({ postop, factory, objective, bundle, aperture_mm, cornea }) {
+function costeDe({ postop, factory, objective, bundle, aperture_mm, cornea, fidelity }) {
   return power_d => {
     const iol = factory.create({ power_d });
     if (!hasTraceableGeometry(iol)) {
@@ -53,7 +54,7 @@ function costeDe({ postop, factory, objective, bundle, aperture_mm, cornea }) {
         + `${iol.manufacturer}/${iol.model} (geometry_status=${iol.geometry_status}). `
         + 'Sin ficha de fabricante no se traza: prohibido sustituir por una genérica.');
     }
-    const eye = buildRaytraceEye(postop, iol, { aperture_mm, cornea });
+    const eye = buildRaytraceEye(postop, iol, { aperture_mm, cornea, fidelity });
     const ev = evaluateObjective(eye, bundle, objective);
     return { power_d, iol, eye, ...ev };
   };
@@ -89,14 +90,28 @@ export function optimizePowerByRaytrace({
   factory = new GenericIOLFactory(),
   objective = ObjectiveKind.EQUIVALENT_DEFOCUS,
   catalog_d = null,
-  pupil_mm = 3.0,
+  // sin valor por defecto REAL: se resuelve abajo según el modo. El 3.0 mm de RESEARCH
+  // es un parámetro de simulación declarado; en STRICT no hay defecto que valga.
+  pupil_mm = null,
   n_anillos = 5,
   sampling = SamplingKind.MERIDIONAL,
   perRing = 6,
   search_d = [0, 40],
   tol_d = 1e-4,
   cornea = {},
+  fidelity = DEFAULT_FIDELITY_MODE,
 }) {
+  assertFidelityMode(fidelity);
+  if (pupil_mm === null || pupil_mm === undefined) {
+    if (fidelity === FidelityMode.STRICT) {
+      throw new StrictModeViolation('optimizePowerByRaytrace', [
+        'pupil_mm: pupila sin especificar — el 3.0 mm por defecto de RESEARCH es un '
+        + 'parámetro declarado de simulación, no un dato del ojo; en STRICT debe venir '
+        + 'una pupila explícita, idealmente la MEDIDA del preoperatorio',
+      ]);
+    }
+    pupil_mm = 3.0;
+  }
   assertFinite(pupil_mm, 'pupil_mm');
   if (!(pupil_mm > 0)) throw new RangeError('pupil_mm debe ser > 0');
   const [lo, hi] = search_d;
@@ -105,7 +120,7 @@ export function optimizePowerByRaytrace({
   const aperture_mm = pupil_mm / 2;
   const haz = generateBundle({ radius_mm: aperture_mm, kind: sampling, n: n_anillos, perRing });
   const bundle = haz.rays;
-  const f = costeDe({ postop, factory, objective, bundle, aperture_mm, cornea });
+  const f = costeDe({ postop, factory, objective, bundle, aperture_mm, cornea, fidelity });
 
   const { x: exact_power_d } = seccionAurea(f, lo, hi, tol_d);
 
@@ -158,6 +173,7 @@ export function optimizePowerByRaytrace({
       iol_factory: factory.id,
       is_simulation_surrogate: factory instanceof GenericIOLFactory,
       cornea_policy: enOptimo.eye.cornea_policy,
+      fidelity,
     },
     // Supuestos de modelado ACTIVOS en el trazado del óptimo (p. ej. asfericidad no
     // documentada trazada como esfera). Sin esto, una recomendación podría salir de un

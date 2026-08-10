@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
 **Fecha:** 10/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 157/157 tests verdes · CI verde (5 jobs) · 4 experimentos deterministas verificados en CI
+**Suite:** 165/165 tests verdes · CI verde (5 jobs) · 4 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
@@ -20,7 +20,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 | V1.13 Puerta de autoconsistencia pupila→0 (rejilla 18 ojos) | **DONE** | adelantada a propósito: existe ANTES de añadir grados de libertad |
 | V1.4 `RayBundleGenerator` (4 muestreos, convergencia medida) | **DONE** | `SQUARE_GRID` documentado como no-convergente (limitación medida) |
 | Revisión pre-V1.2 (a petición) | **DONE** | ver bloque siguiente |
-| V1.2 Superficies cónicas | **SIGUIENTE** | los tres estados de asfericidad ya existen; falta el trazado cónico |
+| V1.2 Superficies cónicas | **SIGUIENTE** | estados de asfericidad y modo de fidelidad ya existen; falta el trazado cónico |
 | V1.3 Tilt y descentración | pendiente | requiere muestreo 2D (ya disponible en V1.4) |
 | V1.5 Córnea física en el trazado | pendiente | políticas corneales ya explícitas (P0.1) |
 | V1.6 Tórico trazado · V1.7 Rotación | pendiente | |
@@ -42,7 +42,15 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 3. **exp007 reencuadrado.** Mide sensibilidad sintética a la CONVENCIÓN de índice
    queratométrico, no diferencias entre marcas reales de biómetro. Título, campos y docs
    corregidos; diff numérico = 0.
-4. **Verificación adversarial posterior** (4 revisores independientes, 15 hallazgos):
+4. **Modo de fidelidad introducido** (`src/core/fidelity.mjs`, a petición, entrada de
+   V1.2). `RESEARCH` (defecto): los UNKNOWN ópticamente relevantes pueden sustituirse
+   por supuestos explícitos REGISTRADOS. `STRICT`: cualquier supuesto registrado impide
+   el cálculo (`StrictModeViolation` enumera qué faltó) — el modo de la validación
+   futura. La puerta es el registro de supuestos: ningún supuesto registrado la
+   atraviesa. Hoy pasa STRICT la vía paraxial con córnea medida + lente de fabricante;
+   ningún trazado pasa aún (asfericidad corneal, Q de LIO). Tests diferenciales:
+   `tests/fidelity.test.mjs`.
+5. **Verificación adversarial posterior** (4 revisores independientes, 15 hallazgos):
    el teorema B≡C sobrevivió, pero la demostración escrita tenía dos huecos reales —
    la unimodalidad en P es hipótesis empírica (H3), no deducción, y el argumento de
    orden era inválido entre lados opuestos (el reorden EXISTE; la equivalencia la

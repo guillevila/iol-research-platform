@@ -11,6 +11,7 @@
  */
 import { mmToM, assertFinite, curvatureFromRadiusMm } from '../core/units.mjs';
 import { assertTraceableGeometry, ASSUMED_SPHERICAL, UNKNOWN } from '../core/iol.mjs';
+import { FidelityMode, DEFAULT_FIDELITY_MODE, assertFidelityMode, enforceStrictness, StrictModeViolation } from '../core/fidelity.mjs';
 import { predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, refract, transfer } from './paraxial.mjs';
 import { buildCorneaModel, CorneaPolicy } from './cornea.mjs';
 import { N_AIR, N_AQUEOUS, N_CORNEA, N_VITREOUS } from './constants.mjs';
@@ -46,9 +47,14 @@ export function corneaModelOf(preop, opts = {}) {
  * La API anterior (`refractionFor(power)` que ignoraba `power` cuando había una LIO
  * gruesa inyectada) queda eliminada.
  */
-export function buildParaxialEye(postop, { cornea: corneaOpts = {} } = {}) {
+export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = DEFAULT_FIDELITY_MODE } = {}) {
+  assertFidelityMode(fidelity);
   const preop = postop.preop;
   const cornea = corneaModelOf(preop, corneaOpts);
+  // Los supuestos de la política corneal suben al nivel del ojo con prefijo propio: la
+  // puerta STRICT opera sobre este registro (fidelity.mjs), no sobre lógica por sitio.
+  const assumptions = cornea.assumptions.map(a => `cornea_policy: ${a}`);
+  enforceStrictness(fidelity, assumptions, 'buildParaxialEye');
   const base = {
     corneaPower_d: cornea.power_d,
     al_m: mmToM(preop.al_mm),
@@ -58,6 +64,8 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {} } = {}) {
     cornea_kind: cornea.kind,
     cornea_policy: cornea.policy,
     cornea,
+    fidelity,
+    assumptions,
     corneaPower_d: cornea.power_d,
     al_mm: preop.al_mm,
     iol_position_mm: postop.iol_position_mm,
@@ -75,6 +83,14 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {} } = {}) {
      */
     refractionForIOL(iol) {
       assertTraceableGeometry(iol, 'refractionForIOL');
+      // En STRICT una lente genérica no es evaluable: su geometría entera es un supuesto.
+      // La asfericidad NO bloquea aquí: la potencia paraxial es exacta con la curvatura
+      // del vértice (Q entra a orden r⁴), así que ningún dato se está sustituyendo.
+      if (fidelity === FidelityMode.STRICT && iol.is_simulation_surrogate) {
+        throw new StrictModeViolation('refractionForIOL', [
+          `iol: geometría de SUSTITUTO DE SIMULACIÓN (${iol.geometry_status}) — no representa la lente implantada`,
+        ]);
+      }
       const t_m = iol.geometry.central_thickness_mm / 1000;
       return predictedRefractionThickIOL({
         ...base,
@@ -104,13 +120,22 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {} } = {}) {
  * LIO: requiere geometría numérica completa (la genérica etiquetada la aporta);
  * se centra en `postop.iol_position_mm` (cara anterior en pos − t/2).
  */
-export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corneaOpts = {} } = {}) {
+export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corneaOpts = {}, fidelity = DEFAULT_FIDELITY_MODE } = {}) {
+  assertFidelityMode(fidelity);
   const preop = postop.preop;
   assertTraceableGeometry(iol, 'buildRaytraceEye');
   const g = iol.geometry;
   const surfaces = [];
   const assumptions = [];
   const cornea = corneaModelOf(preop, corneaOpts);
+  // supuestos de la política corneal (mismos que en el paraxial, mismo prefijo)
+  assumptions.push(...cornea.assumptions.map(a => `cornea_policy: ${a}`));
+  // una lente genérica es EN SÍ un supuesto: sus radios/índice/espesor no proceden de
+  // la lente implantada. En RESEARCH se registra; en STRICT bloquea vía la puerta.
+  if (iol.is_simulation_surrogate) {
+    assumptions.push(`iol: geometría de SUSTITUTO DE SIMULACIÓN (${iol.geometry_status}) — `
+      + 'radios/índice/espesor declarados, no de la lente implantada');
+  }
 
   // Asfericidad de cada superficie de la LIO: tres estados, ninguno se convierte en otro
   // en silencio (misma disciplina que el índice queratométrico en P0.1).
@@ -152,8 +177,11 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
   const zAnt = postop.iol_position_mm - t / 2;
   surfaces.push(sphericalSurface({ id: 'iol_ant', zVertex_mm: zAnt, radius_mm: g.r_anterior_mm, aperture_mm, n_before: N_AQUEOUS, n_after: g.refractive_index }));
   surfaces.push(sphericalSurface({ id: 'iol_post', zVertex_mm: zAnt + t, radius_mm: g.r_posterior_mm, aperture_mm, n_before: g.refractive_index, n_after: N_VITREOUS }));
+  // La puerta STRICT: con supuestos registrados, el trazado no se entrega. Se evalúa al
+  // FINAL para que el error enumere TODOS los supuestos, no solo el primero.
+  enforceStrictness(fidelity, assumptions, 'buildRaytraceEye');
   return {
-    surfaces, cornea_kind, cornea_policy: cornea.policy, cornea,
+    surfaces, cornea_kind, cornea_policy: cornea.policy, cornea, fidelity,
     retina_z_mm: preop.al_mm, iol_back_z_mm: zAnt + t,
     /** supuestos de modelado ACTIVOS en este trazado; vacío no significa "sin supuestos
      *  declarados", significa "sin supuestos NO verificados" */
