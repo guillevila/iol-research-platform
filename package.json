@@ -6,6 +6,9 @@
   "description": "Plataforma de investigacion en calculo de LIO. RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING.",
   "scripts": {
     "test": "node --test",
+    "test:arch": "node --test tests/architecture.test.mjs",
+    "test:legacy": "node --test tests/legacy_baseline.test.mjs tests/evo_provenance.test.mjs",
+    "check:experiments": "node scripts/check_experiments.mjs",
     "baseline:metrics": "node legacy/evo_replica/harness/replay_metrics.mjs --write",
     "baseline:golden": "node legacy/evo_replica/harness/make_golden.mjs",
     "baseline:hashes": "node legacy/evo_replica/harness/make_hashes.mjs"

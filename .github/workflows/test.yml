@@ -1,0 +1,81 @@
+name: tests
+
+# Puerta de calidad del proyecto (V0.5 / P0.6, hallazgo H7 de la auditoría).
+# Antes de esto, nada impedía subir tests rojos ni alterar el legado congelado.
+#
+# La CI falla si:
+#   - algún test está en rojo (en cualquier versión de Node soportada);
+#   - el legado EVO deja de ser byte-idéntico a su instantánea;
+#   - el motor físico empieza a depender del legado;
+#   - un experimento publicado deja de ser reproducible.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Node ${{ matrix.node }} · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+        os: [ubuntu-latest]
+        include:
+          # el desarrollo es en Windows: se comprueba que no dependemos del sistema
+          - node: '22'
+            os: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # Sin dependencias de terceros por diseño: el runner de tests es el de Node.
+      # Si algún día aparece un package-lock.json, este paso lo instalará.
+      - name: Instalar dependencias (si las hubiera)
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else echo "sin dependencias externas"; fi
+        shell: bash
+
+      - name: Tests
+        run: npm test
+
+  legado-intacto:
+    name: El legado EVO sigue congelado
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Comprobación explícita y separada de la batería: si alguien toca el motor
+      # congelado, el benchmark deja de ser un control y este job lo dice por su nombre.
+      - name: Verificar hashes de baseline
+        run: |
+          node --test tests/legacy_baseline.test.mjs
+          node --test tests/evo_provenance.test.mjs
+
+      - name: Verificar que el motor fisico no depende de EVO
+        run: node --test tests/architecture.test.mjs
+
+  experimentos-reproducibles:
+    name: Los experimentos publicados se reproducen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Los experimentos deterministas se re-ejecutan y se comparan con lo publicado,
+      # ignorando timestamp y commit (que cambian por construcción). Si un cambio en el
+      # motor altera un resultado publicado, aquí se ve — y hay que explicarlo, no
+      # regenerar el fichero en silencio.
+      - name: Reproducir exp001, exp003 y exp007
+        run: node scripts/check_experiments.mjs

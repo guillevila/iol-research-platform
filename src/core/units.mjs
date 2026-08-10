@@ -10,6 +10,8 @@
  *  - Datum axial: ápex corneal anterior = z = 0; eje óptico = +z hacia retina.
  *
  * Sin números mágicos: toda constante vive aquí o en optics/constants.mjs con doc.
+ *
+ * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 
 export const MM_PER_M = 1000;
