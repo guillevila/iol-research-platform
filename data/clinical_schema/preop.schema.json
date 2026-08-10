@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "iol-research/preop.schema.json",
+  "title": "Caso preoperatorio (anonimizado, sin PII)",
+  "type": "object",
+  "required": ["patient_case_id", "eye", "al_mm", "k1_d", "k1_axis_deg", "k2_d", "k2_axis_deg"],
+  "additionalProperties": false,
+  "properties": {
+    "patient_case_id": { "type": "string", "description": "Identificador ANONIMIZADO generado por el centro; prohibido nombre/historia real", "pattern": "^[A-Za-z0-9_-]{4,64}$" },
+    "eye": { "enum": ["OD", "OS"] },
+    "al_mm": { "type": "number", "minimum": 14, "maximum": 40 },
+    "k1_d": { "type": "number", "minimum": 28, "maximum": 65 },
+    "k1_axis_deg": { "type": "number", "minimum": 0, "maximum": 180 },
+    "k2_d": { "type": "number", "minimum": 28, "maximum": 65 },
+    "k2_axis_deg": { "type": "number", "minimum": 0, "maximum": 180 },
+    "keratometric_index": { "type": "number", "enum": [1.3375, 1.3315, 1.332] },
+    "acd_mm": { "type": ["number", "null"], "minimum": 1.0, "maximum": 6.5 },
+    "lt_mm": { "type": ["number", "null"], "minimum": 2.0, "maximum": 7.5 },
+    "cct_um": { "type": ["number", "null"], "minimum": 250, "maximum": 900 },
+    "wtw_mm": { "type": ["number", "null"], "minimum": 8, "maximum": 15 },
+    "ata_mm": { "type": ["number", "null"], "minimum": 8, "maximum": 15 },
+    "sts_mm": { "type": ["number", "null"], "minimum": 8, "maximum": 15 },
+    "posterior_cornea": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "pk1_d": { "type": "number" }, "pk1_axis_deg": { "type": "number", "minimum": 0, "maximum": 180 },
+        "pk2_d": { "type": "number" }, "pk2_axis_deg": { "type": "number", "minimum": 0, "maximum": 180 },
+        "device": { "type": "string" }
+      }
+    },
+    "oct_features": {
+      "type": ["object", "null"],
+      "description": "Geometria cristaliniana ampliada si el OCT la aporta",
+      "additionalProperties": false,
+      "properties": {
+        "lens_eq_plane_mm": { "type": ["number", "null"] },
+        "lens_eq_diameter_mm": { "type": ["number", "null"] },
+        "lens_tilt_deg": { "type": ["number", "null"] },
+        "lens_decentration_mm": { "type": ["number", "null"] }
+      }
+    },
+    "device": { "type": ["string", "null"], "description": "Biometro (p.ej. IOLMaster 700, Anterion)" },
+    "device_software_version": { "type": ["string", "null"] }
+  }
+}

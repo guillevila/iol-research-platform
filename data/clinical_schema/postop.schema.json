@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "iol-research/postop.schema.json",
+  "title": "Resultado postoperatorio (anonimizado, sin PII) — el futuro ground truth",
+  "type": "object",
+  "required": ["patient_case_id", "eye", "followup_days", "manifest_sphere_d", "manifest_cylinder_d"],
+  "additionalProperties": false,
+  "properties": {
+    "patient_case_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{4,64}$" },
+    "eye": { "enum": ["OD", "OS"] },
+    "followup_days": { "type": "integer", "minimum": 1, "maximum": 3650 },
+    "manifest_sphere_d": { "type": "number", "minimum": -20, "maximum": 20 },
+    "manifest_cylinder_d": { "type": "number", "minimum": -10, "maximum": 10 },
+    "manifest_axis_deg": { "type": ["number", "null"], "minimum": 0, "maximum": 180 },
+    "se_d": { "type": ["number", "null"], "description": "Si falta, se deriva: esfera + cilindro/2" },
+    "cdva": { "type": ["number", "null"], "description": "Agudeza corregida, decimal 0-2 o logMAR segun 'cdva_scale'" },
+    "cdva_scale": { "type": ["string", "null"], "enum": ["decimal", "logMAR", null] },
+    "iol_axial_position_mm": { "type": ["number", "null"], "description": "Si el centro dispone de medida postoperatoria (OCT/biometro)" },
+    "iol_tilt_deg": { "type": ["number", "null"] },
+    "iol_decentration_mm": { "type": ["number", "null"] },
+    "toric_axis_observed_deg": { "type": ["number", "null"], "minimum": 0, "maximum": 180 },
+    "toric_rotation_deg": { "type": ["number", "null"], "description": "Observado - previsto, mod 180" },
+    "measurement_device": { "type": ["string", "null"] }
+  }
+}
