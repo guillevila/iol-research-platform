@@ -88,18 +88,16 @@ export const RESERVED_POSTOP = Object.freeze({
   },
 });
 
-/** Campos del modelo `iol` almacenados y no consumidos. */
+/**
+ * Campos del modelo `iol` almacenados y no consumidos.
+ *
+ * NOTA: `asphericity_q_anterior/_posterior` SALIERON de este registro cuando el trazador
+ * empezó a consumirlos para distinguir número documentado / ASSUMED_SPHERICAL / UNKNOWN
+ * (una Q numérica se rechaza hasta que existan superficies cónicas; una UNKNOWN se traza
+ * como esfera con el supuesto registrado). El dato de fabricante sigue bloqueado por
+ * OPEN_QUESTIONS #4.
+ */
 export const RESERVED_IOL = Object.freeze({
-  asphericity_q_anterior: {
-    que_es: 'asfericidad (Q) de la cara anterior',
-    consumidor_previsto: 'superficies cónicas en el trazador',
-    blocked_by: 'V1.2 + OPEN_QUESTIONS #4 (no hay Q de fabricante para ninguna lente)',
-  },
-  asphericity_q_posterior: {
-    que_es: 'asfericidad (Q) de la cara posterior',
-    consumidor_previsto: 'superficies cónicas en el trazador',
-    blocked_by: 'V1.2 (superficies cónicas) + OPEN_QUESTIONS #4 (no hay Q publicada)',
-  },
   haptic_angulation_deg: {
     que_es: 'angulación de los hápticos (grados)',
     consumidor_previsto: 'modelo mecánico de posición final en el saco',

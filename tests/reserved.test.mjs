@@ -110,7 +110,7 @@ test('reservados: cada entrada documenta qué es, quién lo usará y qué lo blo
   // el registro debe cubrir los tres modelos y no estar vacío
   assert.deepEqual(Object.keys(RESERVED_FIELDS).sort(),
     ['iol', 'predicted_postoperative_eye', 'preoperative_eye']);
-  assert.equal(RESERVED_NAMES.length, 16);
+  assert.equal(RESERVED_NAMES.length, 14);
   assert.equal(new Set(RESERVED_NAMES).size, RESERVED_NAMES.length, 'nombres duplicados');
 });
 

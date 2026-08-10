@@ -13,7 +13,7 @@
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 import { assertFinite, assertInRange } from './units.mjs';
-import { createIOL, GeometryStatus, UNKNOWN } from './iol.mjs';
+import { createIOL, GeometryStatus, UNKNOWN, ASSUMED_SPHERICAL } from './iol.mjs';
 import { N_AQUEOUS } from '../optics/constants.mjs';
 
 /**
@@ -72,6 +72,10 @@ export class GenericIOLFactory {
         central_thickness_mm: this.thickness_mm,
         r_anterior_mm: r1,
         r_posterior_mm: -r1,
+        // la genérica es un sustituto de simulación cuya geometría ENTERA es declarada:
+        // sus superficies son esferas por decisión, no por desconocimiento
+        asphericity_q_anterior: ASSUMED_SPHERICAL,
+        asphericity_q_posterior: ASSUMED_SPHERICAL,
         toric_design: UNKNOWN,
       },
       geometry_status: GeometryStatus.DERIVED_GENERIC,

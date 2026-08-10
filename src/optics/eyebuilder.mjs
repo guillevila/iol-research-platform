@@ -10,7 +10,7 @@
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 import { mmToM, assertFinite, curvatureFromRadiusMm } from '../core/units.mjs';
-import { assertTraceableGeometry } from '../core/iol.mjs';
+import { assertTraceableGeometry, ASSUMED_SPHERICAL, UNKNOWN } from '../core/iol.mjs';
 import { predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, refract, transfer } from './paraxial.mjs';
 import { buildCorneaModel, CorneaPolicy } from './cornea.mjs';
 import { N_AIR, N_AQUEOUS, N_CORNEA, N_VITREOUS } from './constants.mjs';
@@ -109,7 +109,32 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
   assertTraceableGeometry(iol, 'buildRaytraceEye');
   const g = iol.geometry;
   const surfaces = [];
+  const assumptions = [];
   const cornea = corneaModelOf(preop, corneaOpts);
+
+  // Asfericidad de cada superficie de la LIO: tres estados, ninguno se convierte en otro
+  // en silencio (misma disciplina que el índice queratométrico en P0.1).
+  //   número           → Q documentada: este trazador aún no implementa cónicas → FALLA,
+  //                      porque trazar la esfera equivaldría a ignorar un dato documentado;
+  //   ASSUMED_SPHERICAL→ esfera por supuesto DECLARADO (nada que registrar);
+  //   UNKNOWN          → esfera con el supuesto REGISTRADO en la salida.
+  const qDe = (q, id) => {
+    if (typeof q === 'number') {
+      throw new TypeError(`buildRaytraceEye: ${id} tiene asfericidad Q=${q} documentada, `
+        + 'pero el trazador aún no implementa superficies cónicas. Se rechaza en lugar de '
+        + 'ignorar un dato documentado (superficies cónicas: ver V1_PROJECT_PLAN.md).');
+    }
+    if (q !== ASSUMED_SPHERICAL) {
+      assumptions.push(`${id}: asfericidad no documentada (${String(q ?? UNKNOWN)}); `
+        + 'superficie trazada como ESFERA — SUPUESTO registrado, no verificado');
+    }
+  };
+  qDe(g.asphericity_q_anterior, 'iol_ant');
+  qDe(g.asphericity_q_posterior, 'iol_post');
+
+  // La córnea (cualquier política) se traza con superficies esféricas: la asfericidad
+  // corneal no se modela todavía. Supuesto declarado en la salida, no tácito.
+  assumptions.push('cornea: superficies trazadas como esféricas (asfericidad corneal no modelada)');
   let cornea_kind;
   if (cornea.r_posterior_mm !== null && typeof preop.cct_um === 'number') {
     cornea_kind = cornea.kind;                    // physical | assumed_ratio: dos superficies reales
@@ -130,6 +155,9 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
   return {
     surfaces, cornea_kind, cornea_policy: cornea.policy, cornea,
     retina_z_mm: preop.al_mm, iol_back_z_mm: zAnt + t,
+    /** supuestos de modelado ACTIVOS en este trazado; vacío no significa "sin supuestos
+     *  declarados", significa "sin supuestos NO verificados" */
+    assumptions,
   };
 }
 

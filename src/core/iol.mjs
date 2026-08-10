@@ -22,6 +22,31 @@ import { assertFinite, assertInRange, mmToM, curvatureFromRadiusMm } from './uni
 export const UNKNOWN = 'UNKNOWN';
 export const isUnknown = v => v === UNKNOWN || v === null || v === undefined;
 
+/**
+ * Sentinela para asfericidad: la superficie se modela como ESFERA por SUPUESTO DECLARADO
+ * de quien construyó el modelo (típicamente la lente genérica de simulación, cuya
+ * geometría entera es declarada). Es distinto de UNKNOWN, y la diferencia importa:
+ *
+ *   ASSUMED_SPHERICAL  "decidí modelar esta superficie como esfera"  → se traza sin más
+ *   UNKNOWN            "no sé qué asfericidad tiene"                 → si se traza como
+ *                       esfera, el supuesto queda REGISTRADO en la salida, nunca tácito
+ *   número             asfericidad Q documentada                     → exige un trazador
+ *                       que la implemente; ignorarla sería falsear un dato documentado
+ *
+ * Antes UNKNOWN se convertía en esfera en silencio: el mismo patrón de relleno tácito
+ * que V0.5 eliminó del índice queratométrico y del radio plano.
+ */
+export const ASSUMED_SPHERICAL = 'ASSUMED_SPHERICAL';
+
+/** Valida un valor de asfericidad: número finito, sentinela, o ausente (→ UNKNOWN). */
+function normAsphericity(v, name) {
+  if (v === null || v === undefined || v === UNKNOWN) return UNKNOWN;
+  if (v === ASSUMED_SPHERICAL) return ASSUMED_SPHERICAL;
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  throw new TypeError(`${name} debe ser un número finito, ASSUMED_SPHERICAL o UNKNOWN; `
+    + `recibido: ${String(v)}`);
+}
+
 export const GeometryStatus = Object.freeze({
   DERIVED_GENERIC: 'DERIVED_GENERIC',
   MANUFACTURER: 'MANUFACTURER',
@@ -50,8 +75,8 @@ export function createIOL(f) {
     central_thickness_mm: g.central_thickness_mm ?? UNKNOWN,
     r_anterior_mm: g.r_anterior_mm ?? UNKNOWN,   // convención: +r centro a la derecha (+z)
     r_posterior_mm: g.r_posterior_mm ?? UNKNOWN,
-    asphericity_q_anterior: g.asphericity_q_anterior ?? UNKNOWN,
-    asphericity_q_posterior: g.asphericity_q_posterior ?? UNKNOWN,
+    asphericity_q_anterior: normAsphericity(g.asphericity_q_anterior, 'asphericity_q_anterior'),
+    asphericity_q_posterior: normAsphericity(g.asphericity_q_posterior, 'asphericity_q_posterior'),
     toric_design: g.toric_design ?? UNKNOWN,     // 'anterior'|'posterior'|'bitoric'|UNKNOWN
     haptic_angulation_deg: g.haptic_angulation_deg ?? UNKNOWN,
   };
