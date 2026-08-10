@@ -1,41 +1,43 @@
 # CURRENT_SPRINT
 
-**Fecha:** 10/08/2026 · **Últimas sesiones:** Sprints 0–5, 9, 10 y 11 (DONE); 6, 7 y 12 (PARTIAL); 8 (PENDIENTE)
+**Fecha:** 10/08/2026 · **Hito:** **V0 COMPLETADA** (§25 del encargo)
 
-## Estado al cierre
+## Estado final de V0
 
-| Sprint | Estado | Evidencia |
-|---|---|---|
-| 0 Baseline | DONE | métricas replicadas offline; hashes; golden; 6 tests |
-| 1 Core | DONE | core + predictores + schemas; 9 tests |
-| 2 Paraxial | DONE | vergencias propias; 8 tests de forma cerrada |
-| 3 Ray tracer | DONE | Snell 3D + foco; 12 tests |
-| 4 Ojo completo | DONE | builders paraxial y de trazado; validación cruzada; exp003 |
-| 5 Optimizador | DONE | mejor/segunda opción, empates, sensibilidad; bench |
-| 9 Tórico | DONE (inicial) | vectores + motor por meridianos; integrado en bench; exp005 |
-| 10 Incertidumbre | DONE | Monte Carlo con semilla; 6 tests; exp004 |
-| 11 Benchmark global | DONE (inicial) | dashboard-investigacion.html desde results.json |
-| 6 Sintético+sensibilidad | PARTIAL | falta tilt/descentración/posterior (depende de superficies inclinadas) |
-| 7 Posición de LIO | PARTIAL | literatura/ML BLOCKED (OPEN_QUESTIONS #2 y datos reales) |
-| 12 Clinical readiness | PARTIAL | schemas + estrategia; faltan importadores/validadores de ficheros |
-| 8 Geometría ampliada | PENDIENTE | campos de datos listos; faltan experimentos de ablación |
+| Sprint | Estado |
+|---|---|
+| 0 Baseline congelado | DONE |
+| 1 Core científico | DONE |
+| 2 Paraxial propio | DONE |
+| 3 Ray tracer | DONE |
+| 4 Ojo completo (paraxial + trazado) | DONE |
+| 5 Optimizador | DONE |
+| 6 Sintético + sensibilidad | DONE (inicial: ELP, paraxial↔trazado, EQ; tilt/descentración → V1) |
+| 7 Posición de LIO modular | DONE (inicial; literatura/ML BLOCKED con motivo) |
+| 8 Geometría ampliada | DONE (inicial: exp006; ATA/STS/tilt → V1) |
+| 9 Tórico independiente | DONE (inicial; rotación y tórico trazado → V1) |
+| 10 Incertidumbre Monte Carlo | DONE |
+| 11 Benchmark global | DONE (inicial) |
+| 12 Clinical readiness | DONE |
 
-**Suite: 60/60 tests verdes** (`npm test`). Experimentos: exp001–exp005 reproducibles.
+**Suite: 67/67 tests verdes** · 6 experimentos reproducibles (exp001–exp006) ·
+13 commits · dashboard científico regenerable.
 
-## Próximo sprint recomendado: 8 + 12 (cierre de V0)
+## BLOCKED permanentes de V0 (requieren el mundo exterior)
 
-**Objetivo 8:** experimentos de ablación sobre capacidad informativa: bajo supuestos
-geométricos DECLARADOS, ¿cuánto reduce la incertidumbre de posición conocer EQ/LEP,
-ATA, STS o diámetro cristaliniano? (análisis de información con sintéticos; sin
-afirmar validez biológica). Entregable: exp006 + actualización de IOL_POSITION.md.
+1. Coeficientes de modelos de literatura → fuente citable delante (OPEN_QUESTIONS #2).
+2. Geometría real de LIO comerciales → fichas de fabricante (#4).
+3. Sigmas reales de medida/biología → repetibilidad de dispositivo + cohorte (#6).
+4. Cualquier calibración o ML clínico → datos postoperatorios conforme al protocolo
+   preregistrado (`PROTOCOL_FIRST_CLINICAL_BATCH.md`).
 
-**Objetivo 12 (cierre):** importadores CSV/JSON contra los schemas con validación
-estricta y anonimización verificada; protocolo experimental final para el primer
-lote de datos reales (VALIDATION_STRATEGY nivel 3 preregistrado).
+## Candidatos V1 (por orden de valor científico)
 
-**Criterios de aceptación:** exp006 reproducible con supuestos declarados en la
-config; importador rechaza PII y campos fuera de rango con mensajes útiles; dry-run
-con fixtures sintéticas en tests.
-
-**Bloqueos:** ninguno para 8/12. Tras ellos, V0 queda completa según §25 salvo los
-puntos que exigen datos externos (documentados como BLOCKED).
+1. **Superficies cónicas e inclinadas** en el trazador (asfericidad Q, tilt,
+   descentración) → desbloquea sensibilidad a tilt (Sprint 6/8 restante) y tórico
+   trazado.
+2. **Optimizador sobre ray tracing** (además del paraxial) → columna de trazado en el
+   mapa de divergencia del dashboard.
+3. **Rotación tórica**: pérdida de efecto por desalineación y su Monte Carlo.
+4. **Adaptador de export del centro** sobre el importador (cuando se conozca formato).
+5. Con datos reales: ejecutar el protocolo preregistrado tal cual.

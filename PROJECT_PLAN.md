@@ -124,10 +124,15 @@ valida la siguiente hipótesis?
   documental verificable (registrado en `OPEN_QUESTIONS.md`); ML — requiere datos
   reales (prohibido entrenar con sintético como verdad).
 
-## SPRINT 8 — Geometría anatómica adicional (EQ/LEP, ATA, STS, tilt) — **PENDIENTE**
+## SPRINT 8 — Geometría anatómica adicional (EQ/LEP, ATA, STS, tilt) — **DONE (inicial)**
 
-- Interfaces de datos ya presentes en `EyeModel` (campos opcionales). Falta: experimentos
-  de ablación (base vs base+EQ vs anatomía ampliada) sobre sensibilidad e información.
+- **Hecho:** campos de datos en `EyeModel` desde Sprint 1; `exp006_capacidad_eq`
+  cuantifica —condicional a la hipótesis declarada H_EQ— el valor refractivo de
+  medir el ecuador cristaliniano frente a inferirlo de ACD+LT: solo aporta si
+  σ_medida < σ_bio, con beneficio concentrado en ojos cortos (~0.36 D con
+  σ_bio 0.3 / σ_m 0.1). Define además el dato mínimo que valida H_EQ (protocolo).
+- **Pendiente (fuera de "inicial"):** ablaciones de ATA/STS/diámetro y tilt (las dos
+  últimas requieren superficies inclinadas en el trazador — candidato V1).
 
 ## SPRINT 9 — Sistema tórico independiente — **DONE (inicial)**
 
@@ -164,12 +169,19 @@ valida la siguiente hipótesis?
 - **Pendiente (fuera de "inicial"):** columna de trazado en el mapa de divergencia
   (requiere optimizador sobre ray tracing) y navegación por muestras aleatorias.
 
-## SPRINT 12 — Clinical readiness — **PARTIAL**
+## SPRINT 12 — Clinical readiness — **DONE**
 
-- **Hecho:** esquemas JSON de datos clínicos (preop/cirugía/postop, sin PII) +
-  `CLINICAL_DATA_REQUIREMENTS.md` + `VALIDATION_STRATEGY.md`.
-- **Pendiente:** importadores/validadores de ficheros reales y protocolo experimental
-  final (requiere conocer el formato de export del centro).
+- **Hecho:** esquemas JSON (preop/cirugía/postop, sin PII) + validador genérico del
+  subconjunto de JSON Schema usado (`src/clinical/schema_validator.mjs`, fuente única
+  de verdad = los .schema.json) + importador con guardas heurísticas de PII (fechas
+  completas, nombres propios; los rechazos se reportan, nunca se corrigen en
+  silencio) + enlace preop↔cirugía↔postop con huérfanos
+  (`src/clinical/importer.mjs`, 7 tests con fixtures sintéticas) +
+  **protocolo preregistrado** del primer lote (`PROTOCOL_FIRST_CLINICAL_BATCH.md`:
+  objetivos ordenados, inclusión, partición temporal, umbral de calibración,
+  prohibiciones).
+- **Nota:** el mapeo del formato de export concreto del centro se hará como adaptador
+  fino sobre este importador cuando se conozca (no bloquea nada).
 
 ---
 
@@ -188,12 +200,17 @@ builder paraxial (dependencia real satisfecha); el trazado del ojo completo (res
 - [x] Modelo de LIO configurable con UNKNOWN
 - [x] Optimizador de potencia
 - [x] Motor tórico inicial
-- [x] Análisis de sensibilidad (ELP; paraxial↔trazado) — [ ] tilt/descentración/posterior
+- [x] Análisis de sensibilidad (ELP; paraxial↔trazado; capacidad EQ) — [ ] tilt/descentración (V1)
 - [x] Generador sintético etiquetado
 - [x] Benchmark contra EVO (mapas esférico y tórico; dashboard científico)
 - [x] Sistema de incertidumbre (estructura + Monte Carlo con semilla)
 - [x] Arquitectura modular de posición postoperatoria
-- [x] Soporte de datos para EQ/OCT (campos opcionales)
-- [x] Esquema de datos clínicos
-- [x] Tests extensos (unit/property/regresión/numéricos)
+- [x] Soporte de datos para EQ/OCT (campos + análisis de capacidad exp006)
+- [x] Esquema de datos clínicos + importador validado + protocolo preregistrado
+- [x] Tests extensos (unit/property/regresión/numéricos): 67 verdes
 - [x] Documentación científica inicial completa
+
+**V0 COMPLETADA** (10/08/2026) en todos los puntos que no exigen datos externos.
+Quedan BLOCKED con motivo registrado: coeficientes de literatura sin fuente delante
+(OPEN_QUESTIONS #2), geometrías comerciales de LIO (#4), sigmas reales (#6) y todo
+ML clínico (requiere datos postoperatorios). Candidatos V1 en CURRENT_SPRINT.md.
