@@ -15,12 +15,26 @@ import { computeMetrics } from '../legacy/evo_replica/harness/replay_metrics.mjs
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'legacy', 'evo_replica');
 const sha256 = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+// El manifiesto se parsea tolerando CRLF: si no, en Windows toda clave acabaría en '\r'
+// y las comparaciones fallarían contra `undefined` — un fallo ilegible que oculta la
+// causa real (V0.5/P0.6). El fin de línea de los ficheros congelados lo fija .gitattributes.
 const HASHES = Object.fromEntries(
   fs.readFileSync(join(ROOT, 'baseline', 'HASHES.sha256'), 'utf8')
-    .trim().split('\n').map(l => { const [h, ...p] = l.split('  '); return [p.join('  '), h]; })
+    .trim().split(/\r?\n/).map(l => { const [h, ...p] = l.trim().split('  '); return [p.join('  '), h]; })
 );
 
+test('baseline: el manifiesto de hashes se ha leído entero', () => {
+  // guarda contra el fallo que enmascara a todos los demás: si el parseo se rompe, cada
+  // comparación posterior diría "esperado undefined" en vez de "el fichero ha cambiado".
+  assert.ok(Object.keys(HASHES).length >= 100, `manifiesto con ${Object.keys(HASHES).length} entradas`);
+  for (const [f, h] of Object.entries(HASHES)) {
+    assert.match(h, /^[0-9a-f]{64}$/, `hash mal formado para ${f}`);
+    assert.ok(!/[\r\n]/.test(f), `nombre de fichero con salto de línea: ${JSON.stringify(f)}`);
+  }
+});
+
 test('baseline: engine.js congelado coincide con el hash registrado', () => {
+  assert.ok(HASHES['engine.js'], 'engine.js no está en el manifiesto');
   assert.equal(sha256(join(ROOT, 'engine.js')), HASHES['engine.js']);
 });
 

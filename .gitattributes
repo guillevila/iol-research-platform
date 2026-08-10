@@ -1,0 +1,21 @@
+# Normalización de fin de línea.
+#
+# MOTIVO (detectado por la CI de Windows en V0.5/P0.6): sin esto, un checkout en Windows
+# con core.autocrlf activo convierte LF→CRLF al escribir el árbol de trabajo. Los
+# artefactos "congelados" del legado dejaban entonces de coincidir con su hash SHA-256:
+# el baseline solo era byte-idéntico en Linux. Un baseline que depende del sistema
+# operativo del que lo mira no es un baseline.
+
+# Todo el repositorio usa LF en el árbol de trabajo, en cualquier plataforma.
+* text=auto eol=lf
+
+# El legado EVO es un BASELINE CONGELADO verificado por hash. Git no debe tocar sus bytes
+# bajo ningún concepto ni en ninguna plataforma: se tratan como binarios.
+legacy/evo_replica/engine.js   -text
+legacy/evo_replica/engine.cjs  -text
+legacy/evo_replica/data/**     -text
+legacy/evo_replica/cache/**    -text
+legacy/evo_replica/baseline/** -text
+
+# Los resultados publicados de experimentos también se comparan literalmente.
+experiments/**/results.json    -text
