@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calculadora Tórica de LIO</title>
+<script src="engine.js"></script>
+<style>
+  :root{
+    --ink:#1a1a1a; --accent:#595959; --accent-strong:#2e2e2e; --green:#7d9c3a;
+    --wordmark:#6e6e6e; --line:#d6d6d6; --note-red:#cc3300; --panel:#f4f5ff;
+    --info-blue:#0066cc;
+    --display:"Segoe UI",system-ui,-apple-system,sans-serif;
+    --body:Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:var(--ink);font-family:var(--body);line-height:1.55}
+  .shell{max-width:920px;margin:0 auto;padding:0 16px 64px}
+  .mast{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+        padding:24px 0 18px;border-bottom:2px solid var(--line);margin-bottom:18px}
+  .wordmark{font-family:var(--display);font-weight:700;font-size:clamp(20px,4.4vw,30px);
+            letter-spacing:.03em;color:var(--wordmark)}
+  .wordmark span{color:var(--green)}
+  .byline{font-family:var(--display);font-size:13px;color:#8a8a8a}
+
+  .disclaimer{font-family:var(--display);font-size:12.5px;line-height:1.5;color:#7a3b00;
+    background:#fff8ec;border:1px solid #f0d9b5;border-radius:8px;padding:10px 14px;margin-bottom:20px}
+  .disclaimer b{color:#a33b00}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:clamp(18px,3vw,30px)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 36px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .field{display:grid;grid-template-columns:170px 1fr;align-items:center;gap:10px;margin-bottom:14px}
+  .flabel{font-family:var(--display);font-size:15px;color:var(--accent-strong)}
+  .tb,.dd{font-family:var(--display);font-size:15px;color:var(--ink);border:1px solid #666;
+          border-radius:4px;padding:6px 8px;width:100%;max-width:180px;background:#fff}
+  .tb:focus,.dd:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .tb[disabled]{background:#eee;color:#888}
+  .radio-row{font-family:var(--display);font-size:15px;color:var(--accent-strong)}
+  .radio-row label{margin-right:18px;cursor:pointer}
+  .radio-row input{margin-right:5px}
+  .degwrap{position:relative;display:inline-block;width:100%;max-width:180px}
+  .degwrap .deg{position:absolute;right:-16px;top:50%;transform:translateY(-50%);
+                font-family:var(--display);font-size:16px;color:var(--accent-strong)}
+  .err{display:block;font-family:var(--display);font-size:11.5px;font-style:italic;
+       color:var(--note-red);margin-top:2px;min-height:14px}
+  .section-title{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.06em;
+     text-transform:uppercase;color:var(--accent);margin:24px 0 12px;padding-top:16px;border-top:2px solid #8a8a8a}
+  .btn-row{display:flex;gap:16px;margin-top:24px;flex-wrap:wrap}
+  .btn{font-family:var(--display);font-weight:700;font-size:15px;border:1px solid #444;border-radius:6px;
+       padding:9px 0;width:130px;text-align:center;cursor:pointer;background:#fff;color:var(--accent-strong)}
+  .btn:hover{background:#f0f0f0}
+
+  .results{background:#fff;border:1px solid var(--line);border-radius:10px;padding:clamp(18px,3vw,30px);margin-top:22px}
+  .res-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;font-family:var(--display)}
+  .res-name{font-size:24px;font-weight:700;display:block}
+  .res-id{font-size:17px;font-weight:700;display:block}
+  .res-surgeon{font-size:15px;color:var(--accent);display:block}
+  .res-right{text-align:right}
+  .res-eye-main{font-size:24px;font-weight:700;display:block}
+  .res-eye-sub{font-size:17px;font-weight:700;display:block}
+  .res-params{font-family:var(--display);font-size:13px;color:var(--accent);text-align:center;margin:14px 0 6px}
+  .base-line{font-family:var(--display);font-size:15px;margin:12px 0 0}
+  table.pred,table.toric{width:100%;border-collapse:collapse;font-family:var(--display);margin:18px auto 0}
+  table.pred{max-width:560px}
+  table.toric{table-layout:fixed}
+  table.pred th,table.toric th{background:#eef1e6;font-size:15px;padding:8px 10px;
+      border-top:2px solid #fff;border-bottom:2px solid #fff;font-weight:700}
+  table.toric th{font-size:14px}
+  table.pred td,table.toric td{background:#f5f8fa;font-size:15px;text-align:center;padding:7px 10px;
+      height:34px;border-top:2px solid #fff;border-bottom:2px solid #fff}
+  table.toric td{font-size:14px}
+  tr.recommended td{background:#e3eefc !important;font-weight:700}
+  .res-cols{display:grid;grid-template-columns:1fr 240px;gap:24px;align-items:start}
+  @media(max-width:760px){.res-cols{grid-template-columns:1fr}}
+  .res-cols+.res-cols{margin-top:16px}
+  .rec-box{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px auto 0;width:200px;
+           max-width:100%;font-family:var(--display);font-size:12px;line-height:1.35}
+  .rec-box h5{margin:0 0 3px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+              color:var(--accent);text-decoration:underline}
+  .note-blue{font-family:var(--display);font-size:13px;font-weight:700;color:var(--info-blue);
+             text-align:center;margin-top:10px;display:block}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="mast">
+    <div>
+      <div class="wordmark">CALCULADORA <span>TÓRICA DE LIO</span></div>
+      <div class="byline">Implementación propia y offline · motor de vergencia con córnea posterior predicha</div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <b>Aviso.</b> Herramienta independiente, no oficial y sin relación con los autores de EVO ni con ningún
+    fabricante. El motor se ha calibrado por muestreo para reproducir la calculadora EVO Toric v2.0, pero
+    <b>no es idéntico</b>. Concordancia sobre casos aleatorios reservados, en configuración estándar:
+    <b>potencia esférica idéntica en el 99,5 %</b> (error de refracción mediano 0,00 D),
+    <b>eje dentro de 1° en el 98 %</b>, <b>cilindro tórico idéntico en el 77 %</b> —y cuando difiere, siempre
+    en un escalón contiguo, en casos límite. En miopía magna (AL 27–31,5 mm): esférica 99,2 %,
+    cilindro 93,8 %. Dominio validado: AL 20–32 mm, K media 34–50 D.
+    No cubre post-LASIK/PRK/QR, biómetro Argos ni córnea posterior medida. Detalle de ensayos en
+    <code>INFORME.md</code>.
+    Verifique el resultado antes de cualquier uso clínico. No es un producto sanitario.
+  </div>
+
+  <form id="f" class="panel" autocomplete="off">
+    <div class="grid">
+      <!-- ---------- left column ---------- -->
+      <div>
+        <div class="field"><label class="flabel" for="name">Paciente</label><input class="tb" id="name" maxlength="30"></div>
+        <div class="field"><label class="flabel" for="pid">Identificador</label><input class="tb" id="pid" maxlength="30"></div>
+        <div class="field"><label class="flabel" for="surgeon">Cirujano</label><input class="tb" id="surgeon" maxlength="30"></div>
+        <div class="field">
+          <span class="flabel">Ojo</span>
+          <span class="radio-row">
+            <label><input type="radio" name="eye" value="R" checked>Derecho</label>
+            <label><input type="radio" name="eye" value="L">Izquierdo</label>
+          </span>
+        </div>
+        <div class="field"><label class="flabel" for="al">Longitud axial</label>
+          <span><input class="tb" id="al" maxlength="6" inputmode="decimal"><span class="err" id="e_al"></span></span></div>
+        <div class="field"><label class="flabel" for="k1">K1 (plana)</label>
+          <span><input class="tb" id="k1" maxlength="6" inputmode="decimal"><span class="err" id="e_k1"></span></span></div>
+        <div class="field"><label class="flabel" for="k1a">Eje K1</label>
+          <span class="degwrap"><input class="tb" id="k1a" maxlength="3" inputmode="numeric"><span class="deg">°</span><span class="err" id="e_k1a"></span></span></div>
+        <div class="field"><label class="flabel" for="k2">K2 (curva)</label>
+          <span><input class="tb" id="k2" maxlength="6" inputmode="decimal"><span class="err" id="e_k2"></span></span></div>
+        <div class="field"><label class="flabel" for="k2a">Eje K2</label>
+          <span class="degwrap"><input class="tb" id="k2a" maxlength="3" inputmode="numeric"><span class="deg">°</span><span class="err" id="e_k2a"></span></span></div>
+      </div>
+
+      <!-- ---------- right column ---------- -->
+      <div>
+        <div class="field"><label class="flabel" for="acd">ACD óptica</label>
+          <span><input class="tb" id="acd" maxlength="5" inputmode="decimal"><span class="err" id="e_acd"></span></span></div>
+        <div class="field"><label class="flabel" for="lt">Grosor cristalino</label>
+          <span><input class="tb" id="lt" maxlength="5" inputmode="decimal" placeholder="opcional"><span class="err" id="e_lt"></span></span></div>
+        <div class="field"><label class="flabel" for="cct">CCT</label>
+          <span><input class="tb" id="cct" maxlength="5" inputmode="numeric" placeholder="opcional"><span class="err" id="e_cct"></span></span></div>
+        <div class="field"><label class="flabel" for="target">Refracción diana</label>
+          <span><input class="tb" id="target" maxlength="5" inputmode="decimal" value="0"><span class="err" id="e_target"></span></span></div>
+        <div class="field"><label class="flabel" for="aconst">Constante A</label>
+          <span><input class="tb" id="aconst" maxlength="6" inputmode="decimal"><span class="err" id="e_aconst"></span></span></div>
+        <div class="field"><label class="flabel" for="model">Modelo tórico</label>
+          <select class="dd" id="model"></select></div>
+        <div class="field"><label class="flabel" for="kindex">Índice K</label>
+          <select class="dd" id="kindex">
+            <option value="1.3375">1.3375</option><option value="1.3315">1.3315</option><option value="1.332">1.332</option>
+          </select></div>
+        <div class="field"><label class="flabel" for="sia">SIA</label>
+          <span><input class="tb" id="sia" maxlength="5" inputmode="decimal" value="0"><span class="err" id="e_sia"></span></span></div>
+        <div class="field"><label class="flabel" for="siaax">Eje incisión</label>
+          <span class="degwrap"><input class="tb" id="siaax" maxlength="3" inputmode="numeric" value="0"><span class="deg">°</span><span class="err" id="e_siaax"></span></span></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button type="submit" class="btn">Calcular</button>
+      <button type="button" class="btn" id="clear">Limpiar</button>
+    </div>
+  </form>
+
+  <div id="out" class="results hidden"></div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const modelSel = $('model');
+  for (const m of ENGINE.modelNames()) {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = ENGINE.modelLabel(m);
+    modelSel.appendChild(o);
+  }
+  modelSel.value = 'Posterior';
+
+  const RANGES = {
+    al:[20,32,'Rango validado 20 a 32 mm'], k1:[32,52,'Rango 32 a 52 D'], k2:[32,52,'Rango 32 a 52 D'],
+    k1a:[0,180,'Rango 0 a 180°'], k2a:[0,180,'Rango 0 a 180°'],
+    acd:[1,6,'Rango 1 a 6 mm'], lt:[2,7,'Rango 2 a 7 mm'], cct:[300,800,'Rango 300 a 800 µm'],
+    target:[-5,5,'Rango -5 a 5 D'], aconst:[110,125,'Rango 110 a 125'],
+    sia:[0,3,'Rango 0 a 3 D'], siaax:[0,180,'Rango 0 a 180°'],
+  };
+  const OPTIONAL = new Set(['lt','cct']);
+
+  function read(){
+    let ok = true; const v = {};
+    for (const [id,[lo,hi,msg]] of Object.entries(RANGES)) {
+      const raw = $(id).value.trim();
+      const errEl = $('e_'+id); if (errEl) errEl.textContent = '';
+      if (raw === '') {
+        if (OPTIONAL.has(id)) { v[id] = null; continue; }
+        if (errEl) errEl.textContent = '* Obligatorio'; ok = false; continue;
+      }
+      const n = parseFloat(raw.replace(',', '.'));
+      if (!isFinite(n) || n < lo || n > hi) { if (errEl) errEl.textContent = '* ' + msg; ok = false; continue; }
+      v[id] = n;
+    }
+    v.eye = document.querySelector('input[name=eye]:checked').value;
+    v.model = modelSel.value; v.kindex = parseFloat($('kindex').value);
+    v.name = $('name').value.trim(); v.pid = $('pid').value.trim(); v.surgeon = $('surgeon').value.trim();
+    return ok ? v : null;
+  }
+
+  const f2 = x => (Math.round(x*100)/100).toFixed(2);
+  const cy = x => (x === 0 ? '0.00' : f2(x));
+
+  function render(v, r){
+    const rowsPred = r.sphere.map(s =>
+      `<tr class="${s.recommended?'recommended':''}"><td>${f2(s.iol)}</td><td>${f2(s.ref)}</td></tr>`).join('');
+    const rowsToric = r.toric.map(t =>
+      `<tr class="${t.recommended?'recommended':''}"><td>${f2(t.cyl)}</td><td>${t.iolAxis}°</td>` +
+      `<td>${f2(t.ref)}</td><td>${cy(t.resiCyl)}</td><td>${t.resiAxis}°</td></tr>`).join('');
+    $('out').classList.remove('hidden');
+    $('out').innerHTML = `
+      <div class="res-head">
+        <span><span class="res-name">${v.name||'&nbsp;'}</span>
+              <span class="res-id">${v.pid||''}</span>
+              <span class="res-surgeon">${v.surgeon?'Cirujano: '+v.surgeon:''}</span></span>
+        <span class="res-right"><span class="res-eye-main">${v.eye==='R'?'OD':'OS'}</span>
+              <span class="res-eye-sub">${v.eye==='R'?'DERECHO':'IZQUIERDO'}</span></span>
+      </div>
+      <p class="res-params">Constante A: ${v.aconst} &nbsp; Modelo: ${ENGINE.modelLabel(v.model)} &nbsp; Índice K: ${v.kindex}</p>
+      <p class="res-params">AL: ${v.al} &nbsp; K1: ${v.k1} @ ${v.k1a}° &nbsp; K2: ${v.k2} @ ${v.k2a}°
+         &nbsp; ACD: ${v.acd} ${v.lt!=null?'&nbsp; LT: '+v.lt:''} ${v.cct!=null?'&nbsp; CCT: '+v.cct:''}
+         &nbsp; Diana: ${v.target}</p>
+      <p class="base-line">Astigmatismo corneal total: ${f2(r.tcaMag)} D @ ${r.tcaAxis}°</p>
+      <div class="res-cols">
+        <div><table class="pred"><tr><th>Potencia LIO (EE)</th><th>Refracción (EE)</th></tr>${rowsPred}</table></div>
+        <div>
+          <div class="rec-box"><h5>Recomendación</h5>
+            LIO (EE): ${f2(r.rec.iol)}<br>Cilindro: ${f2(r.rec.cyl)}<br>Eje LIO: ${r.rec.axis}°</div>
+          <div class="rec-box"><h5>Predicción</h5>
+            Ref (EE): ${f2(r.rec.ref)}<br>Cil: ${cy(r.rec.resiCyl)}<br>Eje: ${r.rec.resiAxis}°<br>
+            Equiv. desenfoque: ${f2(r.rec.defocus)}</div>
+        </div>
+      </div>
+      <div class="res-cols"><div>
+        <p class="base-line">LIO (EE): ${f2(r.baseIOL)}</p>
+        <table class="toric"><tr><th>Cilindro</th><th>Eje LIO</th><th>Refracción</th><th>Cil. residual</th><th>Eje</th></tr>${rowsToric}</table>
+      </div><div></div></div>
+      <span class="note-blue">Córnea posterior predicha</span>
+      <div class="btn-row" style="justify-content:center">
+        <button type="button" class="btn" onclick="window.print()">Imprimir</button>
+      </div>`;
+    $('out').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  $('f').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = read();
+    if (!v) { $('out').classList.add('hidden'); return; }
+    try { render(v, ENGINE.calculate(v)); }
+    catch (err) { $('out').classList.remove('hidden'); $('out').innerHTML =
+      '<p style="color:#cc3300;font-family:var(--display)">No se pudo calcular: '+err.message+'</p>'; }
+  });
+  $('clear').addEventListener('click', () => {
+    $('f').reset(); $('out').classList.add('hidden');
+    document.querySelectorAll('.err').forEach(x => x.textContent = '');
+  });
+})();
+</script>
+</body>
+</html>

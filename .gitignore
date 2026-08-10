@@ -1,0 +1,7 @@
+# Datos de pacientes: NUNCA versionar documentos clínicos originales
+*.pdf
+
+# Ruido
+node_modules/
+*.log
+Thumbs.db
