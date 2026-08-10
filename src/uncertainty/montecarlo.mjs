@@ -1,5 +1,5 @@
 /**
- * montecarlo.mjs — incertidumbre por simulación Monte Carlo (Sprint 10 / CAPA F).
+ * montecarlo.mjs — incertidumbre por simulación Monte Carlo (CAPA F — incertidumbre).
  *
  * Propaga incertidumbres DECLARADAS de entrada (desviaciones típicas que el usuario
  * del experimento fija explícitamente) hasta la refracción prevista, y cuantifica la

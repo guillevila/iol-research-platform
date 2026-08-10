@@ -1,6 +1,6 @@
 /**
  * schema_validator.mjs — intérprete del subconjunto de JSON Schema 2020-12 usado
- * por los esquemas clínicos del proyecto (Sprint 12).
+ * por los esquemas clínicos del proyecto (CAPA H — entrada de datos reales).
  *
  * Soporta exactamente lo que los .schema.json emplean: type (incl. uniones y
  * integer), required, properties, additionalProperties:false, enum,

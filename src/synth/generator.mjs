@@ -1,5 +1,5 @@
 /**
- * generator.mjs — generador de ojos sintéticos (Sprint 6 parcial).
+ * generator.mjs — generador de ojos sintéticos (CAPA F — datos sintéticos declarados).
  *
  * Dos modos, siempre etiquetados `meta.source='synthetic'` y reproducibles:
  *  - gridEyes(spec)          — experimento de rejilla (determinista por construcción)

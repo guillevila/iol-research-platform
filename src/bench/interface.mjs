@@ -1,5 +1,5 @@
 /**
- * interface.mjs — contrato común del framework de benchmarking (Sprint 5 / §8).
+ * interface.mjs — contrato común del framework de benchmarking (CAPA G — comparación entre motores).
  *
  * Todo motor comparable implementa:
  *    engine.id                        — identificador estable

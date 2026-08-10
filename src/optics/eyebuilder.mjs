@@ -1,18 +1,18 @@
 /**
  * eyebuilder.mjs — construye la descripción óptica paraxial de un ojo pseudofáquico
- * a partir de EyeModel + posición prevista + IOLModel (CAPA C, Sprint 4 parcial).
+ * a partir de EyeModel + posición prevista + IOLModel (CAPA C).
  *
- * Política corneal (documentada, sin rellenos silenciosos):
- *  - si hay radios anterior Y posterior medidos → córnea física de 2 superficies;
- *  - si no → potencia corneal = lectura queratométrica media, marcada como
- *    'keratometric_reading' (convención del dispositivo, OPEN_QUESTIONS #1/#3).
+ * La política corneal NO vive aquí: se delega en `cornea.mjs`, que ofrece cuatro
+ * políticas declaradas y obliga a que cada resultado diga bajo cuál se obtuvo. Este
+ * módulo solo elige la más completa que los datos permiten (radios medidos → córnea
+ * física de dos superficies) y respeta la que le indiquen (OPEN_QUESTIONS #7).
  *
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
-import { mmToM, assertFinite } from '../core/units.mjs';
+import { mmToM, assertFinite, curvatureFromRadiusMm } from '../core/units.mjs';
 import { assertTraceableGeometry } from '../core/iol.mjs';
 import { predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, refract, transfer } from './paraxial.mjs';
-import { buildCorneaModel, CorneaPolicy, singleSurfacePowerFromRadiusMm } from './cornea.mjs';
+import { buildCorneaModel, CorneaPolicy } from './cornea.mjs';
 import { N_AIR, N_AQUEOUS, N_CORNEA, N_VITREOUS } from './constants.mjs';
 import { sphericalSurface } from './raytrace/surfaces.mjs';
 import { focusOfSystem } from './raytrace/trace.mjs';
@@ -91,7 +91,7 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {} } = {}) {
 }
 
 /**
- * Sistema de superficies del ojo completo para el RAY TRACER (Sprint 4).
+ * Sistema de superficies del ojo completo para el RAY TRACER.
  *
  * Córnea, dos modos documentados (misma política que el paraxial):
  *  - 'two_surface_physical': radios anterior/posterior + CCT medidos;
@@ -143,14 +143,16 @@ export function paraxialFocusOfRaytraceEye(eye) {
   let z = null;
   let nAfterLast = null;
   for (const s of eye.surfaces) {
-    const P = (s.n_after - s.n_before) / mmToM(s.radius_mm);
+    // una superficie plana (o de radio infinito) tiene curvatura 0: potencia 0
+    const P = s.kind === 'plane' ? 0 : (s.n_after - s.n_before) * curvatureFromRadiusMm(s.radius_mm);
+    const zs = s.kind === 'plane' ? s.z_mm : s.zVertex_mm;
     if (z === null) {
       V = refract(V, P);
     } else {
-      V = transfer(V, mmToM(s.zVertex_mm - z), s.n_before);
+      V = transfer(V, mmToM(zs - z), s.n_before);
       V = refract(V, P);
     }
-    z = s.zVertex_mm;
+    z = zs;
     nAfterLast = s.n_after;
   }
   return z + 1000 * nAfterLast / V;

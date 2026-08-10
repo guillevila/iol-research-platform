@@ -79,7 +79,7 @@ export function createPreopEye(f) {
     ata_mm: opt(f.ata_mm, PLAUSIBLE.ata_mm, 'ata_mm'),
     sts_mm: opt(f.sts_mm, PLAUSIBLE.sts_mm, 'sts_mm'),
     pupil_mm: opt(f.pupil_mm, PLAUSIBLE.pupil_mm, 'pupil_mm'),
-    // geometría cristaliniana ampliada (CAPA A extendida / Sprint 8)
+    // geometría cristaliniana ampliada (CAPA A extendida)
     lens_eq_plane_mm: opt(f.lens_eq_plane_mm, PLAUSIBLE.lens_eq_plane_mm, 'lens_eq_plane_mm'),
     lens_eq_diameter_mm: opt(f.lens_eq_diameter_mm, PLAUSIBLE.lens_eq_diameter_mm, 'lens_eq_diameter_mm'),
     lens_tilt_deg: f.lens_tilt_deg ?? null,

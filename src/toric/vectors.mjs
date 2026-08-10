@@ -1,5 +1,5 @@
 /**
- * vectors.mjs — álgebra de astigmatismo en espacio de doble ángulo (Sprint 9).
+ * vectors.mjs — álgebra de astigmatismo en espacio de doble ángulo (CAPA D — astigmatismo).
  *
  * Reescritura limpia y testada por propiedades; NO importa nada del legacy.
  * Fundamento (óptica estándar): un cilindro de magnitud m con meridiano curvo θ

@@ -1,5 +1,5 @@
 /**
- * toric_engine.mjs — motor tórico independiente (Sprint 9).
+ * toric_engine.mjs — motor tórico independiente (CAPA D — astigmatismo).
  *
  * Física propia; NO usa el modelo de córnea posterior PREDICHA del legacy (aquello
  * es una regresión ajustada a EVO). Aquí el astigmatismo corneal total se compone

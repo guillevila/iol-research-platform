@@ -1,5 +1,5 @@
 /**
- * power_search.mjs — optimizador de potencia (CAPA E, Sprint 5).
+ * power_search.mjs — optimizador de potencia (CAPA E).
  *
  * objective(IOL) = |refracción prevista − diana|  sobre el catálogo/rejilla dado.
  * Devuelve además la segunda mejor opción, la diferencia óptica entre ambas,

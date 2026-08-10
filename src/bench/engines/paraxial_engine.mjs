@@ -2,8 +2,12 @@
  * paraxial_engine.mjs — adaptador del motor físico paraxial al contrato de benchmark.
  *
  * La posición de LIO se obtiene del predictor inyectado (CAPA B): el motor óptico y
- * la predicción biológica quedan separados y comparables. Esférico puro por ahora
- * (el tórico independiente es Sprint 9). RESEARCH USE ONLY.
+ * la predicción biológica quedan separados y comparables.
+ *
+ * Calcula tórico cuando se le inyecta un catálogo de cilindros Y el ojo tiene
+ * astigmatismo; en otro caso devuelve solo el equivalente esférico. Los avisos de cada
+ * predicción reflejan lo que REALMENTE se ha calculado en esa llamada, no un estado
+ * general del proyecto. RESEARCH USE ONLY.
  */
 import { createPreopEye, createPredictedPostopEye } from '../../core/eye.mjs';
 import { createPredictionResult } from '../../core/result.mjs';
@@ -64,6 +68,7 @@ export class ParaxialEngine {
       intermediate_values: {
         exact_power_d: s.exact_power_d,
         cornea_kind: s.cornea_kind,
+        cornea_policy: s.cornea_policy,
         iol_position_mm: postop.iol_position_mm,
         position_source: pos.source,
       },
@@ -72,7 +77,14 @@ export class ParaxialEngine {
         tie_region: s.tie,
         notes: 'sensibilidad = D de refracción por mm de posición de LIO (dif. central ±0.25 mm)',
       },
-      warnings: ['Motor esférico paraxial; tórico pendiente (Sprint 9).'],
+      warnings: [
+        toric
+          ? 'Motor paraxial: equivalente esférico + recomendación tórica sobre el catálogo inyectado.'
+          : (this.toricCatalog_d
+              ? 'Motor paraxial: solo equivalente esférico (ojo sin astigmatismo queratométrico).'
+              : 'Motor paraxial: solo equivalente esférico (no se inyectó catálogo tórico).'),
+        `Política corneal: ${s.cornea_policy}.`,
+      ],
     });
   }
 }

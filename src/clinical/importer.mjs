@@ -1,5 +1,5 @@
 /**
- * importer.mjs — importación y validación de datos clínicos futuros (Sprint 12).
+ * importer.mjs — importación y validación de datos clínicos futuros (CAPA H — entrada de datos reales).
  *
  * Valida lotes de registros contra los esquemas de data/clinical_schema/ (fuente
  * única de verdad), aplica guardas heurísticas de PII y enlaza los tres niveles

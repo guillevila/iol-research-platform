@@ -1,5 +1,5 @@
 /**
- * iol_position.mjs — predictores modulares de posición postoperatoria de LIO (CAPA B / Sprint 7).
+ * iol_position.mjs — predictores modulares de posición postoperatoria de LIO (CAPA B).
  *
  * Interfaz común:  predictor.predict(preopEye, iol?) -> { iol_position_mm, source, inputs_used }
  *
