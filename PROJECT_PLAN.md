@@ -143,15 +143,26 @@ valida la siguiente hipótesis?
 - **Pendiente (fuera de "inicial"):** rotación tórica prevista y pérdida por
   desalineación; tórico sobre trazado de rayos (superficies tóricas).
 
-## SPRINT 10 — Incertidumbre — **PENDIENTE**
+## SPRINT 10 — Incertidumbre — **DONE**
 
-- Sensibilidad local + Monte Carlo + intervalos físicos + ranking de alternativas
-  (la estructura `uncertainty` de `PredictionResult` ya lo soporta).
+- **Hecho:** `src/uncertainty/montecarlo.mjs` (Box-Muller sobre PRNG con semilla;
+  percentiles de refracción bajo sigmas DECLARADAS; probabilidad de que la potencia
+  alternativa fuese mejor; extracciones inválidas contadas). Consistencia verificada
+  por test: sd(MC) ≈ |sensibilidad|·σ (±15 %). exp004 cuantifica intervalos y empates
+  por tipo de ojo (con σpos=0.4 mm, el ojo corto tiene P(alternativa)≈43 %: la
+  elección de escalón la domina la posición, no la óptica).
+- **Sigmas reales:** pendientes de fuente/datos (OPEN_QUESTIONS #6); las usadas son
+  escenarios declarados.
 
-## SPRINT 11 — Benchmark global (dashboard científico) — **PENDIENTE**
+## SPRINT 11 — Benchmark global (dashboard científico) — **DONE (inicial)**
 
-- Comparar EVO réplica vs paraxial vs ray tracing; mapas de divergencia; sin afirmar
-  superioridad clínica. Base ya existente: `src/bench/` + experimentos 001/002.
+- **Hecho:** `dashboard-investigacion.html` regenerado íntegramente desde
+  `experiments/*/results.json` (cero datos a mano, criterio cumplido): sensibilidad
+  (exp001), intervalos MC (exp004), paraxial↔trazado (exp003), mapa de divergencia
+  esférica con escala divergente azul/rojo (exp002) y tórico físico vs EVO (exp005,
+  la firma de la córnea posterior con su signo). Sin afirmaciones de superioridad.
+- **Pendiente (fuera de "inicial"):** columna de trazado en el mapa de divergencia
+  (requiere optimizador sobre ray tracing) y navegación por muestras aleatorias.
 
 ## SPRINT 12 — Clinical readiness — **PARTIAL**
 
@@ -179,8 +190,8 @@ builder paraxial (dependencia real satisfecha); el trazado del ojo completo (res
 - [x] Motor tórico inicial
 - [x] Análisis de sensibilidad (ELP; paraxial↔trazado) — [ ] tilt/descentración/posterior
 - [x] Generador sintético etiquetado
-- [x] Benchmark contra EVO (primer mapa de divergencia)
-- [x] Estructura de incertidumbre en resultados — [ ] Monte Carlo
+- [x] Benchmark contra EVO (mapas esférico y tórico; dashboard científico)
+- [x] Sistema de incertidumbre (estructura + Monte Carlo con semilla)
 - [x] Arquitectura modular de posición postoperatoria
 - [x] Soporte de datos para EQ/OCT (campos opcionales)
 - [x] Esquema de datos clínicos

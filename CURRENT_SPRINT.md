@@ -1,6 +1,6 @@
 # CURRENT_SPRINT
 
-**Fecha:** 10/08/2026 · **Últimas sesiones:** Sprints 0–5 y 9 (DONE); 6, 7 y 12 (PARTIAL)
+**Fecha:** 10/08/2026 · **Últimas sesiones:** Sprints 0–5, 9, 10 y 11 (DONE); 6, 7 y 12 (PARTIAL); 8 (PENDIENTE)
 
 ## Estado al cierre
 
@@ -12,29 +12,30 @@
 | 3 Ray tracer | DONE | Snell 3D + foco; 12 tests |
 | 4 Ojo completo | DONE | builders paraxial y de trazado; validación cruzada; exp003 |
 | 5 Optimizador | DONE | mejor/segunda opción, empates, sensibilidad; bench |
-| 9 Tórico | DONE (inicial) | vectores + motor por meridianos con datos medidos; integrado en bench; 7 tests |
-| 6 Sintético+sensibilidad | PARTIAL | generador + exp001/exp002/exp003; falta tilt/descentración/posterior |
-| 7 Posición de LIO | PARTIAL | interfaz + simulados; literatura/ML BLOCKED (OPEN_QUESTIONS) |
-| 12 Clinical readiness | PARTIAL | schemas + estrategia; faltan importadores |
+| 9 Tórico | DONE (inicial) | vectores + motor por meridianos; integrado en bench; exp005 |
+| 10 Incertidumbre | DONE | Monte Carlo con semilla; 6 tests; exp004 |
+| 11 Benchmark global | DONE (inicial) | dashboard-investigacion.html desde results.json |
+| 6 Sintético+sensibilidad | PARTIAL | falta tilt/descentración/posterior (depende de superficies inclinadas) |
+| 7 Posición de LIO | PARTIAL | literatura/ML BLOCKED (OPEN_QUESTIONS #2 y datos reales) |
+| 12 Clinical readiness | PARTIAL | schemas + estrategia; faltan importadores/validadores de ficheros |
+| 8 Geometría ampliada | PENDIENTE | campos de datos listos; faltan experimentos de ablación |
 
-**Suite: 54/54 tests verdes** (`npm test`). Experimentos reproducibles en `experiments/`.
+**Suite: 60/60 tests verdes** (`npm test`). Experimentos: exp001–exp005 reproducibles.
 
-## Próximo sprint recomendado: 10 (incertidumbre) + 11 (benchmark global)
+## Próximo sprint recomendado: 8 + 12 (cierre de V0)
 
-**Objetivo 10:** Monte Carlo sobre las entradas con incertidumbre declarada (posición
-de LIO, AL, K, ACD) → intervalos físicos en `PredictionResult.uncertainty`; ranking de
-alternativas con probabilidad de empate.
-**Objetivo 11:** dashboard científico comparando EVO réplica vs paraxial (esférico y
-tórico) vs trazado sobre rejillas y muestras sintéticas; mapas de divergencia
-navegables. Sin afirmaciones de superioridad clínica.
+**Objetivo 8:** experimentos de ablación sobre capacidad informativa: bajo supuestos
+geométricos DECLARADOS, ¿cuánto reduce la incertidumbre de posición conocer EQ/LEP,
+ATA, STS o diámetro cristaliniano? (análisis de información con sintéticos; sin
+afirmar validez biológica). Entregable: exp006 + actualización de IOL_POSITION.md.
 
-**Cambios previstos:** `src/uncertainty/montecarlo.mjs`, `experiments/exp004_montecarlo`,
-generador de dashboard en `experiments/` reutilizando el patrón SVG del dashboard
-operativo; tests de reproducibilidad de percentiles con semilla fija.
+**Objetivo 12 (cierre):** importadores CSV/JSON contra los schemas con validación
+estricta y anonimización verificada; protocolo experimental final para el primer
+lote de datos reales (VALIDATION_STRATEGY nivel 3 preregistrado).
 
-**Criterios de aceptación:** percentiles estables con semilla (test); intervalos
-coherentes con las sensibilidades de exp001; dashboard sin datos incrustados a mano
-(regenerado desde results.json).
+**Criterios de aceptación:** exp006 reproducible con supuestos declarados en la
+config; importador rechaza PII y campos fuera de rango con mensajes útiles; dry-run
+con fixtures sintéticas en tests.
 
-**Bloqueos:** ninguno para 10/11. Sprint 8 (EQ/ATA/STS) puede ejecutarse en paralelo
-como análisis de capacidad informativa con supuestos declarados.
+**Bloqueos:** ninguno para 8/12. Tras ellos, V0 queda completa según §25 salvo los
+puntos que exigen datos externos (documentados como BLOCKED).

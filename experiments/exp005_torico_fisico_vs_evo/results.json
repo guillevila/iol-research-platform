@@ -1,0 +1,158 @@
+{
+ "config": {
+  "id": "exp005_torico_fisico_vs_evo",
+  "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO",
+  "ojo_base": {
+   "al_mm": 23.5,
+   "k_media_d": 43.5,
+   "acd_mm": 3.2,
+   "lt_mm": 4.5,
+   "cct_um": 550,
+   "a_constant": 119.3
+  },
+  "astigmatismos_d": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "orientaciones": [
+   {
+    "id": "WTR",
+    "steep_deg": 90
+   },
+   {
+    "id": "ATR",
+    "steep_deg": 180
+   },
+   {
+    "id": "oblicuo",
+    "steep_deg": 45
+   }
+  ],
+  "catalogo_d": [
+   0,
+   1,
+   1.5,
+   2.25,
+   3,
+   3.75,
+   4.5,
+   5.25,
+   6
+  ],
+  "predictor": "ConstantOffsetPredictor(1.7)"
+ },
+ "timestamp": "2026-08-10T09:04:50.368Z",
+ "commit": "dc72ea55b33ef01906385d9d3a7ef5de57535ba5",
+ "rows": [
+  {
+   "orientacion": "WTR",
+   "astig_anterior_d": 1,
+   "fisico_cil_d": 1.5,
+   "fisico_eje_deg": 90,
+   "evo_cil_d": 1,
+   "evo_eje_deg": 90,
+   "delta_cil_d": 0.5
+  },
+  {
+   "orientacion": "WTR",
+   "astig_anterior_d": 2,
+   "fisico_cil_d": 3,
+   "fisico_eje_deg": 90,
+   "evo_cil_d": 1.5,
+   "evo_eje_deg": 90,
+   "delta_cil_d": 1.5
+  },
+  {
+   "orientacion": "WTR",
+   "astig_anterior_d": 3,
+   "fisico_cil_d": 4.5,
+   "fisico_eje_deg": 90,
+   "evo_cil_d": 3,
+   "evo_eje_deg": 90,
+   "delta_cil_d": 1.5
+  },
+  {
+   "orientacion": "WTR",
+   "astig_anterior_d": 4,
+   "fisico_cil_d": 6,
+   "fisico_eje_deg": 90,
+   "evo_cil_d": 4.5,
+   "evo_eje_deg": 90,
+   "delta_cil_d": 1.5
+  },
+  {
+   "orientacion": "ATR",
+   "astig_anterior_d": 1,
+   "fisico_cil_d": 1.5,
+   "fisico_eje_deg": 0,
+   "evo_cil_d": 2.25,
+   "evo_eje_deg": 180,
+   "delta_cil_d": -0.75
+  },
+  {
+   "orientacion": "ATR",
+   "astig_anterior_d": 2,
+   "fisico_cil_d": 3,
+   "fisico_eje_deg": 0,
+   "evo_cil_d": 3.75,
+   "evo_eje_deg": 180,
+   "delta_cil_d": -0.75
+  },
+  {
+   "orientacion": "ATR",
+   "astig_anterior_d": 3,
+   "fisico_cil_d": 4.5,
+   "fisico_eje_deg": 0,
+   "evo_cil_d": 4.5,
+   "evo_eje_deg": 180,
+   "delta_cil_d": 0
+  },
+  {
+   "orientacion": "ATR",
+   "astig_anterior_d": 4,
+   "fisico_cil_d": 6,
+   "fisico_eje_deg": 0,
+   "evo_cil_d": 6,
+   "evo_eje_deg": 180,
+   "delta_cil_d": 0
+  },
+  {
+   "orientacion": "oblicuo",
+   "astig_anterior_d": 1,
+   "fisico_cil_d": 1.5,
+   "fisico_eje_deg": 45,
+   "evo_cil_d": 1.5,
+   "evo_eje_deg": 29,
+   "delta_cil_d": 0
+  },
+  {
+   "orientacion": "oblicuo",
+   "astig_anterior_d": 2,
+   "fisico_cil_d": 3,
+   "fisico_eje_deg": 45,
+   "evo_cil_d": 3,
+   "evo_eje_deg": 36,
+   "delta_cil_d": 0
+  },
+  {
+   "orientacion": "oblicuo",
+   "astig_anterior_d": 3,
+   "fisico_cil_d": 4.5,
+   "fisico_eje_deg": 45,
+   "evo_cil_d": 3.75,
+   "evo_eje_deg": 39,
+   "delta_cil_d": 0.75
+  },
+  {
+   "orientacion": "oblicuo",
+   "astig_anterior_d": 4,
+   "fisico_cil_d": 6,
+   "fisico_eje_deg": 45,
+   "evo_cil_d": 5.25,
+   "evo_eje_deg": 40,
+   "delta_cil_d": 0.75
+  }
+ ]
+}
