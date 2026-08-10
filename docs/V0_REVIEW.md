@@ -19,13 +19,13 @@ pero **dos de los ALTA bloquearían V1** si se construyera encima sin corregirlo
 | H1 | `keratometric_index` se almacena pero **la física nunca lo usa** | ALTA | `eyebuilder.mjs`, `constants.mjs`, `eye.mjs` | Sí | ✅ `33fdf4b` — `cornea.mjs` + exp007 |
 | H2 | `refractionFor(power_d)` **ignora `power_d`** con LIO gruesa | ALTA | `eyebuilder.mjs:51-60` | Sí | ✅ `dd33362` — API dividida |
 | H3 | No existe separación `nominal_power` ↔ `physical_geometry` ni factory | ALTA | `iol.mjs` | Sí | ✅ `dd33362` — `geometry_status` + factories |
-| H4 | Tests de física mayoritariamente **autorreferenciales** | MEDIA | `tests/*.test.mjs` | No | ⏳ P0.7 |
+| H4 | Tests de física mayoritariamente **autorreferenciales** | MEDIA | `tests/*.test.mjs` | No | ✅ `72e7449` — 10 tests con solución cerrada |
 | H5 | Discrepancia 8.311 vs 8.319 sin explicar | MEDIA | docs varias | No | ✅ `EVO_QUERY_PROVENANCE.md` + test |
-| H6 | Documentación y warnings obsoletos ("tórico pendiente") | MEDIA | `paraxial_engine.mjs`, `LIMITATIONS.md` | No | ⏳ parcial (`LIMITATIONS` hecho) |
-| H7 | Sin CI: nada impide subir tests rojos o alterar el legacy | MEDIA | — | No | ⏳ P0.6 |
-| H8 | Acoplamiento del código con la numeración de sprints | BAJA | `src/**` | No | ⏳ P0.5 |
-| H9 | 11 parámetros anatómicos/de LIO almacenados y no usados | BAJA | `eye.mjs`, `iol.mjs` | No | ⏳ P0.5 |
-| H10 | Tolerancias laxas sin justificación física documentada | BAJA | `paraxial.test.mjs`, `raytrace_eye.test.mjs` | No | ⏳ P0.7 |
+| H6 | Documentación y warnings obsoletos ("tórico pendiente") | MEDIA | `paraxial_engine.mjs`, `LIMITATIONS.md` | No | ✅ `6af11bf` — avisos por llamada |
+| H7 | Sin CI: nada impide subir tests rojos o alterar el legacy | MEDIA | — | No | ✅ `378ab25` — 5 jobs, verde |
+| H8 | Acoplamiento del código con la numeración de sprints | BAJA | `src/**` | No | ✅ `6af11bf` — 0 referencias en `src/` |
+| H9 | 16 parámetros almacenados y no usados (la auditoría estimó 11) | BAJA | `eye.mjs`, `iol.mjs` | No | ✅ `6af11bf` — `reserved.mjs` + test |
+| H10 | Tolerancias laxas sin justificación física documentada | BAJA | `paraxial.test.mjs`, `raytrace_eye.test.mjs` | No | ✅ `72e7449` — derivadas o sustituidas |
 
 ---
 
