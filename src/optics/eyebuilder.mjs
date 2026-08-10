@@ -36,6 +36,65 @@ export function corneaModelOf(preop, opts = {}) {
 }
 
 /**
+ * Supuestos del COLAPSO a equivalente esférico: los builders modelan la córnea con su
+ * potencia MEDIA. Si el ojo tiene astigmatismo medido, ese dato del caso se está
+ * ignorando aquí (la vía tórica sí lo modela) — se registra, no se calla (hallazgo de
+ * la caza adversarial de fidelidad).
+ */
+function notasDeColapsoSE(preop) {
+  const notas = [];
+  const cyl = Math.abs(preop.k1_d - preop.k2_d);
+  if (cyl > 1e-9) {
+    notas.push(`cornea: astigmatismo queratométrico medido (${cyl.toFixed(2)} D) no modelado: `
+      + 'cálculo de equivalente esférico sobre K media (la vía tórica sí lo modela)');
+  }
+  const c = preop.cornea ?? {};
+  if (typeof c.posterior_k1_d === 'number' && typeof c.posterior_k2_d === 'number') {
+    notas.push('cornea: toricidad posterior MEDIDA no usada en el equivalente esférico '
+      + '(la vía tórica sí la compone)');
+  }
+  return notas;
+}
+
+/**
+ * El estado postoperatorio previsto se representa hoy centrado y sin rotación. Un valor
+ * DECLARADO distinto de 0 en tilt/descentración/rotación es un dato que el modelo no
+ * puede honrar: se RECHAZA en lugar de ignorarse (mismo patrón que la asfericidad Q
+ * documentada). null = no declarado: forma parte de la predicción del estado
+ * postoperatorio, frontera documentada de la fidelidad (fidelity.mjs).
+ */
+function rechazarEstadoPostopNoRepresentable(postop, context) {
+  for (const [campo, v] of [
+    ['iol_tilt_deg', postop.iol_tilt_deg],
+    ['iol_decentration_mm', postop.iol_decentration_mm],
+    ['toric_rotation_deg', postop.toric_rotation_deg],
+  ]) {
+    if (typeof v === 'number' && v !== 0) {
+      throw new TypeError(`${context}: ${campo}=${v} declarado, pero el modelo aún no representa `
+        + 'tilt/descentración/rotación. Se rechaza en lugar de ignorar un dato declarado '
+        + '(ver V1_PROJECT_PLAN.md).');
+    }
+  }
+}
+
+/**
+ * ¿Los planos principales de la lente NO coinciden con su centro geométrico?
+ * Para una equibiconvexa (c1 = −c2) coinciden; para una lente asimétrica, posicionarla
+ * por el centro reinterpreta el datum "plano principal" (OPEN_QUESTIONS #3) con un
+ * sesgo axial real — medido ~0.3 mm (~0.4 D) en una asimétrica plausible.
+ */
+function centradoAsimetrico(iol) {
+  const g = iol.geometry;
+  const c1 = curvatureFromRadiusMm(g.r_anterior_mm, 'r_anterior_mm');
+  const c2 = curvatureFromRadiusMm(g.r_posterior_mm, 'r_posterior_mm');
+  return Math.abs(c1 + c2) > 1e-9;
+}
+const NOTA_CENTRADO = 'iol: lente asimétrica posicionada por su CENTRO geométrico; sus planos '
+  + 'principales no coinciden con él — convención de posicionamiento pendiente (OPEN_QUESTIONS #3)';
+const notaSurrogate = iol => `iol: geometría de SUSTITUTO DE SIMULACIÓN (${iol.geometry_status}) `
+  + '— radios/índice/espesor declarados, no de la lente implantada';
+
+/**
  * Ojo paraxial evaluable. `postop.iol_position_mm` es el plano de la LIO delgada, o
  * el plano CENTRAL de la gruesa (su cara anterior se recoloca en consecuencia).
  *
@@ -49,11 +108,18 @@ export function corneaModelOf(preop, opts = {}) {
  */
 export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = DEFAULT_FIDELITY_MODE } = {}) {
   assertFidelityMode(fidelity);
+  rechazarEstadoPostopNoRepresentable(postop, 'buildParaxialEye');
   const preop = postop.preop;
   const cornea = corneaModelOf(preop, corneaOpts);
   // Los supuestos de la política corneal suben al nivel del ojo con prefijo propio: la
   // puerta STRICT opera sobre este registro (fidelity.mjs), no sobre lógica por sitio.
-  const assumptions = cornea.assumptions.map(a => `cornea_policy: ${a}`);
+  // La ESFERICIDAD corneal no genera nota aquí: el EE paraxial usa solo la potencia
+  // media (curvatura de vértice) y la asfericidad no altera el primer orden; lo que SÍ
+  // se registra es el colapso del astigmatismo medido a esa media.
+  const assumptions = [
+    ...cornea.assumptions.map(a => `cornea_policy: ${a}`),
+    ...notasDeColapsoSE(preop),
+  ];
   enforceStrictness(fidelity, assumptions, 'buildParaxialEye');
   const base = {
     corneaPower_d: cornea.power_d,
@@ -83,14 +149,19 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = D
      */
     refractionForIOL(iol) {
       assertTraceableGeometry(iol, 'refractionForIOL');
-      // En STRICT una lente genérica no es evaluable: su geometría entera es un supuesto.
-      // La asfericidad NO bloquea aquí: la potencia paraxial es exacta con la curvatura
-      // del vértice (Q entra a orden r⁴), así que ningún dato se está sustituyendo.
-      if (fidelity === FidelityMode.STRICT && iol.is_simulation_surrogate) {
-        throw new StrictModeViolation('refractionForIOL', [
-          `iol: geometría de SUSTITUTO DE SIMULACIÓN (${iol.geometry_status}) — no representa la lente implantada`,
-        ]);
+      // La asfericidad y el cilindro NO bloquean aquí: la potencia EE paraxial es exacta
+      // con la curvatura del vértice (Q entra a orden r⁴) y la etiqueta nominal ya es el
+      // equivalente esférico. Lo que SÍ es un supuesto por lente: el sustituto de
+      // simulación y el centrado geométrico de una lente asimétrica.
+      const notas = [];
+      if (iol.is_simulation_surrogate) notas.push(notaSurrogate(iol));
+      if (centradoAsimetrico(iol)) notas.push(NOTA_CENTRADO);
+      if (fidelity === FidelityMode.STRICT && notas.length > 0) {
+        throw new StrictModeViolation('refractionForIOL', notas);
       }
+      // registro PEREZOSO en RESEARCH: estos supuestos dependen de la lente evaluada,
+      // así que se añaden al registro del ojo cuando efectivamente se evalúan (dedup)
+      for (const nota of notas) if (!assumptions.includes(nota)) assumptions.push(nota);
       const t_m = iol.geometry.central_thickness_mm / 1000;
       return predictedRefractionThickIOL({
         ...base,
@@ -122,19 +193,32 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = D
  */
 export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corneaOpts = {}, fidelity = DEFAULT_FIDELITY_MODE } = {}) {
   assertFidelityMode(fidelity);
+  rechazarEstadoPostopNoRepresentable(postop, 'buildRaytraceEye');
   const preop = postop.preop;
   assertTraceableGeometry(iol, 'buildRaytraceEye');
   const g = iol.geometry;
+  // Cilindro de la LIO: un cilindro DECLARADO ≠ 0 no es trazable todavía (no hay
+  // superficies tóricas): se rechaza en lugar de trazar la esfera EE ignorando un dato
+  // declarado. UNKNOWN se traza como esférica con el supuesto registrado. 0 = esférica
+  // declarada, nada que registrar.
+  if (typeof iol.cylinder_d === 'number' && iol.cylinder_d !== 0) {
+    throw new TypeError(`buildRaytraceEye: cylinder_d=${iol.cylinder_d} D declarado, pero el `
+      + 'trazador aún no implementa superficies tóricas. Se rechaza en lugar de ignorar '
+      + 'un dato declarado (ver V1_PROJECT_PLAN.md).');
+  }
   const surfaces = [];
   const assumptions = [];
   const cornea = corneaModelOf(preop, corneaOpts);
   // supuestos de la política corneal (mismos que en el paraxial, mismo prefijo)
   assumptions.push(...cornea.assumptions.map(a => `cornea_policy: ${a}`));
+  // colapso a EE del astigmatismo medido: el trazador construye la córnea con la media
+  assumptions.push(...notasDeColapsoSE(preop));
   // una lente genérica es EN SÍ un supuesto: sus radios/índice/espesor no proceden de
   // la lente implantada. En RESEARCH se registra; en STRICT bloquea vía la puerta.
-  if (iol.is_simulation_surrogate) {
-    assumptions.push(`iol: geometría de SUSTITUTO DE SIMULACIÓN (${iol.geometry_status}) — `
-      + 'radios/índice/espesor declarados, no de la lente implantada');
+  if (iol.is_simulation_surrogate) assumptions.push(notaSurrogate(iol));
+  if (centradoAsimetrico(iol)) assumptions.push(NOTA_CENTRADO);
+  if (iol.cylinder_d === UNKNOWN) {
+    assumptions.push('iol: cilindro no documentado; trazada como esférica (SUPUESTO registrado)');
   }
 
   // Asfericidad de cada superficie de la LIO: tres estados, ninguno se convierte en otro
@@ -152,6 +236,13 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
     if (q !== ASSUMED_SPHERICAL) {
       assumptions.push(`${id}: asfericidad no documentada (${String(q ?? UNKNOWN)}); `
         + 'superficie trazada como ESFERA — SUPUESTO registrado, no verificado');
+    } else if (!iol.is_simulation_surrogate) {
+      // en el sustituto la esfericidad forma parte de la geometría declarada (ya
+      // registrada como supuesto entero); en una lente REAL, ASSUMED_SPHERICAL es un
+      // supuesto del modelador sobre datos de fabricante y debe quedar registrado —
+      // si no, atravesaría STRICT llevando un supuesto declarado (hallazgo adversarial)
+      assumptions.push(`${id}: esfericidad ASUMIDA por el modelador (ASSUMED_SPHERICAL) `
+        + 'sobre lente de fabricante — supuesto declarado, no dato');
     }
   };
   qDe(g.asphericity_q_anterior, 'iol_ant');

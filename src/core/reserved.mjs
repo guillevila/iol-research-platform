@@ -64,23 +64,16 @@ export const RESERVED_PREOP = Object.freeze({
   },
 });
 
-/** Campos del modelo `predicted_postoperative_eye` almacenados y no consumidos. */
+/**
+ * Campos del modelo `predicted_postoperative_eye` almacenados y no consumidos.
+ *
+ * NOTA: `iol_tilt_deg`, `iol_decentration_mm` y `toric_rotation_deg` SALIERON de este
+ * registro cuando los builders empezaron a consumirlos como GUARDA (un valor declarado
+ * ≠ 0 se rechaza porque el modelo aún no lo representa; ignorarlo sería callar un dato
+ * declarado). Su consumo FÍSICO sigue bloqueado por los sprints de tilt/rotación del
+ * plan V1 y, para la rotación, por datos reales (OPEN_QUESTIONS #6).
+ */
 export const RESERVED_POSTOP = Object.freeze({
-  iol_tilt_deg: {
-    que_es: 'inclinación prevista de la LIO (grados)',
-    consumidor_previsto: 'trazado con superficies inclinadas',
-    blocked_by: 'V1.3 — el trazador aún no admite superficies inclinadas',
-  },
-  iol_decentration_mm: {
-    que_es: 'descentración prevista de la LIO (mm)',
-    consumidor_previsto: 'trazado con superficies descentradas',
-    blocked_by: 'V1.3 — el trazador aún no admite superficies descentradas',
-  },
-  toric_rotation_deg: {
-    que_es: 'rotación prevista de una LIO tórica respecto a su eje diana (grados)',
-    consumidor_previsto: 'penalización de residual por rotación en el motor tórico',
-    blocked_by: 'V1.7 — y la distribución real de rotaciones exige datos postoperatorios',
-  },
   capsule_state: {
     que_es: 'estado capsular previsto (íntegro, rotura, etc.)',
     consumidor_previsto: 'selección de posición/plano de implante',

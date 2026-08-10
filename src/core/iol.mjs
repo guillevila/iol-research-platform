@@ -38,6 +38,18 @@ export const isUnknown = v => v === UNKNOWN || v === null || v === undefined;
  */
 export const ASSUMED_SPHERICAL = 'ASSUMED_SPHERICAL';
 
+/**
+ * Valida el cilindro de la LIO: número finito, UNKNOWN o ausente (→ UNKNOWN).
+ * Antes era `?? 0`: el único parámetro óptico de la LIO que convertía "no documentado"
+ * en "esférica declarada" sin dejar rastro (hallazgo de la caza adversarial de
+ * fidelidad). 0 sigue siendo válido: significa ESFÉRICA DECLARADA, no desconocida.
+ */
+function normCylinder(v) {
+  if (v === null || v === undefined || v === UNKNOWN) return UNKNOWN;
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  throw new TypeError(`cylinder_d debe ser un número finito o UNKNOWN; recibido: ${String(v)}`);
+}
+
 /** Valida un valor de asfericidad: número finito, sentinela, o ausente (→ UNKNOWN). */
 function normAsphericity(v, name) {
   if (v === null || v === undefined || v === UNKNOWN) return UNKNOWN;
@@ -94,7 +106,7 @@ export function createIOL(f) {
     manufacturer: f.manufacturer ?? UNKNOWN,
     model: f.model ?? UNKNOWN,
     nominal_power_d: f.nominal_power_d,
-    cylinder_d: f.cylinder_d ?? 0,
+    cylinder_d: normCylinder(f.cylinder_d),
     a_constant: f.a_constant ?? UNKNOWN,
     power_range_d: f.power_range_d ?? UNKNOWN,   // [min, max] si se conoce
     toric_catalog_d: f.toric_catalog_d ?? UNKNOWN,

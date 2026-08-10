@@ -51,9 +51,13 @@
    modo de fidelidad (`src/core/fidelity.mjs`): `RESEARCH` (defecto) sustituye
    parámetros desconocidos por supuestos explícitos registrados en cada salida
    (`assumptions` / `supuestos_trazado` / `supuestos_modelo`); `STRICT` bloquea el
-   cálculo ante cualquier supuesto registrado. Hoy en STRICT solo es computable la vía
-   paraxial con córnea de dos superficies MEDIDA y lente de FABRICANTE; ningún trazado
-   de rayos pasa (asfericidad corneal no modelada; Q de LIO no documentada). La
+   cálculo ante cualquier supuesto registrado. Hoy pasa STRICT: la vía paraxial de EE
+   con córnea de dos superficies MEDIDA, SIN astigmatismo queratométrico (el colapso a
+   EE de un cilindro medido se registra y bloquea) y con lente delgada explícita o de
+   fabricante SIMÉTRICA (el centrado geométrico de una asimétrica reinterpreta el datum
+   del plano principal, OQ #3); y la vía tórica con córnea medida INCLUIDA la posterior.
+   Ningún trazado de rayos pasa (asfericidad corneal no modelada; Q de LIO no
+   documentada). La
    validación clínica futura (VALIDATION_STRATEGY, nivel 3) deberá ejecutarse en STRICT.
    Límite honesto: la puerta garantiza que ningún supuesto REGISTRADO la atraviesa; que
    todo supuesto esté registrado es una disciplina vigilada por tests, no un teorema.

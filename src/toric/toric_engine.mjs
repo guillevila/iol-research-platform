@@ -19,6 +19,7 @@
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 import { mmToM } from '../core/units.mjs';
+import { DEFAULT_FIDELITY_MODE, assertFidelityMode, enforceStrictness } from '../core/fidelity.mjs';
 import { predictedRefraction } from '../optics/paraxial.mjs';
 import { corneaModelOf } from '../optics/eyebuilder.mjs';
 import { toVec, fromVec, addVec, cylFromMeridians, siaVec } from './vectors.mjs';
@@ -47,11 +48,23 @@ export function totalCornealAstigmatism(preop, { sia_d = 0, sia_axis_deg = 0 } =
  * `catalog_d` = lista de cilindros disponibles EN PLANO DE LIO (dato del fabricante,
  * inyectado; no se asume ninguno por defecto).
  */
-export function recommendToric({ postop, sePower_d, catalog_d, target_d = 0, sia_d = 0, sia_axis_deg = 0 }) {
+export function recommendToric({ postop, sePower_d, catalog_d, target_d = 0, sia_d = 0, sia_axis_deg = 0, fidelity = DEFAULT_FIDELITY_MODE }) {
   if (!Array.isArray(catalog_d) || catalog_d.length === 0) throw new TypeError('catalog_d requerido (cilindros de fabricante)');
+  assertFidelityMode(fidelity);
   const preop = postop.preop;
   const cornea = corneaModelOf(preop);
   const tca = totalCornealAstigmatism(preop, { sia_d, sia_axis_deg });
+  // Esta vía NO colapsa el astigmatismo (lo modela por meridianos), así que sus
+  // supuestos son: los de la política corneal, y la posterior no medida si falta.
+  // Antes esta función llegaba a predictedRefraction sin puerta ni registro
+  // (bypass encontrado por la revisión adversarial de fidelidad).
+  const supuestos = [
+    ...cornea.assumptions.map(a => `cornea_policy: ${a}`),
+    ...(tca.posterior_included ? [] : [
+      'toric: córnea posterior NO medida — TCA compuesto solo de queratometría anterior + SIA declarado',
+    ]),
+  ];
+  enforceStrictness(fidelity, supuestos, 'recommendToric');
   const base = { al_m: mmToM(preop.al_mm), iolPlane_m: mmToM(postop.iol_position_mm) };
   const refFor = (K_d, P_d) => predictedRefraction({ ...base, corneaPower_d: K_d, iolPower_d: P_d });
   const Ksteep = cornea.power_d + tca.magnitude_d / 2;
@@ -79,6 +92,9 @@ export function recommendToric({ postop, sePower_d, catalog_d, target_d = 0, sia
     delta_between_top2_d: second ? Math.abs(Math.abs(second.residual_cyl_d) - Math.abs(best.residual_cyl_d)) : null,
     implantation_axis_deg: tca.steepAxis_deg,
     cornea_kind: cornea.kind,
+    cornea_policy: cornea.policy,
+    fidelity,
+    supuestos_modelo: supuestos,
     warnings: [
       'RESEARCH USE ONLY - NOT FOR CLINICAL DECISION MAKING',
       ...(tca.posterior_included ? [] : ['Cornea posterior NO medida: TCA basado solo en queratometria anterior (+SIA); '

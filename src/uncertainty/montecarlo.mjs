@@ -16,6 +16,7 @@ import { assertFinite } from '../core/units.mjs';
 import { makeRng } from '../synth/generator.mjs';
 import { createPreopEye, createPredictedPostopEye } from '../core/eye.mjs';
 import { buildParaxialEye } from '../optics/eyebuilder.mjs';
+import { DEFAULT_FIDELITY_MODE } from '../core/fidelity.mjs';
 
 /** Muestreador normal (Box-Muller) sobre un PRNG uniforme con semilla. */
 export function gaussianSampler(rng) {
@@ -45,9 +46,19 @@ function percentile(sorted, p) {
  * Cada extracción perturba el ojo y la posición; las extracciones físicamente
  * inválidas (rechazadas por los validadores) se cuentan, no se ocultan.
  */
-export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas = {}, n = 2000, seed }) {
+export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas = {}, n = 2000, seed, fidelity = DEFAULT_FIDELITY_MODE }) {
   if (!Number.isInteger(seed)) throw new TypeError('seed entera obligatoria (reproducibilidad)');
   assertFinite(power_d, 'power_d'); assertFinite(iol_position_mm, 'iol_position_mm');
+  // Ojo base sin perturbar: fija los supuestos del modelo y aplica la puerta de
+  // fidelidad UNA vez, ANTES de las extracciones (antes esta función tragaba los
+  // supuestos del ojo — mismo defecto que se corrigió en el optimizador de trazado).
+  const baseEye = buildParaxialEye(createPredictedPostopEye(createPreopEye({
+    al_mm: preop.al_mm, k1_d: preop.k1_d, k1_axis_deg: preop.k1_axis_deg,
+    k2_d: preop.k2_d, k2_axis_deg: preop.k2_axis_deg,
+    acd_mm: preop.acd_mm, lt_mm: preop.lt_mm, cct_um: preop.cct_um,
+    keratometric_index: preop.keratometric_index,
+    meta: { source: 'synthetic', note: 'base MC' },
+  }), { iol_position_mm, position_source: 'montecarlo_base' }), { fidelity });
   const s = { iol_position_mm: 0, al_mm: 0, mean_k_d: 0, ...sigmas };
   const gauss = gaussianSampler(makeRng(seed));
   const refs = [];
@@ -68,7 +79,7 @@ export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas =
       const post = createPredictedPostopEye(pre, {
         iol_position_mm: iol_position_mm + dPos, position_source: 'montecarlo_draw',
       });
-      refs.push(buildParaxialEye(post).refractionForThinPower(power_d));
+      refs.push(buildParaxialEye(post, { fidelity }).refractionForThinPower(power_d));
     } catch { rejected++; }
   }
   if (refs.length < Math.max(10, n * 0.5)) {
@@ -79,6 +90,7 @@ export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas =
   const sd = Math.sqrt(refs.reduce((a, b) => a + (b - mean) ** 2, 0) / refs.length);
   return {
     n_valid: refs.length, rejected,
+    fidelity, supuestos_modelo: baseEye.assumptions,
     mean_d: mean, sd_d: sd,
     percentiles_d: {
       p5: percentile(refs, 0.05), p25: percentile(refs, 0.25), p50: percentile(refs, 0.50),
@@ -93,7 +105,7 @@ export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas =
  * refracción más cerca de la diana que la potencia A. Sirve para cuantificar
  * regiones de empate entre escalones del catálogo.
  */
-export function alternativeBetterProbability({ preop, iol_position_mm, powerA_d, powerB_d, target_d = 0, sigmas = {}, n = 2000, seed }) {
+export function alternativeBetterProbability({ preop, iol_position_mm, powerA_d, powerB_d, target_d = 0, sigmas = {}, n = 2000, seed, fidelity = DEFAULT_FIDELITY_MODE }) {
   if (!Number.isInteger(seed)) throw new TypeError('seed entera obligatoria');
   const s = { iol_position_mm: 0, al_mm: 0, mean_k_d: 0, ...sigmas };
   const gauss = gaussianSampler(makeRng(seed));
@@ -114,7 +126,7 @@ export function alternativeBetterProbability({ preop, iol_position_mm, powerA_d,
       const post = createPredictedPostopEye(pre, {
         iol_position_mm: iol_position_mm + dPos, position_source: 'montecarlo_draw',
       });
-      const eye = buildParaxialEye(post);
+      const eye = buildParaxialEye(post, { fidelity });
       const errA = Math.abs(eye.refractionForThinPower(powerA_d) - target_d);
       const errB = Math.abs(eye.refractionForThinPower(powerB_d) - target_d);
       if (errB < errA) better++;
@@ -122,5 +134,5 @@ export function alternativeBetterProbability({ preop, iol_position_mm, powerA_d,
     } catch { rejected++; }
   }
   if (valid < Math.max(10, n * 0.5)) throw new RangeError('Monte Carlo degenerado');
-  return { probability: better / valid, n_valid: valid, rejected };
+  return { probability: better / valid, n_valid: valid, rejected, fidelity };
 }

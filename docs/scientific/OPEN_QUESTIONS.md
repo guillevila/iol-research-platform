@@ -42,6 +42,12 @@ evidencia, nunca con suposición.
 - **Acción:** al importar datos reales, registrar SIEMPRE dispositivo y definición; la
   conversión superficie↔plano principal exige espesor e índice de la LIO (si son
   UNKNOWN, la conversión queda etiquetada como aproximación).
+- **Adenda (revisión de fidelidad):** el propio motor reinterpretaba el datum — los
+  builders posicionan la lente gruesa por su CENTRO geométrico, que solo coincide con
+  los planos principales en lentes simétricas (para una asimétrica plausible el sesgo
+  medido es ~0.3 mm ≈ 0.4 D). Ahora ese supuesto se REGISTRA (y bloquea en STRICT);
+  resolver la convención exige implementar el posicionamiento por planos principales
+  calculados de la geometría.
 - **Datos requeridos:** especificación del dispositivo de medida postoperatoria.
 
 ## #4 · Geometría real de LIO comerciales

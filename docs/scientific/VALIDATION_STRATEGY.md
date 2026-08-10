@@ -13,7 +13,8 @@ de referencia y sus límites declarados:
   de vergencia, ley de Snell cuantitativa).
 - **Mecanismo:** tests unitarios/property/numéricos (`npm test`); ningún valor
   esperado escrito de memoria: se deriva algebraicamente en el propio test.
-- **Cobertura actual:** 42 tests verdes (baseline, core, paraxial, ray tracer, bench).
+- **Cobertura actual:** suite completa verde en CI en cada push (recuento vigente en
+  `CURRENT_SPRINT.md`; la cifra en este documento quedaba obsoleta con cada sprint).
 - **Validación cruzada interna:** trazado → paraxial cuando h→0 (testado); la
   comparación sistemática sobre el ojo completo es Sprint 4/11.
 

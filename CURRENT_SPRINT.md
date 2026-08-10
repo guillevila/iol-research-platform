@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
 **Fecha:** 10/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 165/165 tests verdes · CI verde (5 jobs) · 4 experimentos deterministas verificados en CI
+**Suite:** 173/173 tests verdes · CI verde (5 jobs) · 4 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
@@ -49,7 +49,11 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
    futura. La puerta es el registro de supuestos: ningún supuesto registrado la
    atraviesa. Hoy pasa STRICT la vía paraxial con córnea medida + lente de fabricante;
    ningún trazado pasa aún (asfericidad corneal, Q de LIO). Tests diferenciales:
-   `tests/fidelity.test.mjs`.
+   `tests/fidelity.test.mjs`. La caza adversarial posterior encontró 4 sustituciones
+   sin registrar en la ruta STRICT (astigmatismo medido colapsado a EE, centrado
+   geométrico vs plano principal, tilt/rotación declarados ignorados, cylinder_d ?? 0)
+   y un bypass (la vía tórica llegaba a predictedRefraction sin puerta): todos
+   registrados/bloqueados; recommendToric y Monte Carlo entraron en la puerta.
 5. **Verificación adversarial posterior** (4 revisores independientes, 15 hallazgos):
    el teorema B≡C sobrevivió, pero la demostración escrita tenía dos huecos reales —
    la unimodalidad en P es hipótesis empírica (H3), no deducción, y el argumento de

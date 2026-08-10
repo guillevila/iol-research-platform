@@ -11,8 +11,8 @@
  *
  *   RESEARCH (defecto)  un UNKNOWN ópticamente relevante puede sustituirse por un
  *                       supuesto EXPLÍCITO, que queda registrado en la salida
- *                       (`assumptions` / `supuestos_trazado`). Se sustituye, pero
- *                       jamás en silencio.
+ *                       (`assumptions` / `supuestos_trazado` /
+ *                       `supuestos_modelo`). Se sustituye, pero jamás en silencio.
  *   STRICT              cualquier supuesto registrado IMPIDE el cálculo con un error
  *                       que enumera exactamente qué faltó. Es el modo en el que deberá
  *                       ejecutarse la validación clínica futura (VALIDATION_STRATEGY,
@@ -42,6 +42,16 @@
  *  - La predicción de posición de LIO: es el objeto del cálculo, no un dato faltante;
  *    su procedencia viaja etiquetada aparte (`position_source`, OQ #2).
  *  - La distancia de vértice convencional (12 mm): parámetro declarado del cálculo.
+ *  - El estado postoperatorio PREVISTO (posición; y mientras el modelo no represente
+ *    tilt/descentración/rotación, ese estado es "centrado y sin rotación"): es el
+ *    objeto de la predicción, no un dato faltante. Un valor DECLARADO ≠ 0 en esos
+ *    campos se RECHAZA (no se ignora): mismo patrón que la asfericidad Q documentada.
+ *  - Las primitivas de bajo nivel (paraxial.mjs, raytrace/) NO llevan puerta: operan
+ *    sobre números sin procedencia y son capa legítima de física pura. La fidelidad
+ *    gobierna la capa de CONSTRUCCIÓN (builders, optimizadores, motor tórico, MC):
+ *    toda vía de producto debe pasar por ella, y un consumidor nuevo que llame a las
+ *    primitivas directamente debe integrarse en la puerta (como se hizo con
+ *    recommendToric al descubrirse el bypass).
  *
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */

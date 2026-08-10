@@ -28,6 +28,9 @@ export class ParaxialEngine {
     this.id = `paraxial_v1+${positionPredictor.id}${toricCatalog_d ? '+toric' : ''}`;
   }
 
+  // fidelity: los motores de benchmark corren en RESEARCH por diseño — comparan
+  // estructura entre motores, no validan contra datos reales. La integración de
+  // `fidelity` en la capa de benchmark llega con el RaytraceEngine del plan V1.
   predict(c) {
     const preop = createPreopEye({
       al_mm: c.al_mm, k1_d: c.k1_d, k1_axis_deg: c.k1_axis_deg ?? 0,

@@ -19,6 +19,9 @@ import { CorneaPolicy } from '../src/optics/cornea.mjs';
 import { buildParaxialEye, buildRaytraceEye } from '../src/optics/eyebuilder.mjs';
 import { searchBestPower } from '../src/optimize/power_search.mjs';
 import { optimizePowerByRaytrace } from '../src/optimize/raytrace_power.mjs';
+import { recommendToric } from '../src/toric/toric_engine.mjs';
+import { monteCarloRefraction } from '../src/uncertainty/montecarlo.mjs';
+import { createIOL, GeometryStatus, UNKNOWN, ASSUMED_SPHERICAL } from '../src/core/iol.mjs';
 
 /** Ojo COMPLETO: radios corneales y CCT medidos → la política corneal no asume nada. */
 function ojoCompleto() {
@@ -186,4 +189,152 @@ test('fidelity: RESEARCH no es licencia para callar — los supuestos siguen reg
   const rt = optimizePowerByRaytrace({ postop: post, pupil_mm: 3 });
   assert.ok(rt.supuestos_trazado.some(a => /^cornea_policy:/.test(a)));
   assert.ok(rt.supuestos_trazado.some(a => /SUSTITUTO DE SIMULACIÓN/.test(a)));
+});
+
+// ---------------------------------------------------------------------------
+// Ejes añadidos tras la caza adversarial de supuestos sin registrar
+// ---------------------------------------------------------------------------
+
+function ojoAstigmatico() {
+  return createPreopEye({
+    al_mm: 23.5, k1_d: 42.0, k1_axis_deg: 180, k2_d: 45.0, k2_axis_deg: 90,
+    acd_mm: 3.2, lt_mm: 4.5, cct_um: 550, keratometric_index: 1.3375,
+    cornea: { r_anterior_mm: 7.7, r_posterior_mm: 6.8 },
+    meta: { source: 'synthetic' },
+  });
+}
+
+test('STRICT: el astigmatismo queratométrico MEDIDO bloquea el cálculo de EE (caza adversarial)', () => {
+  // el hallazgo original: un ojo con 3 D de cilindro medido pasaba STRICT con
+  // supuestos_modelo=[] y recibía el mismo EE que uno esférico. Ahora el colapso a
+  // equivalente esférico de un dato medido se registra — y en STRICT bloquea.
+  const post = postopDe(ojoAstigmatico());
+  assert.throws(() => buildParaxialEye(post, { fidelity: FidelityMode.STRICT }),
+    err => err instanceof StrictModeViolation
+      && /astigmatismo queratométrico medido \(3\.00 D\)/.test(err.message));
+  // en RESEARCH se registra, no se calla
+  const eye = buildParaxialEye(post);
+  assert.ok(eye.assumptions.some(a => /astigmatismo queratométrico medido/.test(a)));
+});
+
+test('STRICT: la toricidad posterior MEDIDA pero no usada en el EE también bloquea', () => {
+  const pre = createPreopEye({
+    al_mm: 23.5, k1_d: 43.5, k1_axis_deg: 180, k2_d: 43.5, k2_axis_deg: 90,
+    acd_mm: 3.2, lt_mm: 4.5, cct_um: 550, keratometric_index: 1.3375,
+    cornea: { r_anterior_mm: 7.7, r_posterior_mm: 6.8, posterior_k1_d: -5.9, posterior_k2_d: -6.4, posterior_axis_deg: 90 },
+    meta: { source: 'synthetic' },
+  });
+  assert.throws(() => buildParaxialEye(postopDe(pre), { fidelity: FidelityMode.STRICT }),
+    /toricidad posterior MEDIDA no usada/);
+});
+
+test('fidelity: tilt/descentración/rotación DECLARADOS se rechazan, no se ignoran', () => {
+  // el modelo aún no los representa; ignorar un valor declarado sería callar un dato
+  // (mismo patrón que la Q documentada). null = no declarado: frontera documentada
+  // (estado postoperatorio previsto), no bloquea.
+  const pre = ojoCompleto();
+  for (const campo of ['iol_tilt_deg', 'iol_decentration_mm', 'toric_rotation_deg']) {
+    const post = createPredictedPostopEye(pre, {
+      iol_position_mm: 4.9, position_source: 'test', [campo]: 3,
+    });
+    assert.throws(() => buildParaxialEye(post), new RegExp(campo));
+    assert.throws(() => buildRaytraceEye(post, MFR.create({ power_d: 20 })), new RegExp(campo));
+  }
+  // 0 declarado = centrado declarado: pasa incluso en STRICT
+  const centrado = createPredictedPostopEye(pre, {
+    iol_position_mm: 4.9, position_source: 'test', iol_tilt_deg: 0, iol_decentration_mm: 0,
+  });
+  assert.deepEqual(buildParaxialEye(centrado, { fidelity: FidelityMode.STRICT }).assumptions, []);
+});
+
+test('STRICT: una lente ASIMÉTRICA posicionada por su centro geométrico bloquea (datum OQ #3)', () => {
+  // medido por la revisión: para una asimétrica plausible el sesgo centro↔planos
+  // principales es ~0.3 mm ≈ 0.4 D. La simétrica (planos ≡ centro) pasa.
+  const asimetrica = new ManufacturerIOLFactory({
+    manufacturer: 'ACME', model: 'ASIM', provenance: PROV,
+    geometryByPower: { 20: { refractive_index: 1.47, central_thickness_mm: 0.9, r_anterior_mm: 11.0, r_posterior_mm: -80.0 } },
+  }).create({ power_d: 20 });
+  const eyeStrict = buildParaxialEye(postopDe(ojoCompleto()), { fidelity: FidelityMode.STRICT });
+  assert.throws(() => eyeStrict.refractionForIOL(asimetrica),
+    err => err instanceof StrictModeViolation && /CENTRO geométrico/.test(err.message));
+  // en RESEARCH se registra PEREZOSAMENTE al evaluar, sin duplicar
+  const eyeResearch = buildParaxialEye(postopDe(ojoCompleto()));
+  eyeResearch.refractionForIOL(asimetrica);
+  eyeResearch.refractionForIOL(asimetrica);
+  assert.equal(eyeResearch.assumptions.filter(a => /CENTRO geométrico/.test(a)).length, 1);
+  // y la evaluación de un sustituto también queda registrada en RESEARCH (asimetría
+  // corregida respecto al trazador, que ya lo registraba)
+  eyeResearch.refractionForIOL(new GenericIOLFactory().create({ power_d: 20 }));
+  assert.ok(eyeResearch.assumptions.some(a => /SUSTITUTO DE SIMULACIÓN/.test(a)));
+});
+
+test('fidelity: cilindro de LIO — declarado ≠ 0 se rechaza en el trazador; UNKNOWN se registra', () => {
+  const geom = { refractive_index: 1.47, central_thickness_mm: 0.7, r_anterior_mm: 20.0, r_posterior_mm: -20.0 };
+  const post = postopDe(ojoCompleto());
+  // declarado ≠ 0: no hay superficies tóricas → rechazar, no trazar la esfera callando
+  const torica = createIOL({
+    manufacturer: 'ACME', model: 'T1', nominal_power_d: 20, cylinder_d: 2.25,
+    geometry: geom, geometry_status: GeometryStatus.MANUFACTURER, provenance: PROV,
+  });
+  assert.throws(() => buildRaytraceEye(post, torica), /cylinder_d=2\.25 D declarado/);
+  // no documentado: UNKNOWN (ya no 0 en silencio) → trazada como esférica CON registro
+  const sinCilindro = createIOL({
+    manufacturer: 'ACME', model: 'T2', nominal_power_d: 20,
+    geometry: geom, geometry_status: GeometryStatus.MANUFACTURER, provenance: PROV,
+  });
+  assert.equal(sinCilindro.cylinder_d, UNKNOWN);
+  const eye = buildRaytraceEye(post, sinCilindro);
+  assert.ok(eye.assumptions.some(a => /cilindro no documentado/.test(a)));
+});
+
+test('fidelity: ASSUMED_SPHERICAL sobre lente de FABRICANTE se registra (no atraviesa STRICT)', () => {
+  // sin esto, cuando existan cónicas una lente real declarada "asumida esférica"
+  // atravesaría STRICT llevando un supuesto declarado (hallazgo del revisor de docs)
+  const conSupuesto = createIOL({
+    manufacturer: 'ACME', model: 'S1', nominal_power_d: 20, cylinder_d: 0,
+    geometry: {
+      refractive_index: 1.47, central_thickness_mm: 0.7, r_anterior_mm: 20.0, r_posterior_mm: -20.0,
+      asphericity_q_anterior: ASSUMED_SPHERICAL, asphericity_q_posterior: ASSUMED_SPHERICAL,
+    },
+    geometry_status: GeometryStatus.MANUFACTURER, provenance: PROV,
+  });
+  const eye = buildRaytraceEye(postopDe(ojoCompleto()), conSupuesto);
+  assert.equal(eye.assumptions.filter(a => /esfericidad ASUMIDA por el modelador/.test(a)).length, 2);
+});
+
+test('fidelity: la vía tórica entra en la puerta (el bypass encontrado, cerrado)', () => {
+  // ojo con TODO medido, incluida la córnea posterior tórica → la vía tórica no asume
+  // nada y PASA STRICT
+  const completoTorico = createPreopEye({
+    al_mm: 23.5, k1_d: 42.0, k1_axis_deg: 180, k2_d: 45.0, k2_axis_deg: 90,
+    acd_mm: 3.2, lt_mm: 4.5, cct_um: 550, keratometric_index: 1.3375,
+    cornea: { r_anterior_mm: 7.7, r_posterior_mm: 6.8, posterior_k1_d: -5.9, posterior_k2_d: -6.4, posterior_axis_deg: 90 },
+    meta: { source: 'synthetic' },
+  });
+  const rOk = recommendToric({
+    postop: postopDe(completoTorico), sePower_d: 20, catalog_d: [1.5, 2.25, 3.0, 3.75],
+    fidelity: FidelityMode.STRICT,
+  });
+  assert.equal(rOk.fidelity, FidelityMode.STRICT);
+  assert.deepEqual(rOk.supuestos_modelo, []);
+  assert.ok(rOk.tca.posterior_included);
+  // sin posterior medida, o con política de lectura, bloquea con el supuesto nombrado
+  assert.throws(() => recommendToric({
+    postop: postopDe(ojoAstigmatico()), sePower_d: 20, catalog_d: [1.5, 2.25],
+    fidelity: FidelityMode.STRICT,
+  }), /córnea posterior NO medida/);
+  assert.throws(() => recommendToric({
+    postop: postopDe(ojoSoloK()), sePower_d: 20, catalog_d: [1.5, 2.25],
+    fidelity: FidelityMode.STRICT,
+  }), /cornea_policy/);
+});
+
+test('fidelity: Monte Carlo entra en la puerta y expone sus supuestos', () => {
+  const pre = ojoSoloK();
+  assert.throws(() => monteCarloRefraction({
+    preop: pre, iol_position_mm: 4.9, power_d: 21, seed: 7, n: 50, fidelity: FidelityMode.STRICT,
+  }), StrictModeViolation);
+  const r = monteCarloRefraction({ preop: pre, iol_position_mm: 4.9, power_d: 21, seed: 7, n: 50 });
+  assert.equal(r.fidelity, FidelityMode.RESEARCH);
+  assert.ok(r.supuestos_modelo.length >= 2, 'la política de lectura debe aparecer en la salida MC');
 });
