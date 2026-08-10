@@ -1,0 +1,473 @@
+{
+ "config": {
+  "id": "exp008_objetivo_optico",
+  "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO",
+  "pregunta": "Divergencia de potencia entre criterios ópticos y frente al paraxial",
+  "predictor": "ConstantOffsetPredictor(1.7) — offset declarado, no calibrado",
+  "lente": "GenericIOLFactory (n=1.49, t=0.8 mm) — SUSTITUTO DE SIMULACIÓN, no comercial",
+  "objetivos": [
+   "SPOT_RMS_AT_RETINA",
+   "BEST_FOCUS_ON_RETINA",
+   "EQUIVALENT_DEFOCUS"
+  ],
+  "pupilas_mm": [
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "ojos": [
+   {
+    "id": "corto_K_plana",
+    "al_mm": 21,
+    "k_d": 41
+   },
+   {
+    "id": "corto_K_curva",
+    "al_mm": 21,
+    "k_d": 46
+   },
+   {
+    "id": "normal",
+    "al_mm": 23.5,
+    "k_d": 43.5
+   },
+   {
+    "id": "largo_K_plana",
+    "al_mm": 27,
+    "k_d": 41
+   },
+   {
+    "id": "muy_largo",
+    "al_mm": 30,
+    "k_d": 43.5
+   }
+  ],
+  "fijos": {
+   "acd_mm": 3.2,
+   "lt_mm": 4.5,
+   "cct_um": 550,
+   "target_d": 0
+  },
+  "n_anillos": 8,
+  "tol_d": 0.000001,
+  "rango_busqueda_d": [
+   -15,
+   55
+  ]
+ },
+ "timestamp": "2026-08-10T10:48:54.953Z",
+ "commit": "f9d3f02268d75b9178b03f5b7e3806700b3ceb39",
+ "resumen": {
+  "n_casos": 25,
+  "rango_entre_objetivos_max_d": 0.03974,
+  "rango_entre_objetivos_medio_d": 0.00537,
+  "aberracion_min_d": -3.59628,
+  "aberracion_max_d": -0.19848,
+  "espesor_min_d": 0.17025,
+  "espesor_max_d": 0.29811
+ },
+ "rows": [
+  {
+   "ojo": "corto_K_plana",
+   "al_mm": 21,
+   "k_d": 41,
+   "pupil_mm": 2,
+   "paraxial_delgada_d": 34.72483,
+   "paraxial_sistema_d": 34.99864,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 34.59591,
+    "BEST_FOCUS_ON_RETINA": 34.59645,
+    "EQUIVALENT_DEFOCUS": 34.59645
+   },
+   "rango_entre_objetivos_d": 0.00054,
+   "aberracion_d": -0.4022,
+   "espesor_d": 0.27382
+  },
+  {
+   "ojo": "corto_K_plana",
+   "al_mm": 21,
+   "k_d": 41,
+   "pupil_mm": 3,
+   "paraxial_delgada_d": 34.72483,
+   "paraxial_sistema_d": 34.99864,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 34.09452,
+    "BEST_FOCUS_ON_RETINA": 34.09721,
+    "EQUIVALENT_DEFOCUS": 34.09721
+   },
+   "rango_entre_objetivos_d": 0.0027,
+   "aberracion_d": -0.90143,
+   "espesor_d": 0.27382
+  },
+  {
+   "ojo": "corto_K_plana",
+   "al_mm": 21,
+   "k_d": 41,
+   "pupil_mm": 4,
+   "paraxial_delgada_d": 34.72483,
+   "paraxial_sistema_d": 34.99864,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 33.39618,
+    "BEST_FOCUS_ON_RETINA": 33.40453,
+    "EQUIVALENT_DEFOCUS": 33.40453
+   },
+   "rango_entre_objetivos_d": 0.00835,
+   "aberracion_d": -1.59411,
+   "espesor_d": 0.27382
+  },
+  {
+   "ojo": "corto_K_plana",
+   "al_mm": 21,
+   "k_d": 41,
+   "pupil_mm": 5,
+   "paraxial_delgada_d": 34.72483,
+   "paraxial_sistema_d": 34.99864,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 32.5041,
+    "BEST_FOCUS_ON_RETINA": 32.52393,
+    "EQUIVALENT_DEFOCUS": 32.52393
+   },
+   "rango_entre_objetivos_d": 0.01983,
+   "aberracion_d": -2.47471,
+   "espesor_d": 0.27382
+  },
+  {
+   "ojo": "corto_K_plana",
+   "al_mm": 21,
+   "k_d": 41,
+   "pupil_mm": 6,
+   "paraxial_delgada_d": 34.72483,
+   "paraxial_sistema_d": 34.99864,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 31.42174,
+    "BEST_FOCUS_ON_RETINA": 31.46148,
+    "EQUIVALENT_DEFOCUS": 31.46148
+   },
+   "rango_entre_objetivos_d": 0.03974,
+   "aberracion_d": -3.53717,
+   "espesor_d": 0.27382
+  },
+  {
+   "ojo": "corto_K_curva",
+   "al_mm": 21,
+   "k_d": 46,
+   "pupil_mm": 2,
+   "paraxial_delgada_d": 27.64551,
+   "paraxial_sistema_d": 27.94362,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 27.54608,
+    "BEST_FOCUS_ON_RETINA": 27.54639,
+    "EQUIVALENT_DEFOCUS": 27.54639
+   },
+   "rango_entre_objetivos_d": 0.00031,
+   "aberracion_d": -0.39723,
+   "espesor_d": 0.29811
+  },
+  {
+   "ojo": "corto_K_curva",
+   "al_mm": 21,
+   "k_d": 46,
+   "pupil_mm": 3,
+   "paraxial_delgada_d": 27.64551,
+   "paraxial_sistema_d": 27.94362,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 27.04798,
+    "BEST_FOCUS_ON_RETINA": 27.04953,
+    "EQUIVALENT_DEFOCUS": 27.04953
+   },
+   "rango_entre_objetivos_d": 0.00154,
+   "aberracion_d": -0.89409,
+   "espesor_d": 0.29811
+  },
+  {
+   "ojo": "corto_K_curva",
+   "al_mm": 21,
+   "k_d": 46,
+   "pupil_mm": 4,
+   "paraxial_delgada_d": 27.64551,
+   "paraxial_sistema_d": 27.94362,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 26.34803,
+    "BEST_FOCUS_ON_RETINA": 26.35279,
+    "EQUIVALENT_DEFOCUS": 26.35279
+   },
+   "rango_entre_objetivos_d": 0.00476,
+   "aberracion_d": -1.59083,
+   "espesor_d": 0.29811
+  },
+  {
+   "ojo": "corto_K_curva",
+   "al_mm": 21,
+   "k_d": 46,
+   "pupil_mm": 5,
+   "paraxial_delgada_d": 27.64551,
+   "paraxial_sistema_d": 27.94362,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 25.44253,
+    "BEST_FOCUS_ON_RETINA": 25.45377,
+    "EQUIVALENT_DEFOCUS": 25.45377
+   },
+   "rango_entre_objetivos_d": 0.01124,
+   "aberracion_d": -2.48985,
+   "espesor_d": 0.29811
+  },
+  {
+   "ojo": "corto_K_curva",
+   "al_mm": 21,
+   "k_d": 46,
+   "pupil_mm": 6,
+   "paraxial_delgada_d": 27.64551,
+   "paraxial_sistema_d": 27.94362,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 24.32499,
+    "BEST_FOCUS_ON_RETINA": 24.34734,
+    "EQUIVALENT_DEFOCUS": 24.34734
+   },
+   "rango_entre_objetivos_d": 0.02235,
+   "aberracion_d": -3.59628,
+   "espesor_d": 0.29811
+  },
+  {
+   "ojo": "normal",
+   "al_mm": 23.5,
+   "k_d": 43.5,
+   "pupil_mm": 2,
+   "paraxial_delgada_d": 20.07038,
+   "paraxial_sistema_d": 20.30737,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 20.0262,
+    "BEST_FOCUS_ON_RETINA": 20.02631,
+    "EQUIVALENT_DEFOCUS": 20.02631
+   },
+   "rango_entre_objetivos_d": 0.00011,
+   "aberracion_d": -0.28106,
+   "espesor_d": 0.23699
+  },
+  {
+   "ojo": "normal",
+   "al_mm": 23.5,
+   "k_d": 43.5,
+   "pupil_mm": 3,
+   "paraxial_delgada_d": 20.07038,
+   "paraxial_sistema_d": 20.30737,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 19.67276,
+    "BEST_FOCUS_ON_RETINA": 19.6733,
+    "EQUIVALENT_DEFOCUS": 19.6733
+   },
+   "rango_entre_objetivos_d": 0.00053,
+   "aberracion_d": -0.63407,
+   "espesor_d": 0.23699
+  },
+  {
+   "ojo": "normal",
+   "al_mm": 23.5,
+   "k_d": 43.5,
+   "pupil_mm": 4,
+   "paraxial_delgada_d": 20.07038,
+   "paraxial_sistema_d": 20.30737,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 19.17397,
+    "BEST_FOCUS_ON_RETINA": 19.1756,
+    "EQUIVALENT_DEFOCUS": 19.1756
+   },
+   "rango_entre_objetivos_d": 0.00163,
+   "aberracion_d": -1.13177,
+   "espesor_d": 0.23699
+  },
+  {
+   "ojo": "normal",
+   "al_mm": 23.5,
+   "k_d": 43.5,
+   "pupil_mm": 5,
+   "paraxial_delgada_d": 20.07038,
+   "paraxial_sistema_d": 20.30737,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 18.52513,
+    "BEST_FOCUS_ON_RETINA": 18.52896,
+    "EQUIVALENT_DEFOCUS": 18.52896
+   },
+   "rango_entre_objetivos_d": 0.00383,
+   "aberracion_d": -1.77841,
+   "espesor_d": 0.23699
+  },
+  {
+   "ojo": "normal",
+   "al_mm": 23.5,
+   "k_d": 43.5,
+   "pupil_mm": 6,
+   "paraxial_delgada_d": 20.07038,
+   "paraxial_sistema_d": 20.30737,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 17.71912,
+    "BEST_FOCUS_ON_RETINA": 17.72664,
+    "EQUIVALENT_DEFOCUS": 17.72664
+   },
+   "rango_entre_objetivos_d": 0.00753,
+   "aberracion_d": -2.58073,
+   "espesor_d": 0.23699
+  },
+  {
+   "ojo": "largo_K_plana",
+   "al_mm": 27,
+   "k_d": 41,
+   "pupil_mm": 2,
+   "paraxial_delgada_d": 12.19595,
+   "paraxial_sistema_d": 12.37852,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 12.18003,
+    "BEST_FOCUS_ON_RETINA": 12.18004,
+    "EQUIVALENT_DEFOCUS": 12.18004
+   },
+   "rango_entre_objetivos_d": 0.00001,
+   "aberracion_d": -0.19848,
+   "espesor_d": 0.18257
+  },
+  {
+   "ojo": "largo_K_plana",
+   "al_mm": 27,
+   "k_d": 41,
+   "pupil_mm": 3,
+   "paraxial_delgada_d": 12.19595,
+   "paraxial_sistema_d": 12.37852,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 11.92984,
+    "BEST_FOCUS_ON_RETINA": 11.9299,
+    "EQUIVALENT_DEFOCUS": 11.9299
+   },
+   "rango_entre_objetivos_d": 0.00006,
+   "aberracion_d": -0.44862,
+   "espesor_d": 0.18257
+  },
+  {
+   "ojo": "largo_K_plana",
+   "al_mm": 27,
+   "k_d": 41,
+   "pupil_mm": 4,
+   "paraxial_delgada_d": 12.19595,
+   "paraxial_sistema_d": 12.37852,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 11.57551,
+    "BEST_FOCUS_ON_RETINA": 11.57568,
+    "EQUIVALENT_DEFOCUS": 11.57568
+   },
+   "rango_entre_objetivos_d": 0.00018,
+   "aberracion_d": -0.80284,
+   "espesor_d": 0.18257
+  },
+  {
+   "ojo": "largo_K_plana",
+   "al_mm": 27,
+   "k_d": 41,
+   "pupil_mm": 5,
+   "paraxial_delgada_d": 12.19595,
+   "paraxial_sistema_d": 12.37852,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 11.11254,
+    "BEST_FOCUS_ON_RETINA": 11.11289,
+    "EQUIVALENT_DEFOCUS": 11.11289
+   },
+   "rango_entre_objetivos_d": 0.00035,
+   "aberracion_d": -1.26563,
+   "espesor_d": 0.18257
+  },
+  {
+   "ojo": "largo_K_plana",
+   "al_mm": 27,
+   "k_d": 41,
+   "pupil_mm": 6,
+   "paraxial_delgada_d": 12.19595,
+   "paraxial_sistema_d": 12.37852,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 10.53449,
+    "BEST_FOCUS_ON_RETINA": 10.53499,
+    "EQUIVALENT_DEFOCUS": 10.53499
+   },
+   "rango_entre_objetivos_d": 0.0005,
+   "aberracion_d": -1.84353,
+   "espesor_d": 0.18257
+  },
+  {
+   "ojo": "muy_largo",
+   "al_mm": 30,
+   "k_d": 43.5,
+   "pupil_mm": 2,
+   "paraxial_delgada_d": 1.46951,
+   "paraxial_sistema_d": 1.63976,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 1.43152,
+    "BEST_FOCUS_ON_RETINA": 1.43147,
+    "EQUIVALENT_DEFOCUS": 1.43147
+   },
+   "rango_entre_objetivos_d": 0.00005,
+   "aberracion_d": -0.20829,
+   "espesor_d": 0.17025
+  },
+  {
+   "ojo": "muy_largo",
+   "al_mm": 30,
+   "k_d": 43.5,
+   "pupil_mm": 3,
+   "paraxial_delgada_d": 1.46951,
+   "paraxial_sistema_d": 1.63976,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 1.1678,
+    "BEST_FOCUS_ON_RETINA": 1.16754,
+    "EQUIVALENT_DEFOCUS": 1.16754
+   },
+   "rango_entre_objetivos_d": 0.00026,
+   "aberracion_d": -0.47222,
+   "espesor_d": 0.17025
+  },
+  {
+   "ojo": "muy_largo",
+   "al_mm": 30,
+   "k_d": 43.5,
+   "pupil_mm": 4,
+   "paraxial_delgada_d": 1.46951,
+   "paraxial_sistema_d": 1.63976,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 0.79198,
+    "BEST_FOCUS_ON_RETINA": 0.79113,
+    "EQUIVALENT_DEFOCUS": 0.79113
+   },
+   "rango_entre_objetivos_d": 0.00086,
+   "aberracion_d": -0.84864,
+   "espesor_d": 0.17025
+  },
+  {
+   "ojo": "muy_largo",
+   "al_mm": 30,
+   "k_d": 43.5,
+   "pupil_mm": 5,
+   "paraxial_delgada_d": 1.46951,
+   "paraxial_sistema_d": 1.63976,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": 0.29691,
+    "BEST_FOCUS_ON_RETINA": 0.29472,
+    "EQUIVALENT_DEFOCUS": 0.29472
+   },
+   "rango_entre_objetivos_d": 0.00218,
+   "aberracion_d": -1.34504,
+   "espesor_d": 0.17025
+  },
+  {
+   "ojo": "muy_largo",
+   "al_mm": 30,
+   "k_d": 43.5,
+   "pupil_mm": 6,
+   "paraxial_delgada_d": 1.46951,
+   "paraxial_sistema_d": 1.63976,
+   "por_objetivo_d": {
+    "SPOT_RMS_AT_RETINA": -0.32749,
+    "BEST_FOCUS_ON_RETINA": -0.33225,
+    "EQUIVALENT_DEFOCUS": -0.33225
+   },
+   "rango_entre_objetivos_d": 0.00476,
+   "aberracion_d": -1.97202,
+   "espesor_d": 0.17025
+  }
+ ]
+}

@@ -104,3 +104,20 @@ evidencia, nunca con suposición.
   declarado) + refracción postoperatoria estabilizada.
 - **PROHIBIDO:** elegir política, índice o ratio posterior por proximidad a EVO o a
   cualquier otra calculadora.
+
+## #8 · ¿Qué criterio óptico debe optimizar el trazado?
+
+- **Pregunta:** con pupila real los rayos no cortan todos en el mismo punto, así que
+  "enfocar en la retina" no está definido. ¿Debe minimizarse el RMS del spot en retina (A),
+  llevarse el plano de mejor foco a la retina (B), o anularse el desenfoque equivalente (C)?
+- **Por qué importa:** son criterios distintos y, con geometría suficientemente asimétrica,
+  dan potencias distintas. Elegir uno sin declararlo esconde una decisión de modelado.
+- **Evidencia disponible:** exp008 mide que **con superficies esféricas apenas importa**:
+  los tres coinciden dentro de 0.0397 D en el peor caso (pupila 6 mm), muy por debajo del
+  escalón comercial de 0.5 D. Es un resultado negativo útil, no una respuesta: la simetría
+  de revolución de las superficies esféricas es la que hoy los iguala.
+- **Qué lo cambiaría:** asfericidad (V1.2), tilt y descentración (V1.3) y tórico (V1.6)
+  rompen esa simetría. La comparación debe **repetirse** tras cada uno de esos sprints.
+- **Lo que exige zanjarlo:** cohorte postoperatoria. Ningún criterio se declara preferible
+  mientras no exista; `compareObjectives()` existe precisamente para no tener que elegir.
+- **PROHIBIDO:** elegir criterio por proximidad a EVO o a cualquier otra calculadora.

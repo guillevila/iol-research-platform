@@ -31,6 +31,7 @@ const EXPERIMENTOS = [
   { id: 'exp001_sensibilidad_elp', script: 'experiments/run_exp001.mjs' },
   { id: 'exp003_paraxial_vs_raytrace', script: 'experiments/run_exp003.mjs' },
   { id: 'exp007_politica_corneal', script: 'experiments/run_exp007.mjs' },
+  { id: 'exp008_objetivo_optico', script: 'experiments/run_exp008.mjs' },
 ];
 
 /** Campos que cambian por construcción en cada ejecución y no son parte del resultado. */
