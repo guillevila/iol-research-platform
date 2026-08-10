@@ -139,7 +139,7 @@ evidencia, nunca con suposición.
   rompen esa simetría. La comparación debe **repetirse** tras cada uno de esos sprints.
 - **Reevaluación tras V1.2 (exp009):** con Q de LIO declarada |Q| ≤ 1 sobre el ojo
   normal, la separación A–C a pupila 6 mm sube de 0.008 D (Q=0) a 0.015 D — se duplica
-  pero sigue dos órdenes por debajo del escalón de 0.5 D. La conclusión de exp008
+  pero sigue ~33 veces por debajo del escalón de 0.5 D. La conclusión de exp008
   sobrevive a la asfericidad de LIO en ese rango; el siguiente candidato a separarlos
   es el tilt (V1.3). La Q en sí mueve la potencia óptima hasta 0.15 D (|Q|=1, 6 mm):
   relevante, y sin fichas de fabricante ese dato sigue sin existir para lentes reales.

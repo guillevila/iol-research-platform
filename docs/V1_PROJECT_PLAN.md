@@ -59,9 +59,10 @@ Tres controles, aplicados en todos los sprints:
   puerta es el propio registro de supuestos (`src/core/fidelity.mjs`): ningún supuesto
   registrado puede atravesarla; que todo supuesto esté registrado es disciplina vigilada
   por tests diferenciales, no un teorema. STRICT no es aún el defecto (decisión del
-  encargo). Hoy un cálculo paraxial completamente medido con lente de fabricante pasa
-  STRICT; ningún trazado de rayos pasa todavía (asfericidad corneal no modelada y Q de
-  LIO no documentada), y que lo diga con nombres es la funcionalidad.
+  encargo). La vía paraxial completamente medida pasa STRICT desde su introducción, y
+  desde V1.2 también el PRIMER trazado de rayos (córnea y LIO con todas sus Q
+  medidas/documentadas); sin esas Q, el trazado bloquea con la superficie nombrada — y
+  que lo diga con nombres es la funcionalidad.
 
 ## 3. Sprints
 

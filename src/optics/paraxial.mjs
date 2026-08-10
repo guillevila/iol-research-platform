@@ -104,7 +104,7 @@ export function predictedRefraction({ corneaPower_d, al_m, iolPlane_m, iolPower_
  * no un relleno tácito: la óptica paraxial depende solo de la curvatura en el vértice, y
  * la constante cónica entra en la sagita a partir del término r⁴ — la potencia paraxial
  * de una superficie cónica es EXACTAMENTE la de su esfera osculatriz. El trazador de
- * rayos, que sí ve la sagita completa, es quien rechaza una Q numérica no implementada.
+ * rayos, que sí ve la sagita completa, es quien la traza (superficies cónicas desde V1.2).
  */
 export function predictedRefractionThickIOL({ corneaPower_d, al_m, iolAnterior_m, iol, vertex_m = DEFAULT_VERTEX_M, nAqueous = N_AQUEOUS, nVitreous = N_VITREOUS }) {
   const g = iol.geometry;

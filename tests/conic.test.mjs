@@ -183,3 +183,79 @@ test('V1.2 · convergencia 2: pupila→0 → paraxial para TODO k (O(pupila²) s
     assert.ok(errores[2] < 1e-3, `q=${q}: residuo ${errores[2]} D a pupila 0.1 mm`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Regresiones de la revisión adversarial de V1.2
+// ---------------------------------------------------------------------------
+
+test('cónica · regresión: rayos con tilt pequeño sobre el paraboloide NO se pierden (Citardauq)', () => {
+  // La fórmula clásica (−B−s)/(2A) sufría cancelación catastrófica con A→0: el propio
+  // paraboloide del test 2 perdía TODOS los tilts en [2.8e-7, 7.8e-4] rad, y con
+  // k=−1+1e-8 perdía incluso el rayo exactamente axial. La suite no lo veía porque solo
+  // trazaba rayos axiales exactos (A = 0.0 → rama lineal estable).
+  const p = conicSurface({ id: 'p', zVertex_mm: 0, radius_mm: 7.7, k: -1, aperture_mm: 4, n_before: 1, n_after: 1.336 });
+  for (const dx of [1e-7, 1e-6, 1e-5, 1e-4, 3e-4, 1e-3]) {
+    const norma = Math.hypot(dx, 0, 1);
+    const hit = intersect(p, { p: [0, 1, -10], d: [dx / norma, 0, 1 / norma] });
+    assert.ok(hit !== null, `tilt dx=${dx}: intersección genuina perdida`);
+    // el punto satisface la forma implícita F=0 a precisión de máquina
+    const cv = 1 / 7.7, z = hit.point[2];
+    const F = cv * (hit.point[0] ** 2 + hit.point[1] ** 2 + 0 * z * z) - 2 * z;
+    assert.ok(Math.abs(F) < 1e-9, `residuo implícito ${F}`);
+  }
+  // k = −1 ± δ: el borde del caso lineal, con rayo exactamente axial
+  for (const delta of [1e-12, 1e-8, 1e-4]) {
+    for (const k of [-1 + delta, -1 - delta]) {
+      const s = conicSurface({ id: 'd', zVertex_mm: 0, radius_mm: 7.7, k, aperture_mm: 4, n_before: 1, n_after: 1.336 });
+      assert.ok(intersect(s, { p: [0, 1, -10], d: [0, 0, 1] }) !== null,
+        `k=${k}: rayo axial perdido en el borde del paraboloide`);
+    }
+  }
+  // radio enorme (casi plano) con tilt: el otro régimen de cancelación medido
+  const casiPlano = conicSurface({ id: 'g', zVertex_mm: 0, radius_mm: 1e4, k: -1, aperture_mm: 4, n_before: 1, n_after: 1.5 });
+  for (const dx of [1e-4, 1e-3, 1e-2]) {
+    const norma = Math.hypot(dx, 0, 1);
+    assert.ok(intersect(casiPlano, { p: [0, 1, -10], d: [dx / norma, 0, 1 / norma] }) !== null,
+      `R=1e4, dx=${dx}: perdido`);
+  }
+});
+
+test('cónica · regresión: pupila→0 → paraxial TAMBIÉN para q=−1 (el caso que rompía)', () => {
+  // la revisión demostró que una LIO con Q=−1 perdía los rayos paraxiales (h≤0.02 mm)
+  // a nivel de ojo completo, rompiendo el criterio de salida para ese k
+  const post = postopConQ({ qc: -0.25 });
+  const factory = new GenericIOLFactory({ q_anterior: -1, q_posterior: -1 });
+  const referencia = (() => {
+    const desvio = P => {
+      const eye = buildRaytraceEye(post, factory.create({ power_d: P }));
+      return paraxialFocusOfRaytraceEye(eye) - eye.retina_z_mm;
+    };
+    let lo = 5, hi = 45;
+    for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; if (desvio(m) > 0) lo = m; else hi = m; }
+    return (lo + hi) / 2;
+  })();
+  const errores = [0.4, 0.2, 0.1].map(pupil_mm => Math.abs(optimizePowerByRaytrace({
+    postop: post, factory, pupil_mm, tol_d: 1e-7,
+  }).exact_power_d - referencia));
+  for (let i = 1; i < errores.length; i++) {
+    const orden = errores[i - 1] / errores[i];
+    assert.ok(Math.abs(orden - 4) < 0.3, `q=−1: orden ${orden.toFixed(2)} ≠ 4`);
+  }
+  assert.ok(errores[2] < 1e-3, `q=−1: residuo ${errores[2]} D`);
+});
+
+test('cónica · regresión: una Q corneal MEDIDA que la superficie equivalente no usa se REGISTRA', () => {
+  // fuga cazada por la revisión: el dato medido se leía y se tiraba sin nota cuando el
+  // ojo caía a la superficie equivalente (sin radios) — el patrón prohibido
+  const pre = createPreopEye({
+    al_mm: 23.5, k1_d: 43.5, k1_axis_deg: 180, k2_d: 43.5, k2_axis_deg: 90,
+    acd_mm: 3.2, lt_mm: 4.5, cct_um: 550, keratometric_index: 1.3375,
+    cornea: { asphericity_q_anterior: -0.26 },
+    meta: { source: 'synthetic' },
+  });
+  const post = createPredictedPostopEye(pre, { iol_position_mm: 4.9, position_source: 'test' });
+  const eye = buildRaytraceEye(post, new GenericIOLFactory().create({ power_d: 21 }));
+  assert.equal(eye.cornea_kind, 'equivalent_single_surface');
+  assert.ok(eye.assumptions.some(a => /asfericidad MEDIDA no usada/.test(a)),
+    `el descarte de una medida debe registrarse: ${JSON.stringify(eye.assumptions)}`);
+});

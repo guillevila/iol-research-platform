@@ -263,6 +263,12 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
     surfaces.push(superficie({ id: 'cornea_post', zVertex_mm: preop.cct_um / 1000, radius_mm: cornea.r_posterior_mm, q: qCorneaPost, n_before: N_CORNEA, n_after: N_AQUEOUS }));
   } else {
     assumptions.push('cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)');
+    // si existe una Q corneal MEDIDA, la superficie equivalente no puede aplicarla:
+    // dato medido no usado → se registra, no se calla (patrón prohibido)
+    if (qCorneaAnt !== null || qCorneaPost !== null) {
+      assumptions.push('cornea: asfericidad MEDIDA no usada — la superficie equivalente '
+        + '(política sin radios/CCT) no puede aplicarla');
+    }
     // UNA superficie aire→acuoso cuyo radio reproduce EXACTAMENTE la potencia que el
     // paraxial usa bajo la misma política ⇒ ambos motores son comparables sin supuestos
     // ocultos, cualquiera que sea la política elegida.

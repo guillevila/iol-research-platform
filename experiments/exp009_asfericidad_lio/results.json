@@ -31,8 +31,8 @@
   "n_anillos": 8,
   "tol_d": 0.000001
  },
- "timestamp": "2026-08-10T15:08:53.881Z",
- "commit": "4d0996ce99cfb2bef56fe762a95c48c2f42d9f1f",
+ "timestamp": "2026-08-10T15:26:10.635Z",
+ "commit": "9e1acbeb8b43977a4d78a43445e03e288f0f3118",
  "resumen": {
   "n_casos": 21,
   "max_delta_potencia_por_q_d": 0.15109,

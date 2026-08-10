@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
 **Fecha:** 10/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 181/181 tests verdes · CI verde (5 jobs) · 5 experimentos deterministas verificados en CI
+**Suite:** 184/184 tests verdes · CI verde (5 jobs) · 5 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
@@ -48,7 +48,8 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
    el cálculo (`StrictModeViolation` enumera qué faltó) — el modo de la validación
    futura. La puerta es el registro de supuestos: ningún supuesto registrado la
    atraviesa. Hoy pasa STRICT la vía paraxial con córnea medida + lente de fabricante;
-   ningún trazado pasa aún (asfericidad corneal, Q de LIO). Tests diferenciales:
+   ningún trazado pasaba entonces (asfericidad corneal, Q de LIO) — superado en V1.2,
+   ver fila de sprint. Tests diferenciales:
    `tests/fidelity.test.mjs`. La caza adversarial posterior encontró 4 sustituciones
    sin registrar en la ruta STRICT (astigmatismo medido colapsado a EE, centrado
    geométrico vs plano principal, tilt/rotación declarados ignorados, cylinder_d ?? 0)

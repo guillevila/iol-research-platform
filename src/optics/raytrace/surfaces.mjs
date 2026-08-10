@@ -1,5 +1,5 @@
 /**
- * surfaces.mjs — superficies ópticas del ray tracer (esféricas y planas, con apertura).
+ * surfaces.mjs — superficies ópticas del ray tracer (esféricas, planas y cónicas, con apertura).
  *
  * Convenciones (coherentes con paraxial y units.mjs):
  *  - eje óptico = +z; unidades internas del trazador = MILÍMETROS (geometría);
@@ -68,6 +68,15 @@ export function conicSurface({ zVertex_mm, radius_mm, k, aperture_mm = 4, n_befo
  * Devuelve { point, normal, t } con `normal` unitaria orientada CONTRA el rayo
  * (dot(normal, d) < 0), o null si no hay intersección válida (t<=eps o fuera de apertura).
  */
+/**
+ * Holgura absoluta del chequeo de apertura (1e-9 mm, sub-nanométrica): un haz cuyo
+ * anillo exterior coincide EXACTAMENTE con la apertura perdía rayos del borde por coma
+ * flotante (hypot = r·(1+ulp) > r). Los perdidos eran precisamente los más aberrantes:
+ * sesgo pequeño pero sistemático (hallazgo adversarial de V1.2). No cambia ningún
+ * resultado publicado: solo admite rayos del borde antes rechazados por redondeo.
+ */
+const APERTURE_TOL_MM = 1e-9;
+
 export function intersect(surface, ray) {
   const EPS = 1e-9;
   if (!isFiniteVec(ray.p) || !isFiniteVec(ray.d)) return null;
@@ -76,7 +85,7 @@ export function intersect(surface, ray) {
     const t = (surface.z_mm - ray.p[2]) / ray.d[2];
     if (t <= EPS) return null;
     const point = add(ray.p, scale(ray.d, t));
-    if (Math.hypot(point[0], point[1]) > surface.aperture_mm) return null;
+    if (Math.hypot(point[0], point[1]) > surface.aperture_mm + APERTURE_TOL_MM) return null;
     const normal = ray.d[2] > 0 ? [0, 0, -1] : [0, 0, 1];
     return { point, normal, t };
   }
@@ -90,14 +99,22 @@ export function intersect(surface, ray) {
     const B = 2 * (cv * (px * dx + py * dy + (1 + k) * pz * dz) - dz);
     const C = cv * (px * px + py * py + (1 + k) * pz * pz) - 2 * pz;
     let ts;
-    if (Math.abs(A) < 1e-14) {
+    if (A === 0) {
+      // exacto solo para rayos axiales sobre paraboloide (k=−1): caso lineal
       if (Math.abs(B) < 1e-14) return null;
       ts = [-C / B];
     } else {
       const disc = B * B - 4 * A * C;
       if (disc < 0) return null;
       const s = Math.sqrt(disc);
-      ts = [(-B - s) / (2 * A), (-B + s) / (2 * A)].sort((a, b) => a - b);
+      // CITARDAUQ, no la fórmula clásica: (−B−s)/(2A) sufre cancelación catastrófica
+      // cuando A→0 (k≈−1 con tilts pequeños, |R| grande) y el filtro de sagita convertía
+      // esa imprecisión en rechazo de intersecciones GENUINAS — rayos perdidos en
+      // silencio (hallazgo de la revisión adversarial de V1.2, con ventanas de pérdida
+      // medidas de [2.8e-7, 7.8e-4] rad en el propio paraboloide del test). La raíz
+      // pequeña C/q es estable y continua con el caso lineal cuando A→0.
+      const q = -0.5 * (B + Math.sign(B || 1) * s);
+      ts = q === 0 ? [0] : [C / q, q / A].sort((a, b) => a - b);
     }
     // la cuádrica implícita contiene AMBAS ramas; solo es superficie real la que
     // satisface la sagita (rama "−"): se verifica punto a punto en vez de adivinar
@@ -109,7 +126,7 @@ export function intersect(surface, ray) {
       if (t <= EPS) continue;
       const point = add(ray.p, scale(ray.d, t));
       const x = point[0], y = point[1], z = point[2] - surface.zVertex_mm;
-      if (Math.hypot(x, y) > surface.aperture_mm) continue;
+      if (Math.hypot(x, y) > surface.aperture_mm + APERTURE_TOL_MM) continue;
       const sg = sag(x * x + y * y);
       if (sg === null || Math.abs(z - sg) > 1e-9 * Math.max(1, Math.abs(z))) continue;
       // normal ∝ ∇F = (2c·x, 2c·y, 2c(1+k)z' − 2)
@@ -131,7 +148,7 @@ export function intersect(surface, ray) {
   for (const t of [-b - s, -b + s]) {
     if (t <= EPS) continue;
     const point = add(ray.p, scale(ray.d, t));
-    if (Math.hypot(point[0], point[1]) > surface.aperture_mm) continue;
+    if (Math.hypot(point[0], point[1]) > surface.aperture_mm + APERTURE_TOL_MM) continue;
     // casquete correcto: cerca del vértice (mismo lado que el vértice respecto al centro)
     const zRel = point[2] - c[2];
     if (surface.radius_mm > 0 ? zRel > 0 : zRel < 0) continue; // hemisferio lejano
