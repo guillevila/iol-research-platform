@@ -14,18 +14,18 @@ pero **dos de los ALTA bloquearían V1** si se construyera encima sin corregirlo
 
 ## Resumen de hallazgos
 
-| # | Hallazgo | Sev. | Archivos | Bloquea V1 |
-|---|---|---|---|---|
-| H1 | `keratometric_index` se almacena pero **la física nunca lo usa** | ALTA | `eyebuilder.mjs`, `constants.mjs`, `eye.mjs` | Sí |
-| H2 | `refractionFor(power_d)` **ignora `power_d`** con LIO gruesa | ALTA | `eyebuilder.mjs:51-60` | Sí |
-| H3 | No existe separación `nominal_power` ↔ `physical_geometry` ni factory | ALTA | `iol.mjs` | Sí |
-| H4 | Tests de física mayoritariamente **autorreferenciales** | MEDIA | `tests/*.test.mjs` | No |
-| H5 | Discrepancia 8.311 vs 8.319 sin explicar | MEDIA | docs varias | No |
-| H6 | Documentación y warnings obsoletos ("tórico pendiente") | MEDIA | `paraxial_engine.mjs`, `LIMITATIONS.md` | No |
-| H7 | Sin CI: nada impide subir tests rojos o alterar el legacy | MEDIA | — | No |
-| H8 | Acoplamiento del código con la numeración de sprints | BAJA | `src/**` | No |
-| H9 | 11 parámetros anatómicos/de LIO almacenados y no usados | BAJA | `eye.mjs`, `iol.mjs` | No |
-| H10 | Tolerancias laxas sin justificación física documentada | BAJA | `paraxial.test.mjs`, `raytrace_eye.test.mjs` | No |
+| # | Hallazgo | Sev. | Archivos | Bloquea V1 | Estado V0.5 |
+|---|---|---|---|---|---|
+| H1 | `keratometric_index` se almacena pero **la física nunca lo usa** | ALTA | `eyebuilder.mjs`, `constants.mjs`, `eye.mjs` | Sí | ✅ `33fdf4b` — `cornea.mjs` + exp007 |
+| H2 | `refractionFor(power_d)` **ignora `power_d`** con LIO gruesa | ALTA | `eyebuilder.mjs:51-60` | Sí | ✅ `dd33362` — API dividida |
+| H3 | No existe separación `nominal_power` ↔ `physical_geometry` ni factory | ALTA | `iol.mjs` | Sí | ✅ `dd33362` — `geometry_status` + factories |
+| H4 | Tests de física mayoritariamente **autorreferenciales** | MEDIA | `tests/*.test.mjs` | No | ⏳ P0.7 |
+| H5 | Discrepancia 8.311 vs 8.319 sin explicar | MEDIA | docs varias | No | ✅ `EVO_QUERY_PROVENANCE.md` + test |
+| H6 | Documentación y warnings obsoletos ("tórico pendiente") | MEDIA | `paraxial_engine.mjs`, `LIMITATIONS.md` | No | ⏳ parcial (`LIMITATIONS` hecho) |
+| H7 | Sin CI: nada impide subir tests rojos o alterar el legacy | MEDIA | — | No | ⏳ P0.6 |
+| H8 | Acoplamiento del código con la numeración de sprints | BAJA | `src/**` | No | ⏳ P0.5 |
+| H9 | 11 parámetros anatómicos/de LIO almacenados y no usados | BAJA | `eye.mjs`, `iol.mjs` | No | ⏳ P0.5 |
+| H10 | Tolerancias laxas sin justificación física documentada | BAJA | `paraxial.test.mjs`, `raytrace_eye.test.mjs` | No | ⏳ P0.7 |
 
 ---
 
@@ -152,13 +152,22 @@ del trazado (rayo invertido recorre el mismo camino).
 
 **Origen del 8.311:** es el conteo de `cacheSize()` en el instante en que se generó
 `dashboard-data.json`, y de ahí se copió a `README.md`, `INFORME.md`, `informe-cientifico.html`
-y `dashboard.html`. Las **8 consultas restantes** se realizaron *después*, durante las sondas
-de diagnóstico finales (regla de rejilla Zeiss 709/939 y modos Anterior/Bitoric).
+y `dashboard.html`.
+
+**Corrección posterior (V0.5).** Esta auditoría atribuyó inicialmente las 8 consultas
+restantes a "sondas de diagnóstico finales (rejilla Zeiss 709/939 y modos Anterior/Bitoric)".
+**Era incorrecto.** Al inspeccionar las 8 últimas claves de `cache2.json` en orden de
+inserción, resultan ser **dos ojos de un caso clínico × cuatro configuraciones de LIO**
+(AL 22.53 y 22.57), consultados para responder a ese caso después de generar el dashboard.
+La afirmación original se hizo por reconstrucción de memoria del orden de trabajo, no por
+lectura del fichero; es exactamente el tipo de error que esta auditoría existe para evitar,
+y queda aquí en lugar de borrarse.
 
 **Conclusión:** no hay pérdida ni duplicación de datos; ambas cifras son correctas en su
-momento. Se documentará en `EVO_QUERY_PROVENANCE.md` y se citará **8.319** como cifra final.
-Los documentos históricos ya publicados no se reescriben (son instantáneas fechadas); se
-añadirá la nota de provenance.
+momento. Documentado en `docs/scientific/EVO_QUERY_PROVENANCE.md`, con `tests/evo_provenance.test.mjs`
+recomputando cada cifra desde los ficheros para que no vuelvan a divergir. Cifra final citable:
+**8.319** únicas / **8.318** útiles. Los documentos históricos ya publicados no se reescriben
+(son instantáneas fechadas).
 
 ---
 
