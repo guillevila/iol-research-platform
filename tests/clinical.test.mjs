@@ -53,10 +53,10 @@ test('importer: campo extra rechazado (additionalProperties:false, anti-PII estr
 });
 
 test('importer: heurística PII detecta fechas completas y nombres propios', () => {
-  const conFecha = { ...SURG_OK, complications: 'revisado el 12/07/1951 sin incidencias' };
+  const conFecha = { ...SURG_OK, complications: 'revisado el 01/01/1990 sin incidencias' };
   const r = importBatch('surgery', [conFecha]);
   assert.ok(r.rejected[0].errors.some(e => e.includes('fecha completa')));
-  const conNombre = { ...SURG_OK, complications: 'paciente Remedios Millan estable' };
+  const conNombre = { ...SURG_OK, complications: 'paciente Nombre Ejemplo estable' };
   assert.ok(piiFindings(conNombre).some(e => e.includes('nombre propio')));
   // el periodo generalizado 2026-Q3 NO dispara la heurística
   assert.equal(piiFindings(SURG_OK).length, 0);
