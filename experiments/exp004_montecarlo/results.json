@@ -1,0 +1,127 @@
+{
+ "config": {
+  "id": "exp004_montecarlo",
+  "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO — sigmas declaradas, no medidas",
+  "n": 4000,
+  "seed": 20260810,
+  "sigmas_fijas": {
+   "al_mm": 0.03,
+   "mean_k_d": 0.1
+  },
+  "escenarios_sigma_pos_mm": [
+   0.2,
+   0.4
+  ],
+  "ojos": [
+   {
+    "id": "corto",
+    "al_mm": 21,
+    "k_d": 44
+   },
+   {
+    "id": "normal",
+    "al_mm": 23.5,
+    "k_d": 43.5
+   },
+   {
+    "id": "largo",
+    "al_mm": 27,
+    "k_d": 42.5
+   }
+  ],
+  "fijos": {
+   "acd_mm": 3.2,
+   "lt_mm": 4.5,
+   "cct_um": 550
+  },
+  "predictor": "ConstantOffsetPredictor(1.7)"
+ },
+ "timestamp": "2026-08-10T09:03:20.307Z",
+ "commit": "d13b27980917c12e727a92c9cb3ee3a20377b5a2",
+ "rows": [
+  {
+   "ojo": "corto",
+   "al_mm": 21,
+   "potencia_d": 30.5,
+   "sigma_pos_mm": 0.2,
+   "p5_d": -0.747,
+   "p50_d": 0.014,
+   "p95_d": 0.782,
+   "ancho90_d": 1.529,
+   "sd_d": 0.463,
+   "prob_alternativa_mejor": 0.359,
+   "alternativa_d": 31,
+   "rechazadas": 0
+  },
+  {
+   "ojo": "corto",
+   "al_mm": 21,
+   "potencia_d": 30.5,
+   "sigma_pos_mm": 0.4,
+   "p5_d": -1.481,
+   "p50_d": 0.031,
+   "p95_d": 1.469,
+   "ancho90_d": 2.949,
+   "sd_d": 0.89,
+   "prob_alternativa_mejor": 0.431,
+   "alternativa_d": 31,
+   "rechazadas": 0
+  },
+  {
+   "ojo": "normal",
+   "al_mm": 23.5,
+   "potencia_d": 20,
+   "sigma_pos_mm": 0.2,
+   "p5_d": -0.438,
+   "p50_d": 0.055,
+   "p95_d": 0.538,
+   "ancho90_d": 0.976,
+   "sd_d": 0.293,
+   "prob_alternativa_mejor": 0.332,
+   "alternativa_d": 20.5,
+   "rechazadas": 0
+  },
+  {
+   "ojo": "normal",
+   "al_mm": 23.5,
+   "potencia_d": 20,
+   "sigma_pos_mm": 0.4,
+   "p5_d": -0.848,
+   "p50_d": 0.058,
+   "p95_d": 0.937,
+   "ancho90_d": 1.784,
+   "sd_d": 0.543,
+   "prob_alternativa_mejor": 0.411,
+   "alternativa_d": 20.5,
+   "rechazadas": 0
+  },
+  {
+   "ojo": "largo",
+   "al_mm": 27,
+   "potencia_d": 10,
+   "sigma_pos_mm": 0.2,
+   "p5_d": -0.198,
+   "p50_d": 0.074,
+   "p95_d": 0.346,
+   "ancho90_d": 0.543,
+   "sd_d": 0.166,
+   "prob_alternativa_mejor": 0.261,
+   "alternativa_d": 10.5,
+   "rechazadas": 0
+  },
+  {
+   "ojo": "largo",
+   "al_mm": 27,
+   "potencia_d": 10,
+   "sigma_pos_mm": 0.4,
+   "p5_d": -0.366,
+   "p50_d": 0.081,
+   "p95_d": 0.509,
+   "ancho90_d": 0.875,
+   "sd_d": 0.265,
+   "prob_alternativa_mejor": 0.345,
+   "alternativa_d": 10.5,
+   "rechazadas": 0
+  }
+ ]
+}

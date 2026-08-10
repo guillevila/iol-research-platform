@@ -63,3 +63,15 @@ evidencia, nunca con suposición.
 - **Acción:** hasta tener fuente poblacional citable o datos propios, el generador usa
   RANGOS UNIFORMES DECLARADOS y lo etiqueta (`distribution:'uniform_declared'`).
 - **Datos requeridos:** estudio poblacional citable o base propia.
+
+## #6 · Incertidumbres reales de medida y biológicas (sigmas)
+
+- **Pregunta:** ¿qué desviaciones típicas reales tienen la posición postoperatoria de
+  la LIO (dado un predictor), la AL, la queratometría y la ACD por dispositivo?
+- **Por qué importa:** el sistema de incertidumbre (Sprint 10) propaga sigmas
+  DECLARADAS; con sigmas reales, sus intervalos serían informativos por paciente.
+- **Evidencia disponible:** ninguna propia; los valores usados en exp004 (0.2/0.4 mm
+  de posición; 0.03 mm AL; 0.10 D K) son escenarios declarados, no medidas.
+- **Acción:** repetibilidad de dispositivo con fichas técnicas citables y, para la
+  posición, datos postoperatorios reales (postop.schema.json).
+- **Datos requeridos:** especificaciones de biómetro y cohorte con posición medida.
