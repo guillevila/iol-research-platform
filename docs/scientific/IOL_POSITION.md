@@ -41,9 +41,13 @@ Toda salida documenta su procedencia (`source`) y qué variables usó (`inputs_u
 1. **Sensibilidad** (exp001): cuantificar Δrefracción por Δposición en ojos cortos /
    normales / largos y potencias altas/bajas → fija qué precisión de predicción hace
    falta para ser clínicamente irrelevante (<0.25 D).
-2. **Capacidad informativa** (Sprint 8): con ojos sintéticos, medir cuánto reduce la
-   incertidumbre de posición añadir EQ/LEP, ATA, STS o diámetro cristaliniano bajo
-   supuestos geométricos declarados — como análisis de información, no como verdad.
+2. **Capacidad informativa** (Sprint 8 — ejecutado en `experiments/exp006_capacidad_eq`):
+   bajo la hipótesis declarada H_EQ (LIO en el ecuador capsular; ecuador = ACD+LT/2 +
+   desvío biológico σ_bio), medir EQ con σ_m solo aporta si σ_m < σ_bio, y el valor
+   refractivo del beneficio escala con la potencia del ojo: con σ_bio=0.3 mm y
+   σ_m=0.1 mm evita ~0.36 D de error medio en ojos cortos frente a ~0.10 D en largos.
+   Es un análisis condicional: la validez de H_EQ la decidirán datos reales
+   (PROTOCOL_FIRST_CLINICAL_BATCH.md, objetivo primario).
 3. **Con datos reales** (futuro): regresiones base `f(AL, ACD, LT, K)` vs ampliadas
    `f(+EQ...)` contra posición medida; el criterio de comparación queda definido en
    `VALIDATION_STRATEGY.md` antes de ver dato alguno.
