@@ -8,14 +8,20 @@
 import { createPreopEye, createPredictedPostopEye } from '../../core/eye.mjs';
 import { createPredictionResult } from '../../core/result.mjs';
 import { searchBestPower, powerGrid } from '../../optimize/power_search.mjs';
+import { recommendToric } from '../../toric/toric_engine.mjs';
 
 export class ParaxialEngine {
-  /** @param positionPredictor implementa predict(preopEye) (src/predictors) */
-  constructor(positionPredictor, { grid = powerGrid(-5, 40, 0.5) } = {}) {
+  /**
+   * @param positionPredictor implementa predict(preopEye) (src/predictors)
+   * @param toricCatalog_d    cilindros disponibles en plano de LIO (dato de
+   *                          fabricante, inyectado); si se omite, motor esférico.
+   */
+  constructor(positionPredictor, { grid = powerGrid(-5, 40, 0.5), toricCatalog_d = null } = {}) {
     if (!positionPredictor?.predict) throw new TypeError('ParaxialEngine requiere positionPredictor');
     this.predictor = positionPredictor;
     this.grid = grid;
-    this.id = `paraxial_v1+${positionPredictor.id}`;
+    this.toricCatalog_d = toricCatalog_d;
+    this.id = `paraxial_v1+${positionPredictor.id}${toricCatalog_d ? '+toric' : ''}`;
   }
 
   predict(c) {
@@ -32,9 +38,21 @@ export class ParaxialEngine {
     });
     const target = c.target_d ?? 0;
     const s = searchBestPower({ postop, target_d: target, grid: this.grid });
+    // tórico opcional: solo si hay catálogo inyectado y el ojo tiene astigmatismo
+    let toric = null;
+    if (this.toricCatalog_d && Math.abs(preop.k2_d - preop.k1_d) > 1e-9) {
+      toric = recommendToric({
+        postop, sePower_d: s.best.power_d, catalog_d: this.toricCatalog_d,
+        target_d: target, sia_d: c.sia_d ?? 0, sia_axis_deg: c.sia_axis_deg ?? 0,
+      });
+    }
     return createPredictionResult({
       engine: this.id,
-      predicted_refraction: s.best.predicted_refraction_d,
+      predicted_refraction: toric ? toric.recommended.predicted_se_d : s.best.predicted_refraction_d,
+      predicted_cylinder: toric ? toric.recommended.residual_cyl_d : 0,
+      predicted_axis: toric ? (toric.recommended.residual_steep_axis_deg + 90) % 180 : null,
+      recommended_toric: toric ? toric.recommended.cylinder_d : 0,
+      recommended_axis: toric ? toric.implantation_axis_deg : null,
       recommended_power: s.best.power_d,
       alternative: s.second && {
         power: s.second.power_d,

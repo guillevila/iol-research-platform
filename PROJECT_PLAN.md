@@ -82,15 +82,18 @@ valida la siguiente hipótesis?
   TIR detectado) verdes; foco trazado → paraxial cuando h→0 (tolerancia documentada);
   sin NaN en barridos.
 
-## SPRINT 4 — Modelo completo del ojo — **PARTIAL**
+## SPRINT 4 — Modelo completo del ojo — **DONE**
 
 - **Objetivo:** construir el sistema óptico ojo+LIO desde `EyeModel`/`IOLModel`
   (córnea 2 superficies, cámara acuosa, LIO gruesa genérica, vítreo, retina).
-- **Hecho:** builder paraxial completo (`src/optics/eyebuilder.mjs`) usado por el
-  benchmark; LIO gruesa genérica etiquetada.
-- **Pendiente:** builder para el ray tracer (superficies 3D del ojo completo) y
-  comparación paraxial↔trazado sobre ojos sintéticos.
-- **Aceptación restante:** diferencia foco paraxial vs trazado documentada por rango de AL.
+- **Hecho:** builder paraxial (`buildParaxialEye`) y builder de trazado
+  (`buildRaytraceEye`: córnea física de 2 superficies o superficie equivalente
+  declarada r=336/K, LIO gruesa genérica, retina); `paraxialFocusOfRaytraceEye`
+  calcula el foco paraxial de LAS MISMAS superficies (validación cruzada exacta).
+- **Evidencia:** tests (convergencia trazado→paraxial < 0.01 mm con haz bajo, ambos
+  modos corneales) y `experiments/exp003_paraxial_vs_raytrace` (Δfoco/ΔD por AL:
+  validación ≈ 0.002 D; aberración esférica de la genérica a pupila 3 mm:
+  −0.44…−0.95 D, creciente con la potencia).
 
 ## SPRINT 5 — Optimización de potencia — **DONE**
 
@@ -126,11 +129,19 @@ valida la siguiente hipótesis?
 - Interfaces de datos ya presentes en `EyeModel` (campos opcionales). Falta: experimentos
   de ablación (base vs base+EQ vs anatomía ampliada) sobre sensibilidad e información.
 
-## SPRINT 9 — Sistema tórico independiente — **PENDIENTE**
+## SPRINT 9 — Sistema tórico independiente — **DONE (inicial)**
 
-- Vectores de doble ángulo limpios, meridianos, SIA, córnea posterior física (cuando
-  esté medida), catálogo; comparación frente a EVO. Nota: el álgebra de doble ángulo
-  se reescribe en `src/`, no se importa del legacy.
+- **Hecho:** `src/toric/vectors.mjs` (doble ángulo reescrito, property-tests: ida y
+  vuelta, mod 180, cancelación de perpendiculares, potencias firmadas) y
+  `src/toric/toric_engine.mjs` (TCA solo con DATOS: anterior + posterior MEDIDA +
+  SIA vectorial; residual por meridianos con la vergencia propia; catálogo
+  inyectado; eje exacto). Integrado en `ParaxialEngine` (opción `toricCatalog_d`).
+- **Decisión de diseño:** NO incorpora la regresión de córnea posterior predicha del
+  legacy (ajuste a EVO); sin posterior medida lo declara en warnings. La divergencia
+  sistemática esperada frente a EVO (≈0.6 D menos de TCA en WTR) queda documentada y
+  es objeto natural del benchmark (Sprint 11).
+- **Pendiente (fuera de "inicial"):** rotación tórica prevista y pérdida por
+  desalineación; tórico sobre trazado de rayos (superficies tóricas).
 
 ## SPRINT 10 — Incertidumbre — **PENDIENTE**
 
@@ -162,11 +173,11 @@ builder paraxial (dependencia real satisfecha); el trazado del ojo completo (res
 - [x] Baseline EVO reproducible y congelado
 - [x] Motor paraxial independiente
 - [x] Ray tracer funcional (superficies esféricas, foco)
-- [x] Modelo de ojo configurable (datos) — [ ] builder de trazado completo
+- [x] Modelo de ojo configurable (datos + builders paraxial y de trazado)
 - [x] Modelo de LIO configurable con UNKNOWN
 - [x] Optimizador de potencia
-- [ ] Motor tórico inicial
-- [x] Análisis de sensibilidad (ELP) — [ ] resto de variables
+- [x] Motor tórico inicial
+- [x] Análisis de sensibilidad (ELP; paraxial↔trazado) — [ ] tilt/descentración/posterior
 - [x] Generador sintético etiquetado
 - [x] Benchmark contra EVO (primer mapa de divergencia)
 - [x] Estructura de incertidumbre en resultados — [ ] Monte Carlo
