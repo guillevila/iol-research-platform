@@ -243,3 +243,85 @@ test('rotación · vectorResidual es utilidad/ancla: álgebra exacta y caso dege
   assert.ok(Math.abs(r.cyl_d - 2 * 3 * Math.sin(30 * Math.PI / 180)) < 1e-12);
   assert.throws(() => vectorResidual([{ cyl_d: -1, steep_axis_deg: 0 }]), /≥ 0/);
 });
+
+// ---------------------------------------------------------------------------------
+// Regresiones de la REVISIÓN ADVERSARIAL V1.7.
+// ---------------------------------------------------------------------------------
+
+test('rotación · adversarial: una pose FALSIFICADA (kind spoofeado) ya no evade la validación', () => {
+  // antes: cualquier objeto con kind:'iol_pose' atravesaba createPredictedPostopEye
+  // sin createIOLPose — tilt 45° > límite 30° se trazaba con residual plausible
+  assert.throws(() => createPredictedPostopEye(PRE_AST(), {
+    iol_position_mm: 4.9, position_source: 'test',
+    iol_pose: {
+      kind: 'iol_pose', decenter_x_mm: 0, decenter_y_mm: 0,
+      tilt_x_deg: 45, tilt_y_deg: 0, rotation_z_deg: 90,
+      tilt_total_deg: 45, decenter_total_mm: 0, source: PoseSource.DECLARED_SCENARIO,
+    },
+  }), /fuera de plausibilidad/);
+  // y re-crear una pose LEGÍTIMA es idempotente: campos y procedencia se conservan
+  const legitima = createIOLPose({ tilt_x_deg: 5, rotation_z_deg: 30, source: PoseSource.MEASURED });
+  const post = createPredictedPostopEye(PRE_AST(), {
+    iol_position_mm: 4.9, position_source: 'test', iol_pose: legitima,
+  });
+  assert.equal(post.iol_pose.tilt_x_deg, 5);
+  assert.equal(post.iol_pose.rotation_z_deg, 30);
+  assert.equal(post.iol_pose.source, PoseSource.MEASURED);
+  assert.equal(post.iol_pose.tilt_total_deg, 5);
+});
+
+test('rotación · adversarial: referencia_vectorial_d se VALIDA (NaN/Infinity/negativos/strings rechazados)', () => {
+  const base = { postop: postopDe(ojo(), 10), iol: LIO_T, planned_steep_axis_deg: 90 };
+  for (const mala of [NaN, Infinity, -0.5, '2']) {
+    assert.throws(() => evaluateToricRotationScenario({ ...base, referencia_vectorial_d: mala }),
+      /finito|≥ 0/, `referencia ${String(mala)} debía rechazarse`);
+  }
+  // y el signo de la divergencia: positivo ⇔ trazado MAYOR que la referencia
+  const r = evaluateToricRotationScenario({ ...base, referencia_vectorial_d: 1.0 });
+  assert.ok(Math.abs(r.divergencia_vs_vectorial_d - (r.residual.cyl_d - 1.0)) < 1e-15);
+});
+
+test('rotación · adversarial: singularidad |d|=90 — ambas direcciones devuelven +90 (documentada)', () => {
+  // en |diferencia| = 90 exacto, horario y antihorario son indistinguibles mod 180:
+  // el intervalo (−90, 90] fuerza +90 en ambas direcciones y la antisimetría se rompe
+  // SOLO ahí
+  assert.equal(signedAxisDiff_deg(0, 90), 90);
+  assert.equal(signedAxisDiff_deg(90, 0), 90);
+  assert.equal(signedAxisDiff_deg(45, 135), 90);
+  assert.equal(signedAxisDiff_deg(135, 45), 90);
+  // fuera del borde la antisimetría se cumple
+  assert.equal(signedAxisDiff_deg(10, 50), -signedAxisDiff_deg(50, 10));
+});
+
+test('rotación · adversarial: vectorResidual degenerado es CONSISTENTE (cyl 0 + eje null) y sin eje espurio', () => {
+  // umbral relativo: módulos enormes opuestos ya no producen un eje de puro ruido
+  const enorme = vectorResidual([{ cyl_d: 1e4, steep_axis_deg: 90 }, { cyl_d: 1e4, steep_axis_deg: 0 }]);
+  assert.equal(enorme.cyl_d, 0);
+  assert.equal(enorme.steep_axis_deg, null);
+  // y la salida degenerada es internamente consistente: cyl_d 0 CON eje null (antes
+  // podía devolver cyl_d ~1e-13 no nulo con eje null)
+  const chico = vectorResidual([{ cyl_d: 2, steep_axis_deg: 90 }, { cyl_d: 2, steep_axis_deg: 0 }]);
+  assert.equal(chico.cyl_d, 0);
+  assert.equal(chico.steep_axis_deg, null);
+});
+
+test('rotación · adversarial: la simetría ±θ SOBREVIVE a una componente de pose y se ROMPE con pose oblicua', () => {
+  // hallazgo del refutador: tilt_x solo conserva la simetría (sobrevive el espejo
+  // x→−x); solo una pose que rompe AMBOS espejos coordenados la rompe de verdad —
+  // este test fija ambas caras del fenómeno
+  const residualCon = (rotZ, pose) => evaluateToricRotationScenario({
+    postop: postopDe(PRE_AST(), rotZ, pose), iol: LIO_T, cornea_toric: CORNEA_T,
+    planned_steep_axis_deg: 0,
+  }).residual.cyl_d;
+  const theta = 15;
+  // una sola componente (tilt_x): simetría conservada a nivel de ruido flotante
+  const soloTiltMas = residualCon(90 + theta, { tilt_x_deg: 3 });
+  const soloTiltMenos = residualCon(90 - theta, { tilt_x_deg: 3 });
+  assert.ok(Math.abs(soloTiltMas - soloTiltMenos) < 1e-9,
+    `tilt_x solo debía conservar la simetría: Δ=${Math.abs(soloTiltMas - soloTiltMenos)}`);
+  // pose OBLICUA (tilt_x + tilt_y, rompe ambos espejos): la simetría se rompe de verdad
+  const oblicuaMas = residualCon(90 + theta, { tilt_x_deg: 3, tilt_y_deg: 3 });
+  const oblicuaMenos = residualCon(90 - theta, { tilt_x_deg: 3, tilt_y_deg: 3 });
+  assert.ok(Math.abs(oblicuaMas - oblicuaMenos) > 0.05,
+    `la pose oblicua debía romper la simetría: Δ=${Math.abs(oblicuaMas - oblicuaMenos)}`);
+});

@@ -56,6 +56,11 @@ import { analyzeAstigmaticBundle, clinicalFromAstigmaticAnalysis, normDeg180 } f
  * Diferencia angular DERIVADA entre dos ejes (mod 180), firmada en (−90°, 90°].
  * `signedAxisDiff_deg(fisico, planificado)` > 0 ⇔ el eje físico está girado respecto
  * del planificado en el sentido de +rotation_z (mano derecha sobre +z).
+ *
+ * SINGULARIDAD del borde (revisión adversarial V1.7): con |diferencia| = 90°
+ * exactamente, AMBAS direcciones devuelven +90 (el intervalo semiabierto lo exige:
+ * −90 ∉ (−90, 90]) — la antisimetría diff(a,b) = −diff(b,a) se rompe SOLO ahí, donde
+ * "horario" y "antihorario" son geométricamente indistinguibles para un eje mod 180.
  */
 export function signedAxisDiff_deg(a_deg, b_deg) {
   assertFinite(a_deg, 'a_deg'); assertFinite(b_deg, 'b_deg');
@@ -71,17 +76,22 @@ export function signedAxisDiff_deg(a_deg, b_deg) {
  * Componentes: [{ cyl_d ≥ 0, steep_axis_deg }]. Devuelve módulo y eje del resultante.
  */
 export function vectorResidual(componentes) {
-  let vx = 0, vy = 0;
+  let vx = 0, vy = 0, escala = 0;
   for (const { cyl_d, steep_axis_deg } of componentes) {
     assertFinite(cyl_d, 'cyl_d'); assertFinite(steep_axis_deg, 'steep_axis_deg');
     if (cyl_d < 0) throw new RangeError('vectorResidual: módulos ≥ 0 (el eje lleva la dirección)');
     const a = 2 * steep_axis_deg * Math.PI / 180;
     vx += cyl_d * Math.cos(a); vy += cyl_d * Math.sin(a);
+    escala += cyl_d;
   }
   const mag = Math.hypot(vx, vy);
+  // umbral RELATIVO a la suma de módulos (revisión adversarial V1.7: el absoluto 1e-12
+  // devolvía un eje ESPURIO — pura dirección del ruido de cancelación — con módulos
+  // enormes, y un cyl_d ~1e-13 no nulo con eje null era internamente inconsistente)
+  const degenerado = mag < 1e-12 * Math.max(1, escala);
   return {
-    cyl_d: mag,
-    steep_axis_deg: mag < 1e-12 ? null : normDeg180(Math.atan2(vy, vx) * 90 / Math.PI),
+    cyl_d: degenerado ? 0 : mag,
+    steep_axis_deg: degenerado ? null : normDeg180(Math.atan2(vy, vx) * 90 / Math.PI),
   };
 }
 
@@ -93,8 +103,10 @@ export function vectorResidual(componentes) {
  * módulo NO compone ninguna rotación adicional: delega en buildRaytraceEye).
  *
  * @param referencia_vectorial_d  opcional: residual esperado por composición
- *        vectorial (módulos/ejes medidos por el llamante). Si se da, la salida
- *        incluye `divergencia_vs_vectorial_d` — divergencia, NUNCA "error".
+ *        vectorial (módulos/ejes medidos por el llamante; número finito ≥ 0 — se
+ *        VALIDA, revisión adversarial V1.7). Si se da, la salida incluye
+ *        `divergencia_vs_vectorial_d` = trazado − referencia (POSITIVO ⇔ el trazado
+ *        da MÁS cilindro que el álgebra vectorial) — divergencia, NUNCA "error".
  */
 export function evaluateToricRotationScenario({
   postop, iol, cornea_toric = null, cornea = undefined,
@@ -116,6 +128,13 @@ export function evaluateToricRotationScenario({
   }
   assertFinite(planned_steep_axis_deg, 'planned_steep_axis_deg');
   assertFinite(pupil_radius_mm, 'pupil_radius_mm');
+  if (referencia_vectorial_d !== null) {
+    assertFinite(referencia_vectorial_d, 'referencia_vectorial_d');
+    if (referencia_vectorial_d < 0) {
+      throw new RangeError('referencia_vectorial_d debe ser ≥ 0: es el MÓDULO de una '
+        + 'composición vectorial');
+    }
+  }
   if (!hasToricGeometry(iol)) {
     throw new TypeError('evaluateToricRotationScenario: la LIO no tiene geometría tórica declarada '
       + '— sin cara bicónica no hay eje de LIO que rotar. (La rotación de una lente de '

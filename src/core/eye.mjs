@@ -122,9 +122,14 @@ export function createPredictedPostopEye(preop, p) {
         + '(componentes o poseFromClinical con magnitud+azimut).');
     }
   }
+  // TODA pose pasa por createIOLPose, también las que ya declaran kind:'iol_pose'
+  // (caza adversarial V1.7: el atajo `kind === 'iol_pose' ? p.iol_pose : ...` aceptaba
+  // cualquier objeto FALSIFICADO con ese kind, evadiendo assertFinite y los límites de
+  // plausibilidad — un tilt de 45° > 30° se trazaba con residual plausible y sin fallo).
+  // Re-crear una pose legítima es idempotente (createIOLPose destructura sus campos).
   const pose = p.iol_pose === null || p.iol_pose === undefined
     ? null
-    : (p.iol_pose.kind === 'iol_pose' ? p.iol_pose : createIOLPose(p.iol_pose));
+    : createIOLPose(p.iol_pose);
   return Object.freeze({
     kind: 'predicted_postoperative_eye',
     preop,

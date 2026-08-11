@@ -19,7 +19,7 @@
     "iol_tilt_deg": { "type": ["number", "null"] },
     "iol_decentration_mm": { "type": ["number", "null"] },
     "toric_axis_observed_deg": { "type": ["number", "null"], "minimum": 0, "maximum": 180 },
-    "toric_rotation_deg": { "type": ["number", "null"], "description": "Observado - previsto, mod 180" },
+    "toric_rotation_deg": { "type": ["number", "null"], "minimum": -90, "maximum": 90, "description": "Error de rotacion OBSERVADO (ground truth clinico futuro): eje fisico observado - eje PLANIFICADO, mod 180, firmado en (-90, 90] con la convencion de signedAxisDiff_deg (V1.7: positivo = sentido de +rotation_z; lateralidad OD/OS pendiente, OQ #3). Campo de DATOS, distinto del escalar geometrico eliminado en V1.3: el estado fisico del modelo vive en iol_pose.rotation_z_deg y el error del MODELO se deriva, nunca se declara" },
     "measurement_device": { "type": ["string", "null"] }
   }
 }

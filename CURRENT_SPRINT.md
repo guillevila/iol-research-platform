@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
 **Fecha:** 11/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 256/256 tests verdes · CI verde (5 jobs) · 8 experimentos deterministas verificados en CI
+**Suite:** 261/261 tests verdes · CI verde (5 jobs) · 8 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
@@ -24,7 +24,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 | V1.3 Pose rígida de LIO (tilt/descentración vectoriales) | **DONE** | pose vector + transformadas rígidas; validación no-coaxial (reversibilidad/±pose/O(s²)); métrica de spot corregida a centroide; exp010 |
 | V1.5 Contrato política corneal ↔ trazador | **DONE** | verificado por política (misma interpretación, procedencia viaja, sin posterior fabricada, STRICT diferencial); `rotationally_symmetric` explícito y expuesto en consumidores; PoseSource; caza adversarial aplicada: medidas corneales PARCIALES se usan o se registran (antes: descarte silencioso) |
 | V1.6 Tórico trazado | **DONE** | `biconicSurface` (Newton salvaguardado, recupera cónica a 1e-12); métrica 2D (M(z) exacta → autoproblema generalizado, ejes sin plano degenerado); `SyntheticToricIOLFactory` (única vía etiqueta→radios, declarada); córnea tórica por política explícita (jamás "medida", OQ #10); STRICT bloquea todo tórico inventado; objetivos escalares GUARDADOS; exp011 (eje 0° error, vectorial ≤0.001 D); caza adversarial aplicada: intersección bicónica reescrita (ventana acotada, sin rama lejana), coherencia etiqueta↔geometría registrada, MC rechaza claves desconocidas, focos virtuales rechazados con nombre |
-| V1.7 Rotación tórica | **DONE** | por FÍSICA (pose.rotation_z rota la bicónica y se re-traza; `toric_rotation_deg` NO reintroducido); error de rotación = DERIVADO (físico − planificado, mod 180, firmado; jamás entrada); anclas: 2C·\|sen θ\| solo módulos iguales (≤0.0012 D), resta vectorial completa en general (≤0.0009 D); divergencia a pupila finita REPORTADA; tres ejes distinguidos (geometría / minus-cyl / marcas → OQ #11); exp012 |
+| V1.7 Rotación tórica | **DONE** | por FÍSICA (pose.rotation_z rota la bicónica y se re-traza; `toric_rotation_deg` NO reintroducido); error de rotación = DERIVADO (físico − planificado, mod 180, firmado; jamás entrada); anclas: 2C·\|sen θ\| solo módulos iguales (≤0.00123 D), resta vectorial completa en general (≤0.0009 D); divergencia a pupila finita REPORTADA; tres ejes distinguidos (geometría / minus-cyl / marcas → OQ #11); exp012 |
 | V1.8 `RaytraceEngine` en benchmark | **SIGUIENTE** | terminología: divergencia, nunca error |
 | V1.9 Divergencia vs EVO | pendiente | terminología: divergencia, nunca error |
 | V1.11 Pipeline EQ · V1.12 Incertidumbre · V1.14 Rendimiento · V1.15 Docs | pendiente | |

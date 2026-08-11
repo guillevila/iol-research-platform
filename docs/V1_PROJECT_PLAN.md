@@ -133,8 +133,10 @@ RECHAZA la pose (no puede representarla); el muestreo MERIDIONAL se rechaza con 
 ### V1.4 · `RayBundleGenerator`
 Muestreo de pupila (anillos concéntricos, espiral de Fibonacci, malla cuadrada) con
 número de rayos declarado. Aceptación: el resultado converge al aumentar el número de
-rayos, y la **tasa de convergencia se mide**; `pupil_mm` del ojo puede alimentar la
-apertura (sale de `reserved.mjs`).
+rayos, y la **tasa de convergencia se mide**. NOTA (corregida en V1.7, revisión
+adversarial): `pupil_mm` del ojo NO salió de `reserved.mjs` — el optimizador usa una
+pupila DECLARADA como parámetro (defecto 3.0, registrado en la salida) y el dato
+`pupil_mm` medido del ojo sigue RESERVADO hasta que el trazador lo consuma de verdad.
 
 ### V1.5 · Córnea física en el trazado — cierre formal del contrato política↔trazador
 El trazador ya consumía las políticas (V1.2/V1.3): V1.5 NO reescribe la córnea de dos
@@ -220,7 +222,7 @@ Aceptación (EJECUTADA, tests/toric_rotation.test.mjs + exp012): orientación 0
 reproduce V1.6 (igualdad EXACTA: el módulo delega); +180° reproduce la misma óptica;
 +90° intercambia los meridianos; ±θ cumplen las simetrías de sistema centrado
 (módulos iguales, meridianos espejados); pupila→0 converge a la resta vectorial
-(≤0.0009 D en exp012) y con módulos EFECTIVOS igualados a 2C·|sen θ| (≤0.0012 D; a
+(≤0.0009 D en exp012) y con módulos EFECTIVOS igualados a 2C·|sen θ| (≤0.00123 D; a
 30° la fracción de C es 0.9999 y a 90° 1.9997 — lo que la fórmula errónea negaba); a
 pupila finita la divergencia frente al vectorial se REPORTA (≤0.113 D en exp012),
 nunca se llama error; la combinación rotación + tilt + descentración produce

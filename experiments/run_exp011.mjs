@@ -37,6 +37,7 @@ import { ToricCorneaPolicy } from '../src/optics/toric_cornea.mjs';
 import { generateBundle, SamplingKind } from '../src/optics/raytrace/bundle.mjs';
 import { traceRay } from '../src/optics/raytrace/trace.mjs';
 import { analyzeAstigmaticBundle, clinicalFromAstigmaticAnalysis, normDeg180 } from '../src/optics/raytrace/astigmatism.mjs';
+import { vectorResidual } from '../src/toric/toric_rotation.mjs';
 import { equivalentDefocus_d } from '../src/optics/objective.mjs';
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), 'exp011_torico_trazado');
@@ -131,14 +132,17 @@ const preT = ojo({ k1: 42, k2: 45 });
 const soloCornea = analiza(buildRaytraceEye(postop(preT), lioEsferica,
   { cornea_toric: { policy: ToricCorneaPolicy.TORIC_ANTERIOR_FROM_K } }), 0.35);
 const soloLIO = analiza(buildRaytraceEye(postop(ojo()), lioTorica), 0.35);
-const vec = (cyl, eje) => [cyl * Math.cos(2 * eje * Math.PI / 180), cyl * Math.sin(2 * eje * Math.PI / 180)];
-const vCornea = vec(soloCornea.cyl_d, soloCornea.eje_empinado_deg);
+// composición de doble ángulo: desde V1.7 la hace vectorResidual (misma aritmética en
+// el mismo orden: floats idénticos, verificado por check_experiments) — la cuenta a
+// mano que había aquí era duplicación (hallazgo de la revisión adversarial V1.7)
 const rotacion = CONFIG.rotaciones_deg.map(rot => {
   const combinado = analiza(buildRaytraceEye(
     postop(preT, createIOLPose({ rotation_z_deg: rot })), lioTorica,
     { cornea_toric: { policy: ToricCorneaPolicy.TORIC_ANTERIOR_FROM_K } }), 0.35);
-  const vIOL = vec(soloLIO.cyl_d, normDeg180(90 + rot));
-  const esperadoVectorial = Math.hypot(vCornea[0] + vIOL[0], vCornea[1] + vIOL[1]);
+  const esperadoVectorial = vectorResidual([
+    { cyl_d: soloCornea.cyl_d, steep_axis_deg: soloCornea.eje_empinado_deg },
+    { cyl_d: soloLIO.cyl_d, steep_axis_deg: normDeg180(90 + rot) },
+  ]).cyl_d;
   return {
     rotacion_deg: rot,
     residual_trazado_d: +combinado.cyl_d.toFixed(5),
