@@ -27,8 +27,10 @@
    meridianos, TCA solo si está MEDIDO). Su limitación real es que sin córnea posterior
    medida el astigmatismo posterior no se estima: queda declarado, no rellenado.
 6. **Ray tracer:** superficies esféricas, planas y CÓNICAS (V1.2), con POSE RÍGIDA de
-   la LIO — tilt y descentración vectoriales — desde V1.3 (la córnea sigue coaxial; la
-   toricidad de LIO no se traza: cilindro declarado ≠ 0 se rechaza); métrica de foco =
+   la LIO — tilt y descentración vectoriales — desde V1.3 (la córnea sigue coaxial y
+   TODA córnea física trazada es ROTACIONALMENTE SIMÉTRICA — la córnea física
+   astigmática llega con el tórico del plan V1; la toricidad de LIO no se traza:
+   cilindro declarado ≠ 0 se rechaza); métrica de foco =
    RMS geométrico alrededor del CENTROIDE del haz (el desplazamiento del centroide es
    apuntamiento, no borrosidad — corregido en V1.3), sin MTF/difracción. Con pose ≠ 0
    NO existe el límite paraxial coaxial: `paraxialFocusOfRaytraceEye` lo rechaza y la

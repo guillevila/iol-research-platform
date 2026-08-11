@@ -34,6 +34,14 @@
  *                             El ratio es un SUPUESTO: exige `posterior_ratio` y
  *                             `provenance` citada. Sin fuente, no se construye.
  *
+ * SIMETRÍA ROTACIONAL — distinción explícita (V1.5): TODA córnea física de este módulo
+ * es ROTACIONALMENTE SIMÉTRICA (un radio por superficie: la media). La "córnea física
+ * ASTIGMÁTICA" (radios por meridiano, eje) NO EXISTE hasta el tórico trazado del plan
+ * V1: el astigmatismo queratométrico medido se COLAPSA a equivalente esférico y los
+ * builders lo registran (`notasDeColapsoSE`); la vía tórica actual lo modela por
+ * meridianos PARAXIALES, no con superficies tóricas trazadas. Cada modelo devuelto
+ * declara `rotationally_symmetric: true` para que ninguna capa lo confunda.
+ *
  * PROHIBIDO (restricción del proyecto): ajustar el ratio posterior, el índice o
  * cualquier constante de aquí para acercar la salida a EVO. Nada en este archivo
  * procede de ajustar EVO.
@@ -158,7 +166,7 @@ export function buildCorneaModel(preop, {
       nCornea: n_cornea, nAfter: n_aqueous,
     });
     return {
-      power_d, policy, kind: 'two_surface_physical',
+      power_d, policy, kind: 'two_surface_physical', rotationally_symmetric: true,
       r_anterior_mm: measured.r_anterior_mm, r_posterior_mm: measured.r_posterior_mm,
       keratometric_index: n_k, invariant_to_device_index: true,
       assumptions: [], provenance: 'radios y CCT medidos',
@@ -185,7 +193,7 @@ export function buildCorneaModel(preop, {
       nCornea: n_cornea, nAfter: n_aqueous,
     });
     return {
-      power_d, policy, kind: 'two_surface_assumed_ratio',
+      power_d, policy, kind: 'two_surface_assumed_ratio', rotationally_symmetric: true,
       r_anterior_mm: r1, r_posterior_mm: r2,
       keratometric_index: n_k, invariant_to_device_index: true,
       assumptions: [`r_posterior = ${posterior_ratio} · r_anterior (SUPUESTO declarado)`],
@@ -201,7 +209,7 @@ export function buildCorneaModel(preop, {
     const r1 = measured?.r_anterior_mm ?? radiusMmFromKeratometry(K, n_k);
     return {
       power_d: singleSurfacePowerFromRadiusMm(r1, { n_after: n_aqueous }),
-      policy, kind: 'single_surface_from_radius',
+      policy, kind: 'single_surface_from_radius', rotationally_symmetric: true,
       r_anterior_mm: r1, r_posterior_mm: null,
       keratometric_index: n_k, invariant_to_device_index: true,
       assumptions: ['la superficie posterior no se modela (su potencia queda absorbida en n_ac)'],
@@ -212,7 +220,7 @@ export function buildCorneaModel(preop, {
   // KERATOMETRIC_READING
   return {
     power_d: K,
-    policy, kind: 'keratometric_reading',
+    policy, kind: 'keratometric_reading', rotationally_symmetric: true,
     r_anterior_mm: n_k === null ? null : radiusMmFromKeratometry(K, n_k),
     r_posterior_mm: null,
     keratometric_index: n_k,
@@ -220,6 +228,9 @@ export function buildCorneaModel(preop, {
     assumptions: [
       'P = K: se usa la lectura del dispositivo COMO potencia física',
       `depende de la convención de conversión declarada (n_k=${n_k}); otra convención daría otra P`,
+      // dato MEDIDO no usado por elección explícita: se registra, no se calla (V1.5)
+      ...(measured ? ['radios corneales MEDIDOS no usados: la política de lectura se pidió '
+        + 'EXPLÍCITAMENTE con radios disponibles'] : []),
     ],
     provenance: 'convención del dispositivo, no magnitud física',
   };

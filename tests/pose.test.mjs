@@ -20,7 +20,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { sphericalSurface, conicSurface, planarSurface, transformedSurface, intersect, refractDirection } from '../src/optics/raytrace/surfaces.mjs';
 import { traceRay, bestFocus } from '../src/optics/raytrace/trace.mjs';
-import { createIOLPose, poseFromClinical, negatePose, isIdentityPose, rotationOfPose } from '../src/core/pose.mjs';
+import { createIOLPose, poseFromClinical, negatePose, isIdentityPose, rotationOfPose, PoseSource } from '../src/core/pose.mjs';
 import { createPreopEye, createPredictedPostopEye } from '../src/core/eye.mjs';
 import { GenericIOLFactory, ManufacturerIOLFactory } from '../src/core/iol_factory.mjs';
 import { buildRaytraceEye, paraxialFocusOfRaytraceEye, compareParaxialVsRaytrace } from '../src/optics/eyebuilder.mjs';
@@ -332,4 +332,25 @@ test('pose · regresión: el optimizador deja rastro de la pose honrada, y bestF
   const rays = haz2D(1.5).map(r0 => traceRay(eye.surfaces, r0)).filter(t => t.ok).map(t => t.ray);
   assert.throws(() => bestFocus(rays, eye.retina_z_mm + 5, eye.retina_z_mm + 20),
     /borde del\s+bracket/s);
+});
+
+test('pose · procedencia (V1.5): PoseSource viaja, se valida y no cambia ninguna física', () => {
+  // la validación futura distinguirá pose OBSERVADA de PREDICHA: hoy es trazabilidad pura
+  const declarada = createIOLPose({ tilt_x_deg: 5 });
+  assert.equal(declarada.source, PoseSource.DECLARED_SCENARIO);
+  const medida = createIOLPose({ tilt_x_deg: 5, source: PoseSource.MEASURED });
+  assert.equal(medida.source, PoseSource.MEASURED);
+  assert.equal(poseFromClinical({ tilt_deg: 5, tilt_axis_deg: 0, source: PoseSource.PREDICTED }).source,
+    PoseSource.PREDICTED);
+  assert.equal(negatePose(medida).source, PoseSource.MEASURED);
+  assert.throws(() => createIOLPose({ tilt_x_deg: 5, source: 'ADIVINADA' }), /pose source desconocido/);
+  // misma física con distinta procedencia: la rotación es idéntica
+  const Ra = rotationOfPose(declarada), Rb = rotationOfPose(medida);
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) assert.equal(Ra[i][j], Rb[i][j]);
+  // y viaja hasta la salida del optimizador
+  const r = optimizePowerByRaytrace({
+    postop: postopCon(medida), factory, pupil_mm: 4,
+    sampling: SamplingKind.FIBONACCI_SPIRAL, n_anillos: 32,
+  });
+  assert.equal(r.parametros_declarados.pose.source, PoseSource.MEASURED);
 });

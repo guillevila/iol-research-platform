@@ -135,15 +135,31 @@ número de rayos declarado. Aceptación: el resultado converge al aumentar el n�
 rayos, y la **tasa de convergencia se mide**; `pupil_mm` del ojo puede alimentar la
 apertura (sale de `reserved.mjs`).
 
-### V1.5 · Córnea física en el trazado
-Consumir `TWO_SURFACE_MEASURED` y `TWO_SURFACE_RATIO` en el trazador con la misma política
-que el paraxial. Aceptación: la política viaja en la salida; sin radios medidos y sin ratio
-citado, no se fabrica una posterior.
+### V1.5 · Córnea física en el trazado — cierre formal del contrato política↔trazador
+El trazador ya consumía las políticas (V1.2/V1.3): V1.5 NO reescribe la córnea de dos
+superficies — VERIFICA formalmente el contrato, por política: paraxial y trazado consumen
+EXACTAMENTE la misma interpretación (mismo modelo corneal, superficies que reproducen su
+potencia de forma cerrada), la política y su procedencia viajan en la salida de ambas
+vías, ninguna posterior se fabrica en silencio (READING/SINGLE no construyen posterior;
+RATIO la construye SOLO con ratio+procedencia citada y el supuesto registrado; MEASURED
+con medidas y registro vacío), y STRICT es diferencial por política también en el
+trazador. Distinción explícita: toda córnea física actual es ROTACIONALMENTE SIMÉTRICA
+(`rotationally_symmetric: true`); la córnea física ASTIGMÁTICA no existe hasta V1.6.
+Además: procedencia de POSE (PoseSource: MEASURED/PREDICTED/DECLARED_SCENARIO/
+DEFAULT_CENTERED) para que la validación futura distinga pose observada de predicha.
 
 ### V1.6 · Trazado tórico
-Superficies tóricas reales (dos radios principales). Aceptación: con los dos radios iguales
-reproduce la esférica exactamente; el astigmatismo trazado coincide con el vectorial de
-doble ángulo en el límite paraxial.
+**REQUISITO PREVIO (registrado en V1.5):** un sistema tórico NO puede reducir el spot a
+un RMS escalar ni a un mejor foco axial — dos líneas focales y un eje no caben en un
+número. Antes de usar el trazado para optimización tórica debe existir una descripción
+2D del spot (matriz de SEGUNDO MOMENTO con ejes principales y orientación, o métrica
+equivalente que CONSERVE el astigmatismo y su eje). Prohibido forzar el tórico dentro
+del objetivo C actual si eso destruye información (también registrado en objective.mjs).
+Contenido: superficies tóricas reales (dos radios principales) en la LIO y córnea física
+ASTIGMÁTICA (per-meridiano — hasta aquí toda córnea física es rotacionalmente simétrica).
+Aceptación: con los dos radios iguales reproduce la esférica exactamente; el astigmatismo
+trazado coincide con el vectorial de doble ángulo en el límite paraxial; la métrica 2D
+existe y sus ejes principales recuperan el eje del cilindro en casos construidos.
 
 ### V1.7 · Rotación tórica
 Penalización del residual por rotación respecto al eje diana. Aceptación: rotación 0

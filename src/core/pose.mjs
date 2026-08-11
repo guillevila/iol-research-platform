@@ -38,6 +38,20 @@
  */
 import { assertFinite, degToRad } from './units.mjs';
 
+/**
+ * Procedencia de la pose (V1.5): la validación futura tendrá que distinguir una pose
+ * OBSERVADA (imagen postoperatoria) de una PREDICHA o de un escenario de simulación.
+ * No cambia hoy ninguna física ni ninguna puerta: es trazabilidad — como
+ * `position_source` para la posición. `iol_pose: null` equivale a DEFAULT_CENTERED
+ * (la predicción por defecto: centrada), sin objeto de pose.
+ */
+export const PoseSource = Object.freeze({
+  MEASURED: 'MEASURED',                     // observada en imagen postoperatoria
+  PREDICTED: 'PREDICTED',                   // salida de un predictor
+  DECLARED_SCENARIO: 'DECLARED_SCENARIO',   // escenario de simulación (defecto al declarar)
+  DEFAULT_CENTERED: 'DEFAULT_CENTERED',     // pose null: centrada por defecto
+});
+
 /** Límites de plausibilidad amplios (no clínicos): detectan unidades equivocadas. */
 const MAX_TILT_DEG = 30;
 const MAX_DECENTER_MM = 3;
@@ -46,10 +60,15 @@ export function createIOLPose({
   decenter_x_mm = 0, decenter_y_mm = 0,
   tilt_x_deg = 0, tilt_y_deg = 0,
   rotation_z_deg = 0,
+  source = PoseSource.DECLARED_SCENARIO,
 } = {}) {
   for (const [v, name] of [[decenter_x_mm, 'decenter_x_mm'], [decenter_y_mm, 'decenter_y_mm'],
     [tilt_x_deg, 'tilt_x_deg'], [tilt_y_deg, 'tilt_y_deg'], [rotation_z_deg, 'rotation_z_deg']]) {
     assertFinite(v, name);
+  }
+  if (!Object.values(PoseSource).includes(source)) {
+    throw new TypeError(`pose source desconocido: ${String(source)}. `
+      + `Válidos: ${Object.values(PoseSource).join(', ')}`);
   }
   const tilt_total_deg = Math.hypot(tilt_x_deg, tilt_y_deg);
   const decenter_total_mm = Math.hypot(decenter_x_mm, decenter_y_mm);
@@ -63,6 +82,7 @@ export function createIOLPose({
     kind: 'iol_pose',
     decenter_x_mm, decenter_y_mm, tilt_x_deg, tilt_y_deg, rotation_z_deg,
     tilt_total_deg, decenter_total_mm,
+    source,
   });
 }
 
@@ -85,6 +105,7 @@ export function poseFromClinical({
   tilt_deg = 0, tilt_axis_deg = 0,
   decenter_mm = 0, decenter_axis_deg = 0,
   rotation_z_deg = 0,
+  source = PoseSource.DECLARED_SCENARIO,
 } = {}) {
   assertFinite(tilt_deg, 'tilt_deg'); assertFinite(decenter_mm, 'decenter_mm');
   assertFinite(tilt_axis_deg, 'tilt_axis_deg'); assertFinite(decenter_axis_deg, 'decenter_axis_deg');
@@ -98,6 +119,7 @@ export function poseFromClinical({
     decenter_x_mm: decenter_mm * Math.cos(da),
     decenter_y_mm: decenter_mm * Math.sin(da),
     rotation_z_deg,
+    source,
   });
 }
 
@@ -107,6 +129,7 @@ export function negatePose(pose) {
     decenter_x_mm: -pose.decenter_x_mm, decenter_y_mm: -pose.decenter_y_mm,
     tilt_x_deg: -pose.tilt_x_deg, tilt_y_deg: -pose.tilt_y_deg,
     rotation_z_deg: pose.rotation_z_deg,
+    source: pose.source,
   });
 }
 

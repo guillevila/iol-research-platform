@@ -81,6 +81,15 @@
  * Con pupila → 0 TODOS los criterios convergen entre sí y al paraxial del mismo sistema:
  * sin aberración no hay diferencia posible. Hay tests que lo vigilan (V1.13).
  *
+ * REQUISITO REGISTRADO PARA EL TÓRICO (V1.5 → plan V1.6): los objetivos de este módulo
+ * son ESCALARES — colapsan el spot 2D a un número (RMS radial o desenfoque axial). Un
+ * sistema TÓRICO tiene dos líneas focales y un EJE: reducirlo a un escalar destruye
+ * exactamente la información que el tórico necesita (magnitud Y orientación del
+ * astigmatismo residual). Antes de usar el trazado para optimización tórica debe
+ * existir una descripción 2D del spot — matriz de SEGUNDO MOMENTO con ejes principales
+ * y orientación, o métrica equivalente que conserve astigmatismo y eje. PROHIBIDO
+ * forzar el sistema tórico dentro del objetivo C actual.
+ *
  * Convenio de signo del residuo: **positivo = la luz enfoca por DETRÁS de la retina**
  * (ojo hipermétrope), que es el signo de la refracción de gafa necesaria para corregirlo.
  *
