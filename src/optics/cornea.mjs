@@ -35,12 +35,13 @@
  *                             `provenance` citada. Sin fuente, no se construye.
  *
  * SIMETRÍA ROTACIONAL — distinción explícita (V1.5): TODA córnea física de este módulo
- * es ROTACIONALMENTE SIMÉTRICA (un radio por superficie: la media). La "córnea física
- * ASTIGMÁTICA" (radios por meridiano, eje) NO EXISTE hasta el tórico trazado del plan
- * V1: el astigmatismo queratométrico medido se COLAPSA a equivalente esférico y los
- * builders lo registran (`notasDeColapsoSE`); la vía tórica actual lo modela por
- * meridianos PARAXIALES, no con superficies tóricas trazadas. Cada modelo devuelto
- * declara `rotationally_symmetric: true` para que ninguna capa lo confunda.
+ * es ROTACIONALMENTE SIMÉTRICA (un radio por superficie: la media). El astigmatismo
+ * queratométrico medido se COLAPSA a equivalente esférico y los builders lo registran
+ * (`notasDeColapsoSE`). Desde V1.6 la córnea ASTIGMÁTICA trazada existe — pero SOLO
+ * como política tórica EXPLÍCITA en `toric_cornea.mjs` (radios recuperados de K1/K2 o
+ * declarados con procedencia, superficies bicónicas): este módulo sigue siendo la vía
+ * EE por defecto y NUNCA construye meridianos. Cada modelo devuelto declara
+ * `rotationally_symmetric: true` para que ninguna capa lo confunda.
  *
  * PROHIBIDO (restricción del proyecto): ajustar el ratio posterior, el índice o
  * cualquier constante de aquí para acercar la salida a EVO. Nada en este archivo

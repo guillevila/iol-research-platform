@@ -1,0 +1,196 @@
+{
+  "config": {
+    "id": "exp011_torico_trazado",
+    "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO",
+    "pregunta": "Recuperación de eje, convergencia pupila→0 y residual por rotación del trazado tórico",
+    "lente_torica": "SyntheticToricIOLFactory EE 21 D + cilindro 3 D — SUSTITUTO SINTÉTICO DECLARADO",
+    "cornea_torica": "TORIC_ANTERIOR_FROM_K (K1 42 / K2 45) — radios RECUPERADOS por meridiano, no medidos",
+    "ejes_barrido_deg": [
+      0,
+      17,
+      35,
+      63.4,
+      90,
+      121,
+      158
+    ],
+    "pupilas_radio_mm": [
+      0.1,
+      0.35,
+      0.75,
+      1.25,
+      2
+    ],
+    "rotaciones_deg": [
+      0,
+      5,
+      10,
+      15,
+      30,
+      45,
+      60,
+      90
+    ],
+    "muestreo": {
+      "kind": "RINGS_EQUAL_AREA",
+      "n": 4,
+      "perRing": 8
+    },
+    "fijos": {
+      "al_mm": 23.5,
+      "acd_mm": 3.2,
+      "lt_mm": 4.5,
+      "cct_um": 550,
+      "n_k": 1.3375,
+      "iol_position_mm": 4.9
+    }
+  },
+  "timestamp": "2026-08-11T11:58:03.574Z",
+  "commit": "a028a96207c3509096847062a139501b070f8058",
+  "procedencia_commit": "último commit AL GENERAR: el experimento puede incluir cambios aún sin committear (hallazgo adversarial V1.3: el commit estampado era sistemáticamente el PADRE del que publica). La reproducibilidad NO la garantiza este campo sino scripts/check_experiments.mjs, que re-ejecuta contra el árbol del commit que publica y en cada push de CI.",
+  "resumen": {
+    "max_error_eje_deg": 0,
+    "cyl_paraxial_ancla_d": 3.22662,
+    "divergencia_pupila_min_d": 0.00005,
+    "divergencia_pupila_max_d": 0.01923,
+    "cyl_cornea_sola_d": 4.38264,
+    "cyl_lio_sola_d": 3.22718,
+    "max_divergencia_vectorial_d": 0.0009,
+    "residual_rot0_d": 7.60894,
+    "residual_rot90_d": 1.15636
+  },
+  "ejes": [
+    {
+      "eje_declarado_deg": 0,
+      "eje_recuperado_deg": 0,
+      "error_deg": 0,
+      "eje_minus_cyl_deg": 90
+    },
+    {
+      "eje_declarado_deg": 17,
+      "eje_recuperado_deg": 17,
+      "error_deg": 0,
+      "eje_minus_cyl_deg": 107
+    },
+    {
+      "eje_declarado_deg": 35,
+      "eje_recuperado_deg": 35,
+      "error_deg": 0,
+      "eje_minus_cyl_deg": 125
+    },
+    {
+      "eje_declarado_deg": 63.4,
+      "eje_recuperado_deg": 63.4,
+      "error_deg": 0,
+      "eje_minus_cyl_deg": 153.4
+    },
+    {
+      "eje_declarado_deg": 90,
+      "eje_recuperado_deg": 90,
+      "error_deg": 0,
+      "eje_minus_cyl_deg": 0
+    },
+    {
+      "eje_declarado_deg": 121,
+      "eje_recuperado_deg": 121,
+      "error_deg": 0,
+      "eje_minus_cyl_deg": 31
+    },
+    {
+      "eje_declarado_deg": 158,
+      "eje_recuperado_deg": 158,
+      "error_deg": 0,
+      "eje_minus_cyl_deg": 68
+    }
+  ],
+  "convergencia": [
+    {
+      "pupila_radio_mm": 0.1,
+      "cyl_trazado_d": 3.22667,
+      "cyl_paraxial_ancla_d": 3.22662,
+      "divergencia_d": 0.00005
+    },
+    {
+      "pupila_radio_mm": 0.35,
+      "cyl_trazado_d": 3.22718,
+      "cyl_paraxial_ancla_d": 3.22662,
+      "divergencia_d": 0.00056
+    },
+    {
+      "pupila_radio_mm": 0.75,
+      "cyl_trazado_d": 3.22922,
+      "cyl_paraxial_ancla_d": 3.22662,
+      "divergencia_d": 0.0026
+    },
+    {
+      "pupila_radio_mm": 1.25,
+      "cyl_trazado_d": 3.23393,
+      "cyl_paraxial_ancla_d": 3.22662,
+      "divergencia_d": 0.00731
+    },
+    {
+      "pupila_radio_mm": 2,
+      "cyl_trazado_d": 3.24585,
+      "cyl_paraxial_ancla_d": 3.22662,
+      "divergencia_d": 0.01923
+    }
+  ],
+  "rotacion": [
+    {
+      "rotacion_deg": 0,
+      "residual_trazado_d": 7.60894,
+      "residual_vectorial_d": 7.60983,
+      "divergencia_d": -0.00089,
+      "ley_2C_sin_theta_d": 0
+    },
+    {
+      "rotacion_deg": 5,
+      "residual_trazado_d": 7.58066,
+      "residual_vectorial_d": 7.58154,
+      "divergencia_d": -0.00088,
+      "ley_2C_sin_theta_d": 0.56254
+    },
+    {
+      "rotacion_deg": 10,
+      "residual_trazado_d": 7.49604,
+      "residual_vectorial_d": 7.4969,
+      "divergencia_d": -0.00086,
+      "ley_2C_sin_theta_d": 1.12079
+    },
+    {
+      "rotacion_deg": 15,
+      "residual_trazado_d": 7.35578,
+      "residual_vectorial_d": 7.35661,
+      "divergencia_d": -0.00082,
+      "ley_2C_sin_theta_d": 1.67051
+    },
+    {
+      "rotacion_deg": 30,
+      "residual_trazado_d": 6.61493,
+      "residual_vectorial_d": 6.61558,
+      "divergencia_d": -0.00065,
+      "ley_2C_sin_theta_d": 3.22718
+    },
+    {
+      "rotacion_deg": 45,
+      "residual_trazado_d": 5.44223,
+      "residual_vectorial_d": 5.44263,
+      "divergencia_d": -0.0004,
+      "ley_2C_sin_theta_d": 4.56393
+    },
+    {
+      "rotacion_deg": 60,
+      "residual_trazado_d": 3.93419,
+      "residual_vectorial_d": 3.93429,
+      "divergencia_d": -0.0001,
+      "ley_2C_sin_theta_d": 5.58965
+    },
+    {
+      "rotacion_deg": 90,
+      "residual_trazado_d": 1.15636,
+      "residual_vectorial_d": 1.15546,
+      "divergencia_d": 0.0009,
+      "ley_2C_sin_theta_d": 6.45437
+    }
+  ]
+}

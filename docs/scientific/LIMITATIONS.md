@@ -26,11 +26,19 @@
 5. **Tórico:** el motor tórico propio existe (vectores de doble ángulo, cálculo por
    meridianos, TCA solo si está MEDIDO). Su limitación real es que sin córnea posterior
    medida el astigmatismo posterior no se estima: queda declarado, no rellenado.
-6. **Ray tracer:** superficies esféricas, planas y CÓNICAS (V1.2), con POSE RÍGIDA de
-   la LIO — tilt y descentración vectoriales — desde V1.3 (la córnea sigue coaxial y
-   TODA córnea física trazada es ROTACIONALMENTE SIMÉTRICA — la córnea física
-   astigmática llega con el tórico del plan V1; la toricidad de LIO no se traza:
-   cilindro declarado ≠ 0 se rechaza); métrica de foco =
+6. **Ray tracer:** superficies esféricas, planas, CÓNICAS (V1.2) y BICÓNICAS (V1.6,
+   tóricas: curvaturas y Q por meridiano), con POSE RÍGIDA de la LIO — tilt y
+   descentración vectoriales — desde V1.3 (la córnea sigue coaxial). La córnea
+   astigmática trazada EXISTE desde V1.6 pero SOLO como política tórica EXPLÍCITA
+   (`toric_cornea.mjs`: radios RECUPERADOS de K1/K2 o DECLARADOS con procedencia —
+   nunca "medida": el modelo de datos no tiene radios per-meridiano medidos, OQ #10);
+   la vía por defecto sigue colapsando a equivalente esférico CON registro. La
+   toricidad de LIO se traza SOLO con cara tórica DECLARADA en la geometría (sintética
+   etiquetada o fabricante con procedencia): cilindro nominal sin geometría → rechazo.
+   Un sistema tórico NO admite objetivos escalares (guardado: `evaluateObjective`
+   rechaza) — su descripción es la métrica 2D (`astigmatism.mjs`: dos focos
+   principales + meridianos, autoproblema generalizado). Ninguna geometría tórica
+   actual pasa STRICT salvo la de fabricante documentada; métrica de foco =
    RMS geométrico alrededor del CENTROIDE del haz (el desplazamiento del centroide es
    apuntamiento, no borrosidad — corregido en V1.3), sin MTF/difracción. Con pose ≠ 0
    NO existe el límite paraxial coaxial: `paraxialFocusOfRaytraceEye` lo rechaza y la

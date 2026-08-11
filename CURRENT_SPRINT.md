@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
 **Fecha:** 11/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 214/214 tests verdes · CI verde (5 jobs) · 6 experimentos deterministas verificados en CI
+**Suite:** 242/242 tests verdes · CI verde (5 jobs) · 7 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
@@ -10,7 +10,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 |---|---|
 | V0 (motor paraxial + benchmark congelado) | DONE — ver histórico al pie |
 | **V0.5 endurecimiento** (10 hallazgos de `docs/V0_REVIEW.md`) | **DONE** — `docs/V0_5_CLOSURE.md`, tag `v0.5-hardening-complete` |
-| **V1** (calculadora por trazado, plan en `docs/V1_PROJECT_PLAN.md`) | **EN CURSO** — 6/15 sprints + revisión pre-V1.2 |
+| **V1** (calculadora por trazado, plan en `docs/V1_PROJECT_PLAN.md`) | **EN CURSO** — 7/15 sprints + revisión pre-V1.2 |
 
 ## V1 — estado por sprint
 
@@ -23,7 +23,8 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 | V1.2 Superficies cónicas | **DONE** | k=0≡esfera (1e-12), paraboloide y cartesiana exactos; PRIMER trazado STRICT (todo Q documentado); exp009 |
 | V1.3 Pose rígida de LIO (tilt/descentración vectoriales) | **DONE** | pose vector + transformadas rígidas; validación no-coaxial (reversibilidad/±pose/O(s²)); métrica de spot corregida a centroide; exp010 |
 | V1.5 Contrato política corneal ↔ trazador | **DONE** | verificado por política (misma interpretación, procedencia viaja, sin posterior fabricada, STRICT diferencial); `rotationally_symmetric` explícito y expuesto en consumidores; PoseSource; caza adversarial aplicada: medidas corneales PARCIALES se usan o se registran (antes: descarte silencioso) |
-| V1.6 Tórico trazado · V1.7 Rotación | **SIGUIENTE** | REQUISITO registrado: métrica 2D del spot (segundo momento/ejes/orientación) antes de optimizar tórico — prohibido colapsarlo a los objetivos escalares actuales (A o C) |
+| V1.6 Tórico trazado | **DONE** | `biconicSurface` (Newton salvaguardado, recupera cónica a 1e-12); métrica 2D (M(z) exacta → autoproblema generalizado, ejes sin plano degenerado); `SyntheticToricIOLFactory` (única vía etiqueta→radios, declarada); córnea tórica por política explícita (jamás "medida", OQ #10); STRICT bloquea todo tórico inventado; objetivos escalares GUARDADOS; exp011 (eje 0° error, vectorial ≤0.001 D) |
+| V1.7 Rotación tórica | **SIGUIENTE** | criterio CORREGIDO en V1.6 a petición: residual de cilindros iguales = 2C·\|sen θ\| (no C·\|sen 2θ\|); caso general contra resta vectorial completa — candado algebraico ya en tests |
 | V1.8 `RaytraceEngine` en benchmark · V1.9 Divergencia | pendiente | terminología: divergencia, nunca error |
 | V1.11 Pipeline EQ · V1.12 Incertidumbre · V1.14 Rendimiento · V1.15 Docs | pendiente | |
 | V1.10 Predictores de literatura | **BLOCKED** | OPEN_QUESTIONS #2: sin publicación con coeficientes, no se implementa |
@@ -75,7 +76,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 - Legado EVO byte-idéntico (102 hashes, en Linux y Windows).
 - El motor físico no importa nada del legado (test de arquitectura).
-- Los experimentos deterministas (exp001/003/007/008/009/010) reproducen su `results.json` publicado.
+- Los experimentos deterministas (exp001/003/007/008/009/010/011) reproducen su `results.json` publicado.
 - Ningún parámetro del motor procede de ajustar contra EVO.
 
 ---

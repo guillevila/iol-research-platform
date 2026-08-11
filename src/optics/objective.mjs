@@ -81,15 +81,16 @@
  * Con pupila → 0 TODOS los criterios convergen entre sí y al paraxial del mismo sistema:
  * sin aberración no hay diferencia posible. Hay tests que lo vigilan (V1.13).
  *
- * REQUISITO REGISTRADO PARA EL TÓRICO (V1.5 → plan V1.6): los objetivos de este módulo
- * son ESCALARES — colapsan el spot 2D a un número (RMS radial o desenfoque axial). Un
- * sistema TÓRICO tiene dos líneas focales y un EJE: reducirlo a un escalar destruye
- * exactamente la información que el tórico necesita (magnitud Y orientación del
- * astigmatismo residual). Antes de usar el trazado para optimización tórica debe
- * existir una descripción 2D del spot — matriz de SEGUNDO MOMENTO con ejes principales
- * y orientación, o métrica equivalente que conserve astigmatismo y eje. PROHIBIDO
- * forzar el sistema tórico dentro de los objetivos escalares actuales (A o C): la
- * reducción a escalar destruye SIEMPRE el eje, no solo a veces.
+ * REQUISITO TÓRICO (registrado en V1.5, CUMPLIDO Y GUARDADO en V1.6): los objetivos de
+ * este módulo son ESCALARES — colapsan el spot 2D a un número (RMS radial o desenfoque
+ * axial). Un sistema TÓRICO tiene dos líneas focales y un EJE: reducirlo a un escalar
+ * destruye exactamente la información que el tórico necesita (magnitud Y orientación
+ * del astigmatismo residual). La descripción 2D EXISTE desde V1.6
+ * (`raytrace/astigmatism.mjs`: matriz de segundo momento M(z) exacta → autoproblema
+ * generalizado → dos focos principales con meridianos). PROHIBIDO forzar el sistema
+ * tórico dentro de los objetivos escalares (A o C) — la reducción a escalar destruye
+ * SIEMPRE el eje, no solo a veces — y desde V1.6 la prohibición está IMPUESTA:
+ * `evaluateObjective` rechaza cualquier ojo con `toric: true`.
  *
  * Convenio de signo del residuo: **positivo = la luz enfoca por DETRÁS de la retina**
  * (ojo hipermétrope), que es el signo de la refracción de gafa necesaria para corregirlo.
@@ -174,6 +175,15 @@ export function evaluateObjective(eye, bundle, kind = ObjectiveKind.EQUIVALENT_D
     && bundle.every(r => r.p[0] === 0 && r.d[0] === 0)) {
     throw new TypeError(`objetivo ${kind}: haz meridional (planar en x=0) sobre un ojo `
       + 'con pose — un sistema sin simetría de revolución exige muestreo 2D (bundle.mjs).');
+  }
+  // GUARDA V1.6 (hace cumplir la prohibición registrada en la cabecera): un sistema
+  // TÓRICO tiene dos líneas focales y un eje — cualquier objetivo escalar los destruye.
+  // No es una limitación de implementación: es información que un número no puede
+  // contener. La métrica 2D existe (raytrace/astigmatism.mjs).
+  if (eye.toric) {
+    throw new TypeError(`objetivo ${kind}: el sistema es TÓRICO y los objetivos escalares `
+      + '(A/C) destruyen el astigmatismo y su eje. Usa analyzeAstigmaticBundle + '
+      + 'clinicalFromAstigmaticAnalysis (raytrace/astigmatism.mjs, V1.6).');
   }
   const { rays, lost } = traceBundle(eye.surfaces, bundle);
   if (rays.length < 2) {

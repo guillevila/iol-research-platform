@@ -156,15 +156,46 @@ número. Antes de usar el trazado para optimización tórica debe existir una de
 equivalente que CONSERVE el astigmatismo y su eje). Prohibido forzar el tórico dentro
 de los objetivos escalares actuales (A o C) — la reducción a escalar destruye SIEMPRE
 el eje, no solo a veces (también registrado en objective.mjs, sin condicional).
-Contenido: superficies tóricas reales (dos radios principales) en la LIO y córnea física
-ASTIGMÁTICA (per-meridiano — hasta aquí toda córnea física es rotacionalmente simétrica).
-Aceptación: con los dos radios iguales reproduce la esférica exactamente; el astigmatismo
-trazado coincide con el vectorial de doble ángulo en el límite paraxial; la métrica 2D
-existe y sus ejes principales recuperan el eje del cilindro en casos construidos.
+Contenido (EJECUTADO — especificación matemática explícita, no "dos radios
+principales" a secas): primitiva **biconicSurface** (`raytrace/surfaces.mjs`) con
+sagita `z = (cx·x² + cy·y²) / (1 + √(1 − (1+Qx)·cx²·x² − (1+Qy)·cy²·y²))` —
+curvaturas principales y constante cónica POR MERIDIANO; intersección por Newton
+SALVAGUARDADO con horquilla (la bicónica no es cuádrica: sin forma cerrada), normal
+analítica, dominio de apertura validado al construir. Recupera `conicSurface` con
+Rx=Ry y Qx=Qy: estructural en la fórmula y verificado a 1e-12 contra el algoritmo
+CERRADO de la cónica (dos algoritmos independientes; también la esfera, y el cilindro
+cx=0 contra su foco cerrado). Métrica 2D (`raytrace/astigmatism.mjs`): matriz de
+segundo momento M(z) = M0 + M1·z + M2·z², EXACTA tras la última superficie, analizada
+como autoproblema GENERALIZADO det(M1/2 + z·M2) = 0 → dos focos principales con sus
+meridianos, extraídos de la estructura global del haz — jamás de un plano donde el
+spot sea casi circular; caso degenerado explícito (astigmatic:false + razón, nunca un
+eje arbitrario). Convención documentada: meridiano de potencia ⊥ línea focal; eje
+clínico minus-cyl = meridiano PLANO (trampa de 90° con test propio). Etiqueta ≠
+geometría: `SyntheticToricIOLFactory` es la ÚNICA vía etiqueta→radios y se declara
+(sustituto DERIVED_GENERIC); cylinder_d sin cara tórica declarada → rechazo; córnea
+tórica solo por política explícita (`toric_cornea.mjs`: FROM_K = radios RECUPERADOS
+por meridiano — "NO es una córnea astigmática medida" viaja en su procedencia — o
+DECLARED con cita; OQ #10 registra por qué ninguna pasa STRICT).
+Aceptación (EJECUTADA, tests/biconic + astigmatism + toric_trace): Rx=Ry reproduce la
+esférica/cónica a 1e-12; intercambio Rx↔Ry + rotación 90° → mismo conjunto de puntos;
+periodicidad de eje 180°; ejes arbitrarios (17°/35°/63.4°/121°… error 0° en exp011);
+pupila→0 → cilindro/eje coinciden con los anclas paraxiales POR MERIDIANO (sistemas
+de revolución equivalentes, maquinaria V1.2) y el residual con la composición
+VECTORIAL completa (≤0.001 D en exp011); córnea sola, LIO sola y combinadas validadas
+POR SEPARADO; STRICT bloquea toda geometría tórica inventada (sintética, FROM_K,
+DECLARED) y solo pasa la de fabricante documentada; objetivos escalares GUARDADOS
+(`evaluateObjective` rechaza `toric: true`); el residual de dos cilindros iguales
+sigue 2C|sen θ| (candado algebraico, ver V1.7). exp011.
 
 ### V1.7 · Rotación tórica
 Penalización del residual por rotación respecto al eje diana. Aceptación: rotación 0
-reproduce V1.6; el residual crece con |sen(2·rotación)| como predice el álgebra vectorial.
+reproduce V1.6; el residual de dos cilindros IGUALES de magnitud C separados un ángulo
+θ es **2·C·|sen θ|** — NO C·|sen 2θ| (en el espacio de doble ángulo la resta vale
+C·|1 − e^{i2θ}| = 2C·|sen θ|; la fórmula anterior de esta sección era una
+simplificación ERRÓNEA, corregida en V1.6 a petición: a 30° el residual es C entero,
+no 0.87·C, y a 90° es 2C, no 0). El caso GENERAL (cilindros distintos, ejes
+cualesquiera) se valida contra la RESTA VECTORIAL completa en doble ángulo, nunca
+contra una fórmula simplificada.
 `toric_rotation_deg` sale de `reserved.mjs`. **La distribución real de rotaciones sigue
 bloqueada** (OPEN_QUESTIONS #6): solo se admiten escenarios declarados.
 

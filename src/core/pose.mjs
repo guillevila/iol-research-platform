@@ -27,7 +27,8 @@
  *    lente y el tilt inclina la lente entera ya orientada. Con superficies de
  *    revolución, rotation_z es ópticamente INERTE — se aplica igualmente (aplicar una
  *    rotación a una superficie simétrica no es ignorar un dato: la física no depende
- *    de él, exactamente).
+ *    de él, exactamente). Con caras TÓRICAS (bicónicas, V1.6) rotation_z es ACTIVA:
+ *    es EL eje de implantación del cilindro (meridiano potente de fábrica en y local).
  *
  * La pose es ESTADO POSTOPERATORIO PREVISTO (frontera de fidelity.mjs): declararla es
  * declarar un escenario/predicción, no imputar un dato del caso. `null` = no declarada

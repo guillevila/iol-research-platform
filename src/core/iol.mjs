@@ -65,6 +65,42 @@ export const GeometryStatus = Object.freeze({
   UNKNOWN: 'UNKNOWN',
 });
 
+/**
+ * Sentinela para el campo escalar de asfericidad de una cara TÓRICA (V1.6): la Q vive
+ * POR MERIDIANO dentro del bloque tórico (q_x/q_y) y el campo escalar deja de tener
+ * sentido. Cualquier consumidor que lo lea como número fallará ruidosamente en vez de
+ * asumir una esfera.
+ */
+export const PER_MERIDIAN = 'PER_MERIDIAN';
+
+/**
+ * Valida un bloque tórico de cara (V1.6): radios principales por meridiano LOCAL x/y
+ * (±Infinity = meridiano plano, como en biconicSurface) y Q por meridiano.
+ * La ORIENTACIÓN no vive aquí: los meridianos son los ejes locales de la lente por
+ * convención, y el eje tórico se orienta EXCLUSIVAMENTE con pose.rotation_z (V1.3/V1.7).
+ * Convención de fábrica de este proyecto: meridiano MÁS potente en y local.
+ */
+function normToricFace(tf, name) {
+  if (tf === null || tf === undefined) return null;
+  if (typeof tf !== 'object') throw new TypeError(`${name} debe ser un objeto { r_x_mm, r_y_mm, q_x, q_y }`);
+  for (const k of ['r_x_mm', 'r_y_mm']) {
+    const v = tf[k];
+    if (typeof v !== 'number' || Number.isNaN(v)) throw new TypeError(`${name}.${k} debe ser número (±Infinity = plano)`);
+    if (v === 0) throw new RangeError(`${name}.${k} = 0 no es una superficie`);
+  }
+  return Object.freeze({
+    r_x_mm: tf.r_x_mm, r_y_mm: tf.r_y_mm,
+    q_x: normAsphericity(tf.q_x, `${name}.q_x`),
+    q_y: normAsphericity(tf.q_y, `${name}.q_y`),
+  });
+}
+
+/** Radio de curvatura MEDIA de una cara tórica (bookkeeping EE): c̄ = (cx+cy)/2. */
+function meanRadiusOfToricFace(tf) {
+  const cMean = (1 / tf.r_x_mm + 1 / tf.r_y_mm) / 2;
+  return cMean === 0 ? Infinity : 1 / cMean;
+}
+
 /** Parámetros sin los cuales no se puede trazar una lente gruesa. */
 export const ESSENTIAL_GEOMETRY = Object.freeze([
   'refractive_index', 'central_thickness_mm', 'r_anterior_mm', 'r_posterior_mm',
@@ -81,15 +117,39 @@ export function createIOL(f) {
   assertFinite(f.nominal_power_d, 'nominal_power_d');
   assertInRange(f.nominal_power_d, -15, 60, 'nominal_power_d');
   const g = f.geometry ?? {};
+  // caras tóricas (V1.6): geometría bicónica explícita por meridiano LOCAL. La etiqueta
+  // nominal (cylinder_d) NUNCA se convierte en radios en silencio: o la cara tórica
+  // viene DECLARADA aquí (fabricante con procedencia / sintética etiquetada), o no hay
+  // geometría tórica que trazar.
+  const toricAnt = normToricFace(g.toric_anterior, 'toric_anterior');
+  const toricPost = normToricFace(g.toric_posterior, 'toric_posterior');
+  for (const [tf, rKey, qKey] of [
+    [toricAnt, 'r_anterior_mm', 'asphericity_q_anterior'],
+    [toricPost, 'r_posterior_mm', 'asphericity_q_posterior'],
+  ]) {
+    if (tf && g[rKey] !== undefined) {
+      throw new TypeError(`geometría contradictoria: ${rKey} y su cara tórica a la vez — `
+        + 'el radio EE de una cara tórica se DERIVA de la curvatura media, no se declara aparte');
+    }
+    if (tf && g[qKey] !== undefined) {
+      throw new TypeError(`geometría contradictoria: ${qKey} escalar y cara tórica a la vez — `
+        + 'la Q de una cara tórica vive POR MERIDIANO (q_x/q_y) dentro del bloque tórico');
+    }
+  }
   const geometry = {
     kind: g.kind ?? 'thick_lens',               // 'thin_lens' | 'thick_lens'
     refractive_index: g.refractive_index ?? UNKNOWN,
     central_thickness_mm: g.central_thickness_mm ?? UNKNOWN,
-    r_anterior_mm: g.r_anterior_mm ?? UNKNOWN,   // convención: +r centro a la derecha (+z)
-    r_posterior_mm: g.r_posterior_mm ?? UNKNOWN,
-    asphericity_q_anterior: normAsphericity(g.asphericity_q_anterior, 'asphericity_q_anterior'),
-    asphericity_q_posterior: normAsphericity(g.asphericity_q_posterior, 'asphericity_q_posterior'),
-    toric_design: g.toric_design ?? UNKNOWN,     // 'anterior'|'posterior'|'bitoric'|UNKNOWN
+    // convención: +r centro a la derecha (+z); para cara tórica, radio de curvatura MEDIA
+    r_anterior_mm: toricAnt ? meanRadiusOfToricFace(toricAnt) : (g.r_anterior_mm ?? UNKNOWN),
+    r_posterior_mm: toricPost ? meanRadiusOfToricFace(toricPost) : (g.r_posterior_mm ?? UNKNOWN),
+    asphericity_q_anterior: toricAnt ? PER_MERIDIAN : normAsphericity(g.asphericity_q_anterior, 'asphericity_q_anterior'),
+    asphericity_q_posterior: toricPost ? PER_MERIDIAN : normAsphericity(g.asphericity_q_posterior, 'asphericity_q_posterior'),
+    toric_anterior: toricAnt,
+    toric_posterior: toricPost,
+    toric_design: (toricAnt || toricPost)
+      ? (toricAnt && toricPost ? 'bitoric' : (toricAnt ? 'anterior' : 'posterior'))
+      : (g.toric_design ?? UNKNOWN),
     haptic_angulation_deg: g.haptic_angulation_deg ?? UNKNOWN,
   };
   const unknowns = ESSENTIAL_GEOMETRY.filter(k => isUnknown(geometry[k]));
@@ -166,4 +226,47 @@ export function physicalPowerOfIOL(iol, { n_before = 1.336, n_after = 1.336 } = 
  */
 export function nominalVsPhysicalMismatch(iol, medium) {
   return physicalPowerOfIOL(iol, medium) - iol.nominal_power_d;
+}
+
+/** ¿Tiene la LIO geometría tórica declarada (alguna cara bicónica)? (V1.6) */
+export function hasToricGeometry(iol) {
+  return Boolean(iol?.geometry?.toric_anterior || iol?.geometry?.toric_posterior);
+}
+
+/**
+ * Potencias FÍSICAS por meridiano LOCAL (x/y) de una LIO con geometría tórica (V1.6):
+ * la misma lente gruesa que physicalPowerOfIOL, aplicada meridiano a meridiano. Es
+ * EXACTA para los meridianos principales de un sistema alineado con los ejes locales
+ * (el paraxial por meridiano de un sistema tórico ortogonal es separable).
+ *
+ * `cylinder_d = power_y − power_x`: con la convención de fábrica de este proyecto
+ * (meridiano MÁS potente en y local), una LIO tórica de etiqueta positiva da
+ * cylinder_d > 0. Sirve para VERIFICAR que la etiqueta corresponde a la geometría —
+ * nunca al revés (la etiqueta jamás fabrica radios).
+ */
+export function physicalPowersOfToricIOL(iol, { n_before = 1.336, n_after = 1.336 } = {}) {
+  assertTraceableGeometry(iol, 'physicalPowersOfToricIOL');
+  if (!hasToricGeometry(iol)) {
+    throw new TypeError('physicalPowersOfToricIOL: la LIO no tiene geometría tórica declarada — '
+      + 'usa physicalPowerOfIOL para lentes de revolución');
+  }
+  const g = iol.geometry;
+  const n = g.refractive_index;
+  const t = mmToM(g.central_thickness_mm);
+  const cara = (tf, rEE, axis) => tf
+    ? 1 / mmToM(axis === 'x' ? tf.r_x_mm : tf.r_y_mm)
+    : curvatureFromRadiusMm(rEE, 'radio');
+  const powerAlong = axis => {
+    const c1 = cara(g.toric_anterior, g.r_anterior_mm, axis);
+    const c2 = cara(g.toric_posterior, g.r_posterior_mm, axis);
+    const P1 = (n - n_before) * c1;
+    const P2 = (n_after - n) * c2;
+    return P1 + P2 - (t / n) * P1 * P2;
+  };
+  const power_x_d = powerAlong('x'), power_y_d = powerAlong('y');
+  return {
+    power_x_d, power_y_d,
+    cylinder_d: power_y_d - power_x_d,
+    mean_d: (power_x_d + power_y_d) / 2,
+  };
 }

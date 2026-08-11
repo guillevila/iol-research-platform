@@ -171,3 +171,21 @@ evidencia, nunca con suposición.
   validación STRICT de trazado deberá exigirla — hasta entonces, un trazado STRICT con
   Q "medida" valida el motor bajo LA CONVENCIÓN de esa medida, no una Q universal.
 - **PROHIBIDO:** ajustar Q contra EVO o elegir convención por conveniencia.
+
+## #10 · Radios corneales per-meridiano MEDIDOS (córnea tórica STRICT)
+
+- **Pregunta:** ¿qué medida aporta radios corneales POR MERIDIANO de ambas caras, con
+  eje, para que una córnea tórica trazada sea "medida" y no derivada?
+- **Por qué importa:** V1.6 introdujo la córnea tórica trazable, pero sus dos políticas
+  son derivación (radios recuperados de K1/K2 bajo n_k) o declaración (escenario con
+  procedencia). El modelo de datos del ojo no tiene radios per-meridiano medidos de
+  ninguna cara — así que **ninguna córnea tórica pasa STRICT, por construcción**, y eso
+  es correcto: llamar "medida" a una derivación sería el relleno tácito que este
+  proyecto prohíbe. La toricidad POSTERIOR real (que los tomógrafos sí miden como
+  posterior_k1/k2) tampoco se traza aún: se registra como dato disponible no usado.
+- **Estado:** registrado, no resuelto (requiere integración de tomografía/mapas de
+  elevación con procedencia, convención y zona — misma clase de problema que OQ #9).
+- **Acción futura:** esquema clínico con radios per-meridiano por cara + eje +
+  dispositivo/zona/convención; entonces una política TORIC_TWO_SURFACE_MEASURED podrá
+  existir y pasar STRICT.
+- **PROHIBIDO:** promover K1/K2 a "córnea astigmática medida" para esquivar la puerta.

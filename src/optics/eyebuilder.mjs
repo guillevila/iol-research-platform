@@ -10,13 +10,14 @@
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 import { mmToM, assertFinite, curvatureFromRadiusMm } from '../core/units.mjs';
-import { assertTraceableGeometry, ASSUMED_SPHERICAL, UNKNOWN } from '../core/iol.mjs';
+import { assertTraceableGeometry, ASSUMED_SPHERICAL, UNKNOWN, hasToricGeometry } from '../core/iol.mjs';
 import { FidelityMode, DEFAULT_FIDELITY_MODE, assertFidelityMode, enforceStrictness, StrictModeViolation } from '../core/fidelity.mjs';
 import { predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, refract, transfer } from './paraxial.mjs';
 import { buildCorneaModel, CorneaPolicy } from './cornea.mjs';
+import { buildToricCorneaModel } from './toric_cornea.mjs';
 import { N_AIR, N_AQUEOUS, N_CORNEA, N_VITREOUS } from './constants.mjs';
-import { sphericalSurface, conicSurface, transformedSurface } from './raytrace/surfaces.mjs';
-import { isIdentityPose, rotationOfPose } from '../core/pose.mjs';
+import { sphericalSurface, conicSurface, biconicSurface, transformedSurface } from './raytrace/surfaces.mjs';
+import { isIdentityPose, rotationOfPose, createIOLPose } from '../core/pose.mjs';
 import { focusOfSystem } from './raytrace/trace.mjs';
 
 /**
@@ -157,6 +158,15 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = D
      */
     refractionForIOL(iol) {
       assertTraceableGeometry(iol, 'refractionForIOL');
+      // una cara tórica NO tiene equivalente esférico paraxial honesto: colapsarla a la
+      // curvatura media descartaría el cilindro y su eje declarados. Se rechaza (mismo
+      // patrón que la pose): la vía de trazado + análisis 2D (astigmatism.mjs) y el
+      // motor tórico vectorial son las representaciones válidas.
+      if (hasToricGeometry(iol)) {
+        throw new TypeError('refractionForIOL: la LIO tiene geometría TÓRICA declarada — el EE '
+          + 'paraxial coaxial no puede representarla. Usa buildRaytraceEye + analyzeAstigmaticBundle '
+          + '(V1.6) o el motor tórico vectorial (toric_engine).');
+      }
       // La asfericidad y el cilindro NO bloquean aquí: la potencia EE paraxial es exacta
       // con la curvatura del vértice (Q entra a orden r⁴) y la etiqueta nominal ya es el
       // equivalente esférico. Lo que SÍ es un supuesto por lente: el sustituto de
@@ -188,38 +198,57 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = D
 /**
  * Sistema de superficies del ojo completo para el RAY TRACER.
  *
- * Córnea, dos modos documentados (misma política que el paraxial):
- *  - 'two_surface_physical': radios anterior/posterior + CCT medidos;
+ * Córnea, tres modos documentados:
+ *  - 'two_surface_physical': radios anterior/posterior + CCT medidos (política EE);
  *  - 'equivalent_single_surface': UNA superficie aire→acuoso cuyo radio reproduce
  *    exactamente la potencia de la lectura queratométrica media:
  *       r_mm = (n_aq − 1)·1000 / K_media
  *    (reducción declarada; coincide con la potencia corneal usada por el paraxial,
- *    por lo que ambos motores son comparables sin supuestos ocultos).
+ *    por lo que ambos motores son comparables sin supuestos ocultos);
+ *  - TÓRICA (V1.6, opción `cornea_toric`, EXCLUYENTE con `cornea`): superficie(s)
+ *    BICÓNICA(s) bajo política tórica explícita (toric_cornea.mjs) — el sistema
+ *    resultante lleva `toric: true` y los objetivos escalares lo rechazan.
  *
  * LIO: requiere geometría numérica completa (la genérica etiquetada la aporta);
  * se centra en `postop.iol_position_mm` (cara anterior en pos − t/2).
  */
-export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corneaOpts = {}, fidelity = DEFAULT_FIDELITY_MODE } = {}) {
+export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corneaOpts = {}, cornea_toric: corneaToricOpts = null, fidelity = DEFAULT_FIDELITY_MODE } = {}) {
   assertFidelityMode(fidelity);
   const preop = postop.preop;
   assertTraceableGeometry(iol, 'buildRaytraceEye');
   const g = iol.geometry;
-  // Cilindro de la LIO: un cilindro DECLARADO ≠ 0 no es trazable todavía (no hay
-  // superficies tóricas): se rechaza en lugar de trazar la esfera EE ignorando un dato
-  // declarado. UNKNOWN se traza como esférica con el supuesto registrado. 0 = esférica
-  // declarada, nada que registrar.
-  if (typeof iol.cylinder_d === 'number' && iol.cylinder_d !== 0) {
-    throw new TypeError(`buildRaytraceEye: cylinder_d=${iol.cylinder_d} D declarado, pero el `
-      + 'trazador aún no implementa superficies tóricas. Se rechaza en lugar de ignorar '
-      + 'un dato declarado (ver V1_PROJECT_PLAN.md).');
+  // Cilindro de la LIO (V1.6): una etiqueta cylinder_d ≠ 0 SOLO es trazable si la cara
+  // tórica viene DECLARADA en la geometría (sintética etiquetada o fabricante con
+  // procedencia) — la etiqueta JAMÁS fabrica radios. UNKNOWN se traza como esférica con
+  // el supuesto registrado. 0 = esférica declarada, nada que registrar.
+  if (typeof iol.cylinder_d === 'number' && iol.cylinder_d !== 0 && !hasToricGeometry(iol)) {
+    throw new TypeError(`buildRaytraceEye: cylinder_d=${iol.cylinder_d} D declarado SIN cara tórica `
+      + 'declarada en la geometría — la etiqueta nominal no se convierte en radios en silencio. '
+      + 'Usa SyntheticToricIOLFactory (sustituto declarado) o geometría de fabricante con '
+      + 'toric_anterior/toric_posterior y procedencia.');
   }
   const surfaces = [];
   const assumptions = [];
-  const cornea = corneaModelOf(preop, corneaOpts);
-  // supuestos de la política corneal (mismos que en el paraxial, mismo prefijo)
-  assumptions.push(...cornea.assumptions.map(a => `cornea_policy: ${a}`));
-  // colapso a EE del astigmatismo medido: el trazador construye la córnea con la media
-  assumptions.push(...notasDeColapsoSE(preop, cornea));
+  let cornea;
+  if (corneaToricOpts !== null) {
+    // córnea TÓRICA (V1.6): excluyente con la política EE — dos verdades corneales a la
+    // vez no son un modelo, son una contradicción
+    if (corneaOpts && Object.keys(corneaOpts).length > 0) {
+      throw new TypeError('buildRaytraceEye: `cornea` (política EE) y `cornea_toric` son '
+        + 'excluyentes — un solo modelo corneal por trazado.');
+    }
+    cornea = buildToricCorneaModel(preop, corneaToricOpts);
+    assumptions.push(...cornea.assumptions.map(a => `cornea_toric: ${a}`));
+    // SIN notasDeColapsoSE: aquí el astigmatismo anterior SÍ se modela (no hay colapso
+    // que registrar); los residuos de la política (posterior, convención) ya viajan en
+    // las assumptions del modelo tórico.
+  } else {
+    cornea = corneaModelOf(preop, corneaOpts);
+    // supuestos de la política corneal (mismos que en el paraxial, mismo prefijo)
+    assumptions.push(...cornea.assumptions.map(a => `cornea_policy: ${a}`));
+    // colapso a EE del astigmatismo medido: el trazador construye la córnea con la media
+    assumptions.push(...notasDeColapsoSE(preop, cornea));
+  }
   // una lente genérica es EN SÍ un supuesto: sus radios/índice/espesor no proceden de
   // la lente implantada. En RESEARCH se registra; en STRICT bloquea vía la puerta.
   if (iol.is_simulation_surrogate) assumptions.push(notaSurrogate(iol));
@@ -244,13 +273,40 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
         + 'sobre lente de fabricante — supuesto declarado, no dato');
     }
   };
-  qDe(g.asphericity_q_anterior, 'iol_ant');
-  qDe(g.asphericity_q_posterior, 'iol_post');
+  /** estados de Q POR MERIDIANO de una cara tórica (V1.6) — misma semántica que qDe */
+  const qToricDe = (tb, id) => {
+    for (const [q, m] of [[tb.q_x, 'x'], [tb.q_y, 'y']]) {
+      if (typeof q === 'number') continue;
+      if (q !== ASSUMED_SPHERICAL) {
+        assumptions.push(`${id}: asfericidad del meridiano ${m} no documentada (${String(q ?? UNKNOWN)}); `
+          + 'meridiano trazado con k=0 — SUPUESTO registrado, no verificado');
+      } else if (!iol.is_simulation_surrogate) {
+        assumptions.push(`${id}: esfericidad del meridiano ${m} ASUMIDA por el modelador `
+          + '(ASSUMED_SPHERICAL) sobre lente de fabricante — supuesto declarado, no dato');
+      }
+    }
+  };
+  if (g.toric_anterior) qToricDe(g.toric_anterior, 'iol_ant'); else qDe(g.asphericity_q_anterior, 'iol_ant');
+  if (g.toric_posterior) qToricDe(g.toric_posterior, 'iol_post'); else qDe(g.asphericity_q_posterior, 'iol_post');
   /** esfera o cónica según el estado de Q — el despacho de V1.2 */
   const superficie = ({ id, zVertex_mm, radius_mm, q, n_before, n_after }) =>
     typeof q === 'number'
       ? conicSurface({ id, zVertex_mm, radius_mm, k: q, aperture_mm, n_before, n_after })
       : sphericalSurface({ id, zVertex_mm, radius_mm, aperture_mm, n_before, n_after });
+  /**
+   * Cara de LIO (V1.6): BICÓNICA si la cara es tórica (meridianos = ejes locales;
+   * ASSUMED_SPHERICAL/UNKNOWN por meridiano → k=0, con la nota ya registrada arriba),
+   * esfera/cónica en caso contrario. La orientación tórica la da EXCLUSIVAMENTE
+   * pose.rotation_z: con pose identidad los meridianos quedan en los ejes del datum.
+   */
+  const caraIOL = ({ id, zVertex_mm, tb, radius_mm, q, n_before, n_after }) => tb
+    ? biconicSurface({
+      id, zVertex_mm, radius_x_mm: tb.r_x_mm, radius_y_mm: tb.r_y_mm,
+      kx: typeof tb.q_x === 'number' ? tb.q_x : 0,
+      ky: typeof tb.q_y === 'number' ? tb.q_y : 0,
+      aperture_mm, n_before, n_after,
+    })
+    : superficie({ id, zVertex_mm, radius_mm, q, n_before, n_after });
 
   // Asfericidad corneal: si está MEDIDA (topografía) se traza cónica; si no, esfera
   // con el supuesto registrado POR SUPERFICIE. La superficie equivalente (política sin
@@ -258,7 +314,51 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
   const qCorneaAnt = preop.cornea?.asphericity_q_anterior ?? null;
   const qCorneaPost = preop.cornea?.asphericity_q_posterior ?? null;
   let cornea_kind;
-  if (cornea.r_posterior_mm !== null && typeof preop.cct_um === 'number') {
+  if (corneaToricOpts !== null) {
+    // córnea TÓRICA (V1.6): superficie(s) BICÓNICA(s) con el meridiano POTENTE en el
+    // eje y LOCAL, orientadas con Rz(steep_axis − 90) — la misma convención rotation_z
+    // de la pose, sin matemática duplicada (transformedSurface).
+    cornea_kind = cornea.kind;
+    // Q medida (una sola por cara, sin meridianos en el modelo de datos) sobre radios
+    // recuperados/declarados: el INJERTO se registra, no se calla (patrón V1.5)
+    let kAnt = 0;
+    if (qCorneaAnt !== null) {
+      kAnt = qCorneaAnt;
+      assumptions.push('cornea_toric_ant: asfericidad MEDIDA (una sola Q) aplicada POR IGUAL a '
+        + `ambos meridianos de radios ${cornea.kind === 'toric_declared' ? 'DECLARADOS' : 'RECUPERADOS de K'} — injerto registrado`);
+    } else {
+      assumptions.push('cornea_toric_ant: asfericidad no medida; meridianos trazados con k=0 — SUPUESTO registrado');
+    }
+    const nAfterAnt = cornea.posterior === null ? N_AQUEOUS : N_CORNEA;
+    surfaces.push(transformedSurface({
+      base: biconicSurface({
+        id: 'cornea_toric_ant', zVertex_mm: 0,
+        radius_x_mm: cornea.r_flat_mm, radius_y_mm: cornea.r_steep_mm,
+        kx: kAnt, ky: kAnt, aperture_mm, n_before: N_AIR, n_after: nAfterAnt,
+      }),
+      R: rotationOfPose(createIOLPose({ rotation_z_deg: cornea.steep_axis_deg - 90 })),
+      T: [0, 0, 0],
+    }));
+    if (cornea.posterior !== null) {
+      let kPost = 0;
+      if (qCorneaPost !== null) {
+        kPost = qCorneaPost;
+        assumptions.push('cornea_toric_post: asfericidad MEDIDA (una sola Q) aplicada POR IGUAL a '
+          + 'ambos meridianos de radios DECLARADOS — injerto registrado');
+      } else {
+        assumptions.push('cornea_toric_post: asfericidad no medida; meridianos trazados con k=0 — SUPUESTO registrado');
+      }
+      surfaces.push(transformedSurface({
+        base: biconicSurface({
+          id: 'cornea_toric_post', zVertex_mm: 0,
+          radius_x_mm: cornea.posterior.r_flat_mm, radius_y_mm: cornea.posterior.r_steep_mm,
+          kx: kPost, ky: kPost, aperture_mm, n_before: N_CORNEA, n_after: N_AQUEOUS,
+        }),
+        R: rotationOfPose(createIOLPose({ rotation_z_deg: cornea.posterior.steep_axis_deg - 90 })),
+        T: [0, 0, cornea.cct_um / 1000],
+      }));
+    }
+  } else if (cornea.r_posterior_mm !== null && typeof preop.cct_um === 'number') {
     cornea_kind = cornea.kind;                    // physical | assumed_ratio: dos superficies reales
     if (qCorneaAnt === null) {
       assumptions.push('cornea_ant: asfericidad no medida; superficie trazada como ESFERA — SUPUESTO registrado');
@@ -301,8 +401,8 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
     // pose nula (o no declarada): vía V1.2 EXACTA, sin envoltorio — la recuperación es
     // estructural, no numérica
     const zAnt = postop.iol_position_mm - t / 2;
-    surfaces.push(superficie({ id: 'iol_ant', zVertex_mm: zAnt, radius_mm: g.r_anterior_mm, q: g.asphericity_q_anterior, n_before: N_AQUEOUS, n_after: g.refractive_index }));
-    surfaces.push(superficie({ id: 'iol_post', zVertex_mm: zAnt + t, radius_mm: g.r_posterior_mm, q: g.asphericity_q_posterior, n_before: g.refractive_index, n_after: N_VITREOUS }));
+    surfaces.push(caraIOL({ id: 'iol_ant', zVertex_mm: zAnt, tb: g.toric_anterior, radius_mm: g.r_anterior_mm, q: g.asphericity_q_anterior, n_before: N_AQUEOUS, n_after: g.refractive_index }));
+    surfaces.push(caraIOL({ id: 'iol_post', zVertex_mm: zAnt + t, tb: g.toric_posterior, radius_mm: g.r_posterior_mm, q: g.asphericity_q_posterior, n_before: g.refractive_index, n_after: N_VITREOUS }));
     iol_back_z = zAnt + t;
   } else {
     // marco LOCAL de la lente centrado en su centro geométrico (vértices en ∓t/2);
@@ -310,8 +410,8 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
     // se duplica: el envoltorio mapea el rayo y reutiliza la intersección de la base
     const R = rotationOfPose(pose);
     const T = [pose.decenter_x_mm, pose.decenter_y_mm, postop.iol_position_mm];
-    const baseAnt = superficie({ id: 'iol_ant', zVertex_mm: -t / 2, radius_mm: g.r_anterior_mm, q: g.asphericity_q_anterior, n_before: N_AQUEOUS, n_after: g.refractive_index });
-    const basePost = superficie({ id: 'iol_post', zVertex_mm: t / 2, radius_mm: g.r_posterior_mm, q: g.asphericity_q_posterior, n_before: g.refractive_index, n_after: N_VITREOUS });
+    const baseAnt = caraIOL({ id: 'iol_ant', zVertex_mm: -t / 2, tb: g.toric_anterior, radius_mm: g.r_anterior_mm, q: g.asphericity_q_anterior, n_before: N_AQUEOUS, n_after: g.refractive_index });
+    const basePost = caraIOL({ id: 'iol_post', zVertex_mm: t / 2, tb: g.toric_posterior, radius_mm: g.r_posterior_mm, q: g.asphericity_q_posterior, n_before: g.refractive_index, n_after: N_VITREOUS });
     surfaces.push(transformedSurface({ base: baseAnt, R, T }));
     const post_ = transformedSurface({ base: basePost, R, T });
     surfaces.push(post_);
@@ -325,6 +425,9 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
   return {
     surfaces, cornea_kind, cornea_policy: cornea.policy, cornea, fidelity,
     pose: pose ?? null,
+    /** true si el sistema tiene CUALQUIER superficie tórica (córnea o LIO): los
+     *  objetivos ESCALARES lo rechazan — el spot 2D exige astigmatism.mjs (V1.6) */
+    toric: corneaToricOpts !== null || hasToricGeometry(iol),
     retina_z_mm: preop.al_mm, iol_back_z_mm: iol_back_z,
     /** supuestos de modelado ACTIVOS en este trazado; vacío no significa "sin supuestos
      *  declarados", significa "sin supuestos NO verificados" */
@@ -338,6 +441,10 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
  * Devuelve la z absoluta (mm) del foco para objeto en infinito.
  */
 export function paraxialFocusOfRaytraceEye(eye) {
+  if (eye.toric) {
+    throw new TypeError('paraxialFocusOfRaytraceEye: sistema TÓRICO — no existe UN foco '
+      + 'paraxial coaxial (hay dos líneas focales). Usa analyzeAstigmaticBundle (V1.6).');
+  }
   if (eye.pose && !isIdentityPose(eye.pose)) {
     throw new TypeError('paraxialFocusOfRaytraceEye: el límite paraxial COAXIAL no está '
       + 'definido para un sistema con tilt/descentración. La validación de sistemas '

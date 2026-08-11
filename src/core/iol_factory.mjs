@@ -114,6 +114,81 @@ export function createGenericThickIOL({ power_d, cylinder_d = 0, n_iol, thicknes
 }
 
 /**
+ * Lente TÓRICA SINTÉTICA de simulación (V1.6): deriva una geometría bicónica anterior
+ * a partir del equivalente esférico y el cilindro NOMINAL, para experimentos.
+ *
+ * ESTA ES LA ÚNICA VÍA por la que una etiqueta `cylinder_d` se convierte en radios —
+ * y lo hace DECLARÁNDOSE: `is_simulation_surrogate = true`, geometría DERIVED_GENERIC,
+ * fuente explícita. `cylinder_d` en una lente de fabricante JAMÁS fabrica radios: o el
+ * fabricante documenta la cara tórica (toric_anterior con procedencia) o la geometría
+ * tórica es UNKNOWN y el trazado falla.
+ *
+ * Derivación (exacta, lente gruesa por meridiano):
+ *   objetivo por meridiano: P_x = EE − C/2 (plano, x local), P_y = EE + C/2 (empinado, y local)
+ *   posterior esférica de la equibiconvexa del EE: r2 = −r1(EE)
+ *   P1_m = (P_m − P2) / (1 − (t/n)·P2)   [lineal: despeje exacto del constructor de lentes]
+ *   r1_m = (n − n_medio)·1000 / P1_m     [mm]
+ * Verificable: physicalPowersOfToricIOL debe devolver cylinder_d == C y mean == EE
+ * a precisión de máquina (hay test).
+ *
+ * Convención de fábrica del proyecto: meridiano MÁS potente en y LOCAL; el eje de
+ * implantación se orienta EXCLUSIVAMENTE con pose.rotation_z.
+ */
+export class SyntheticToricIOLFactory {
+  constructor({ n_iol = 1.49, thickness_mm = 0.8, n_medium = N_AQUEOUS, label = 'SYNTHETIC_TORIC',
+    q_anterior = ASSUMED_SPHERICAL, q_posterior = ASSUMED_SPHERICAL } = {}) {
+    this._generic = new GenericIOLFactory({ n_iol, thickness_mm, n_medium, q_anterior, q_posterior });
+    this.n_iol = n_iol;
+    this.thickness_mm = thickness_mm;
+    this.n_medium = n_medium;
+    this.q_anterior = q_anterior;
+    this.q_posterior = q_posterior;
+    this.label = label;
+    this.id = `synthetic_toric_n${n_iol}_t${thickness_mm}`;
+  }
+
+  create({ power_d, cylinder_d }) {
+    assertFinite(power_d, 'power_d');
+    assertFinite(cylinder_d, 'cylinder_d');
+    if (!(cylinder_d >= 0)) {
+      throw new RangeError('SyntheticToricIOLFactory: cylinder_d nominal debe ser ≥ 0 '
+        + '(la orientación la da pose.rotation_z, no el signo)');
+    }
+    const D = this.n_iol - this.n_medium;
+    const t_m = this.thickness_mm / 1000;
+    const r1EE = this._generic.radiusForPower(power_d);
+    const r2 = -r1EE;
+    const P2 = (this.n_medium - this.n_iol) * 1000 / r2;   // c2 en 1/m: 1000/r2[mm]
+    const denom = 1 - (t_m / this.n_iol) * P2;
+    const r1De = P_m => {
+      const P1 = (P_m - P2) / denom;
+      return P1 === 0 ? Infinity : D * 1000 / P1;
+    };
+    return createIOL({
+      manufacturer: 'GENERIC',
+      model: `${this.label}_${power_d}D_cyl${cylinder_d}D`,
+      nominal_power_d: power_d,
+      cylinder_d,
+      geometry: {
+        kind: 'thick_lens',
+        refractive_index: this.n_iol,
+        central_thickness_mm: this.thickness_mm,
+        toric_anterior: {
+          r_x_mm: r1De(power_d - cylinder_d / 2),   // meridiano plano en x local
+          r_y_mm: r1De(power_d + cylinder_d / 2),   // meridiano potente en y local
+          q_x: this.q_anterior, q_y: this.q_anterior,
+        },
+        r_posterior_mm: r2,
+        asphericity_q_posterior: this.q_posterior,
+      },
+      geometry_status: GeometryStatus.DERIVED_GENERIC,
+      source: 'SIMULACION: geometría tórica SINTÉTICA derivada de la etiqueta nominal '
+        + '(EE + cilindro); sustituto declarado, no representa ninguna lente comercial',
+    });
+  }
+}
+
+/**
  * Lente COMERCIAL: la geometría procede de una tabla del fabricante, potencia a
  * potencia. Si la potencia pedida no está documentada, devuelve una LIO con
  * `geometry_status = UNKNOWN`: el trazado fallará explícitamente (assertTraceableGeometry)
