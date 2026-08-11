@@ -75,6 +75,11 @@ export class ParaxialEngine {
         cornea_rotationally_symmetric: s.cornea_rotationally_symmetric,
         iol_position_mm: postop.iol_position_mm,
         position_source: pos.source,
+        // los registros de supuestos VIAJAN al resultado del benchmark (caza
+        // adversarial V1.6: se descartaban — el relleno tácito no debe volver por la
+        // puerta de atrás de la capa que resume)
+        supuestos_modelo: s.supuestos_modelo,
+        ...(toric ? { supuestos_toric: toric.supuestos_modelo } : {}),
       },
       uncertainty: {
         sensitivities: { iol_position_mm: s.sensitivity_ref_per_mm_d },

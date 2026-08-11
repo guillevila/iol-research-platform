@@ -47,9 +47,15 @@ function percentile(sorted, p) {
  * inválidas (rechazadas por los validadores) se cuentan, no se ocultan.
  */
 export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas = {}, n = 2000, seed, fidelity = DEFAULT_FIDELITY_MODE, ...resto }) {
-  if ('iol_pose' in resto || 'postop' in resto) {
-    throw new TypeError('monteCarloRefraction: no soporta pose de LIO todavía — simular '
-      + 'la lente centrada callándose una pose declarada sería el patrón prohibido.');
+  // Rechazo TOTAL de claves desconocidas (caza adversarial V1.6): la guarda anterior
+  // era enumerativa (solo iol_pose/postop) y tragaba en silencio `iol:` (una LIO
+  // tórica) o `cylinder_d:` — el llamante creía simular algo que la función ignoraba.
+  // Un parámetro que esta función no consume NO se acepta: se nombra y se rechaza.
+  const desconocidas = Object.keys(resto);
+  if (desconocidas.length > 0) {
+    throw new TypeError(`monteCarloRefraction: parámetros no soportados: ${desconocidas.join(', ')}. `
+      + 'Esta función perturba {preop, iol_position_mm, power_d} con sigmas declaradas; '
+      + 'aceptar y callar un parámetro (pose, LIO tórica, cilindro) sería el patrón prohibido.');
   }
   if (!Number.isInteger(seed)) throw new TypeError('seed entera obligatoria (reproducibilidad)');
   // Con córnea de radios MEDIDOS la política usa los radios: perturbar K no cambiaría

@@ -174,3 +174,78 @@ test('biconic · refracción coherente: Snell sobre la normal bicónica conserva
     assert.ok(Math.abs(1 * sinI - 1.4 * sinT) < 1e-12, `Snell violado: ${sinI} vs ${1.4 * sinT / 1}`);
   }
 });
+
+// ---------------------------------------------------------------------------------
+// Regresiones de la REVISIÓN ADVERSARIAL V1.6 (casos exactos del refutador): la
+// intersección por barrido grueso devolvía la rama LEJANA en rayos rasantes, perdía
+// raíces genuinas con dz pequeño no nulo (ventana de losa sin cota) y no reintentaba
+// cuando el primer cruce caía fuera de apertura. El oráculo es la CÓNICA CERRADA.
+// ---------------------------------------------------------------------------------
+
+const esferaBic = a => biconicSurface({ zVertex_mm: 0, radius_x_mm: 7.7, radius_y_mm: 7.7, kx: 0, ky: 0, aperture_mm: a, n_before: 1, n_after: 1.376 });
+const esferaCon = a => conicSurface({ zVertex_mm: 0, radius_mm: 7.7, k: 0, aperture_mm: a, n_before: 1, n_after: 1.376 });
+
+test('biconic · regresión adversarial: el rayo rasante que devolvía la rama LEJANA ahora devuelve la próxima', () => {
+  // caso literal del refutador: raíces reales en apertura [21.67, 28.43]; el barrido
+  // grueso saltaba la primera y devolvía t=28.43 con la orientación equivocada
+  const d0 = [-0.108975178, 0.994017085, 0.007378706];
+  const n = Math.hypot(...d0);
+  const ray = { p: [2.724379, -24.850427, 0.597421], d: d0.map(v => v / n) };
+  const hb = intersect(esferaBic(4), ray), hc = intersect(esferaCon(4), ray);
+  assert.ok(hb && hc, 'ambos debían intersecar');
+  assert.ok(Math.abs(hb.t - hc.t) < 1e-9, `rama equivocada: biconic t=${hb.t} vs conic t=${hc.t}`);
+  for (let i = 0; i < 3; i++) assert.ok(Math.abs(hb.normal[i] - hc.normal[i]) < 1e-9, `normal[${i}]`);
+});
+
+test('biconic · regresión adversarial: dz pequeño no nulo ya no pierde raíces genuinas (ventana acotada)', () => {
+  // la ventana de losa crecía como 2·SB/|dz|: con dz=0.005/0.001 se perdían raíces
+  // que la cónica cerrada encontraba; ahora la ventana se acota con la apertura
+  for (const dzv of [0.005, 0.001, 0]) {
+    const n = Math.hypot(1, 0, dzv);
+    const ray = { p: [-30, 0, 0.5], d: [1 / n, 0, dzv / n] };
+    const hb = intersect(esferaBic(4), ray), hc = intersect(esferaCon(4), ray);
+    assert.equal(hb === null, hc === null, `dz=${dzv}: acierto/fallo distinto del oráculo`);
+    if (hb) assert.ok(Math.abs(hb.t - hc.t) < 1e-9, `dz=${dzv}: t=${hb.t} vs ${hc.t}`);
+  }
+});
+
+test('biconic · regresión adversarial: si el primer cruce cae fuera de apertura, se reintenta el segundo', () => {
+  // la cónica itera sus dos raíces; la bicónica abandonaba tras la primera. Batería
+  // determinista de rayos descendentes cuya primera raíz cae fuera de la apertura 3
+  const rnd = lcg(20260811);
+  let recuperados = 0;
+  for (let i = 0; i < 200; i++) {
+    const x0 = 4 + rnd() * 3, z0 = -2 - rnd() * 2;
+    const hacia = [-(x0 - rnd() * 1.5), rnd() * 0.4 - 0.2, 2 + rnd() * 3];
+    const n = Math.hypot(...hacia);
+    const ray = { p: [x0, 0, z0], d: hacia.map(v => v / n) };
+    const hb = intersect(esferaBic(3), ray), hc = intersect(esferaCon(3), ray);
+    assert.equal(hb === null, hc === null, `caso ${i}: biconic ${hb?.t} vs conic ${hc?.t}`);
+    if (hb) {
+      assert.ok(Math.abs(hb.t - hc.t) < 1e-9, `caso ${i}: t ${hb.t} vs ${hc.t}`);
+      recuperados++;
+    }
+  }
+  assert.ok(recuperados > 30, `batería degenerada: solo ${recuperados} aciertos`);
+});
+
+test('biconic · regresión adversarial: batería rasante — ninguna rama lejana y pérdidas idénticas a la cónica', () => {
+  const rnd = lcg(123456789);
+  let hits = 0, perdidasB = 0, perdidasC = 0;
+  for (let i = 0; i < 500; i++) {
+    const p = [(rnd() - 0.5) * 12, -25 + rnd() * 5, rnd() * 2 - 0.5];
+    const d0 = [(rnd() - 0.5) * 0.4, 1, (rnd() - 0.5) * 0.05];
+    const n = Math.hypot(...d0);
+    const ray = { p, d: d0.map(v => v / n) };
+    const hb = intersect(esferaBic(4), ray), hc = intersect(esferaCon(4), ray);
+    if (hc && !hb) perdidasB++;
+    if (hb && !hc) perdidasC++;
+    if (hb && hc) {
+      hits++;
+      assert.ok(Math.abs(hb.t - hc.t) < 1e-9, `caso ${i}: rama distinta (${hb.t} vs ${hc.t})`);
+    }
+  }
+  assert.equal(perdidasB, 0, `bicónica perdió ${perdidasB} rayos que la cónica encuentra`);
+  assert.equal(perdidasC, 0);
+  assert.ok(hits > 100, `batería degenerada: ${hits} aciertos`);
+});

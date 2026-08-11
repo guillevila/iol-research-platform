@@ -66,9 +66,14 @@ export function buildToricCorneaModel(preop, opts = {}) {
     // regular): la queratometría estándar solo reporta eso; si no lo son, el dato es
     // irregular y NO se fuerza a un modelo bicónico ortogonal
     const sep = Math.abs(norm180(preop.k1_axis_deg - preop.k2_axis_deg));
-    if (Math.abs(sep - 90) > 1.0) {
-      throw new RangeError(`TORIC_ANTERIOR_FROM_K: meridianos K no perpendiculares (separación `
-        + `${sep.toFixed(1)}°) — astigmatismo irregular no representable por una bicónica ortogonal`);
+    const desviacion = Math.abs(sep - 90);
+    if (desviacion > 1.0) {
+      // el mensaje reporta la DESVIACIÓN canónica de 90° (caza adversarial V1.6: la
+      // separación cruda mod 180 confundía — ejes a 10°/30° decían "160°" cuando la
+      // separación real de meridianos es 20°, es decir, 70° de desviación)
+      throw new RangeError(`TORIC_ANTERIOR_FROM_K: meridianos K no perpendiculares (desviación `
+        + `${desviacion.toFixed(1)}° respecto de 90°) — astigmatismo irregular no representable `
+        + 'por una bicónica ortogonal');
     }
     const steepEsK1 = preop.k1_d >= preop.k2_d;
     const kSteep = steepEsK1 ? preop.k1_d : preop.k2_d;
@@ -97,6 +102,12 @@ export function buildToricCorneaModel(preop, opts = {}) {
         // dato MEDIDO disponible y no usado: se registra, no se calla (patrón V1.5)
         ...(postToricaMedida
           ? ['toricidad posterior MEDIDA disponible y NO usada por esta política']
+          : []),
+        // cilindro 0 exacto: el "eje empinado" es un desempate sin significado físico
+        // (caza adversarial V1.6) — la superficie resultante es de revolución
+        ...(pSteep - pFlat === 0
+          ? ['cilindro queratométrico 0: el eje tórico es INDEFINIDO — steep_axis_deg '
+            + 'reproduce el eje de K1 por desempate, sin significado físico']
           : []),
         ...(typeof c.r_anterior_mm === 'number'
           ? ['r_anterior MEDIO medido disponible y NO usado: esta política recupera radios '

@@ -47,9 +47,13 @@ perdido **nunca** desaparece en silencio: se reporta con su causa (`raysLost`).
   (`transformedSurface`, tipos nuevos sin tocar `trace.mjs`) los admite. La córnea
   tórica trazada existe SOLO como política explícita (derivada de K o declarada) —
   nunca "medida" hasta que el modelo de datos tenga radios per-meridiano (OQ #10).
-- Incidencias RASANTES sobre la bicónica: el barrido de horquilla (25 muestras) puede
-  perder dobles cruces tangenciales — documentado; en el ojo los haces llegan lejos de
-  la tangencia y el test de pérdidas exige igualdad exacta con la cónica vecina.
+- Incidencias RASANTES sobre la bicónica (algoritmo revisado tras la caza adversarial
+  V1.6): ventana de búsqueda acotada por losa ∩ apertura, barrido fino de 256 muestras
+  con TODAS las horquillas en orden y reintento cuando una raíz cae fuera de apertura.
+  Verificado contra la cónica cerrada: cero ramas lejanas y pérdidas idénticas en las
+  baterías rasantes adversariales. Límite restante: un doble cruce a distancia
+  sub-muestra (tangencia casi exacta) se pierde CONTABILIZADO — nunca se devuelve la
+  rama lejana separada.
 - El "mejor foco" por RMS es una métrica geométrica; métricas de calidad de imagen
   (MTF, Strehl) quedan fuera del alcance V0.
 - La comparación sistemática paraxial↔trazado sobre el ojo completo pertenece al

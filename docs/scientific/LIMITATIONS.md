@@ -1,6 +1,6 @@
 # LIMITATIONS — Limitaciones vigentes de la plataforma
 
-**Versión:** 1.0 · **Fecha:** 10/08/2026 · RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
+**Versión:** 1.1 · **Fecha:** 11/08/2026 · RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Limitaciones de fondo (fase actual)
 
@@ -72,7 +72,10 @@
    fabricante SIMÉTRICA (el centrado geométrico de una asimétrica reinterpreta el datum
    del plano principal, OQ #3); la vía tórica con córnea medida INCLUIDA la posterior; y
    desde V1.2, el PRIMER TRAZADO DE RAYOS: córnea medida con Q de topografía en ambas
-   caras + lente de fabricante simétrica con Q documentada y cilindro 0 declarado. Sin
+   caras + lente de fabricante simétrica con Q documentada y cilindro 0 declarado; y
+   desde V1.6, el TRAZADO TÓRICO de fabricante: la misma córnea medida + LIO con cara
+   tórica DOCUMENTADA (Q por meridiano numéricas y etiqueta coherente con la
+   geometría) — la córnea tórica, en cambio, NUNCA pasa STRICT todavía (OQ #10). Sin
    esas Q, el trazado sigue bloqueando con la superficie nombrada. La
    validación clínica futura (VALIDATION_STRATEGY, nivel 3) deberá ejecutarse en STRICT.
    Límite honesto: la puerta garantiza que ningún supuesto REGISTRADO la atraviesa; que

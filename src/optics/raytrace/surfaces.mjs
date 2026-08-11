@@ -84,16 +84,22 @@ export function conicSurface({ zVertex_mm, radius_mm, k, aperture_mm = 4, n_befo
  *
  * INTERSECCIÓN: la bicónica NO es una cuádrica en general (lo es solo si
  * (1+kx)·cx = (1+ky)·cy), así que no existe la forma cerrada de la cónica. Se usa
- * Newton SALVAGUARDADO sobre F(t) = z'(t) − sagita(x(t), y(t)):
- *   1) horquilla inicial = ventana de t donde el rayo cruza la LOSA que contiene la
- *      superficie (|sagita| ≤ SB, cota calculada al construir);
- *   2) barrido de la ventana buscando cambio de signo (el PRIMER cruce = rama próxima);
- *   3) Newton con derivada analítica, degradando a bisección si el paso sale de la
- *      horquilla o del dominio de la sagita — convergencia a |F| < 1e-11 mm.
- * La semilla del caso degenerado (Rx=Ry) coincide con la raíz cerrada de la cónica y
- * los tests exigen igualdad a 1e-12. Limitación documentada: incidencias RASANTES con
- * doble cruce dentro de un paso del barrido podrían perderse; en el ojo los haces
- * llegan a las superficies lejos de la tangencia y los tests de pérdidas lo vigilan.
+ * Newton SALVAGUARDADO sobre F(t) = z'(t) − sagita(x(t), y(t)) — algoritmo REVISADO
+ * tras la caza adversarial de V1.6 (el barrido grueso original devolvía la rama
+ * LEJANA en rasantes y perdía raíces con dz pequeño):
+ *   1) ventana de t = INTERSECCIÓN de la losa |z'| ≤ SB (cota demostrada:
+ *      |N| ≤ max(|cx|,|cy|)·a² con denominador ≥ 1, válida para todo signo de k y c)
+ *      con los cruces de apertura transversal en x e y — SIEMPRE finita (|d| = 1);
+ *   2) barrido FINO (256 muestras) de toda la ventana: TODAS las horquillas de cambio
+ *      de signo, en orden de t;
+ *   3) por horquilla, Newton con derivada analítica degradando a bisección; gana la
+ *      PRIMERA raíz que pasa apertura + dominio + residuo < 1e-9 (si la primera cae
+ *      fuera de apertura se reintenta la siguiente, como hace la cónica cerrada).
+ * Verificado contra la cónica cerrada: igualdad a 1e-12 en oblicuas, y en las baterías
+ * rasantes adversariales cero ramas lejanas y pérdidas idénticas (tests de regresión).
+ * Limitación restante (documentada): un doble cruce a distancia sub-muestra —
+ * tangencia casi exacta, puntos casi coincidentes — se pierde como rayo contabilizado,
+ * nunca se devuelve la rama lejana separada.
  *
  * NO representa geometría de LIO comercial real salvo procedencia de fabricante: la
  * geometría tórica sintética derivada de una etiqueta es SIEMPRE sustituto declarado.
@@ -227,94 +233,108 @@ export function intersect(surface, ray) {
       const sg = sag(x, y);
       return sg === null ? null : (pz + dz * t) - sg.z;
     };
-    // ventana de t donde el rayo atraviesa la losa |z'| ≤ SB (más margen)
+    // VENTANA ACOTADA (corrección adversarial V1.6): la losa z sola crece como
+    // 2·SB/|dz| sin cota cuando dz→0 (se perdían raíces GENUINAS con dz pequeño no
+    // nulo). La ventana es ahora la INTERSECCIÓN de la losa z y de los cruces de
+    // apertura transversal en x e y: siempre finita (|d| = 1 ⇒ algún eje domina).
     const SB = surface.slabHalf_mm + 1e-6;
-    let tA, tB;
-    if (Math.abs(dz) > 1e-9) {
-      const t1 = (-SB - pz) / dz, t2 = (SB - pz) / dz;
-      tA = Math.min(t1, t2); tB = Math.max(t1, t2);
-    } else {
-      // rayo casi perpendicular al eje: ventana desde el cruce de apertura transversal
-      const win = (p0, d0) => {
-        if (Math.abs(d0) < 1e-12) return Math.abs(p0) <= surface.aperture_mm ? [-1e6, 1e6] : null;
-        const u1 = (-surface.aperture_mm - p0) / d0, u2 = (surface.aperture_mm - p0) / d0;
-        return [Math.min(u1, u2), Math.max(u1, u2)];
-      };
-      const wx = win(px, dx), wy = win(py, dy);
-      if (!wx || !wy) return null;
-      tA = Math.max(wx[0], wy[0]); tB = Math.min(wx[1], wy[1]);
-      if (!(tB > tA)) return null;
+    const AP = surface.aperture_mm + APERTURE_TOL_MM;
+    let tA = EPS, tB = Infinity;
+    const ejes = [[pz, dz, SB], [px, dx, AP], [py, dy, AP]];
+    for (const [p0, d0, extent] of ejes) {
+      if (Math.abs(d0) > 1e-12) {
+        const u1 = (-extent - p0) / d0, u2 = (extent - p0) / d0;
+        tA = Math.max(tA, Math.min(u1, u2));
+        tB = Math.min(tB, Math.max(u1, u2));
+      } else if (Math.abs(p0) > extent) {
+        return null; // nunca entra en la banda de ese eje
+      }
     }
-    tA = Math.max(tA, EPS);
     if (!(tB > tA)) return null;
-    // barrido: PRIMER cambio de signo = rama próxima (t creciente); muestras fuera del
-    // dominio de la sagita se saltan (huecos), nunca se interpretan como cruce
-    const K = 25;
-    let bracket = null, prevT = null, prevF = null;
+    // Barrido FINO de TODA la ventana (corrección adversarial V1.6): el barrido grueso
+    // de 25 muestras podía saltarse el PRIMER cruce y devolver la rama LEJANA con la
+    // orientación equivocada, o no reintentar cuando el primer cruce caía fuera de
+    // apertura (la cónica cerrada sí itera sus dos raíces). Ahora: 256 muestras sobre
+    // la ventana ACOTADA, TODAS las horquillas en orden de t, y gana la PRIMERA raíz
+    // refinada que pasa apertura+dominio+residuo. Limitación restante (documentada):
+    // un doble cruce a distancia sub-muestra (tangencia casi exacta, puntos casi
+    // coincidentes) se pierde — pérdida contabilizada, nunca rama lejana separada.
+    const K = 256;
+    const paso = (tB - tA) / K;
+    const refina = (lo, hi) => {
+      let t = 0.5 * (lo + hi);
+      if (lo !== hi) {
+        const fLoSign = Math.sign(F(lo));
+        for (let iter = 0; iter < 60; iter++) {
+          const x = px + dx * t, y = py + dy * t;
+          const sg = sag(x, y);
+          let tNext = null;
+          if (sg !== null) {
+            const f = (pz + dz * t) - sg.z;
+            if (Math.abs(f) < 1e-13) break;
+            if (Math.sign(f) === fLoSign) lo = t; else hi = t;
+            // derivada analítica: F' = dz − (∂sag/∂x·dx + ∂sag/∂y·dy)
+            const den = (1 + sg.s) * (1 + sg.s);
+            if (sg.s > 1e-12) {
+              const fx = x * (2 * cx * (1 + sg.s) + sg.N * gx / sg.s) / den;
+              const fy = y * (2 * cy * (1 + sg.s) + sg.N * gy / sg.s) / den;
+              const fp = dz - (fx * dx + fy * dy);
+              if (fp !== 0) tNext = t - f / fp;
+            }
+          } else {
+            hi = t; // fuera de dominio: encoger hacia lo (el lado definido)
+          }
+          t = (tNext !== null && tNext > lo && tNext < hi) ? tNext : 0.5 * (lo + hi);
+          if (hi - lo < 1e-15) break;
+        }
+        // pulido final: dos pasos de Newton puros — el residuo baja a precisión de máquina
+        for (let extra = 0; extra < 2; extra++) {
+          const x = px + dx * t, y = py + dy * t;
+          const sg = sag(x, y);
+          if (sg === null || sg.s < 1e-12) break;
+          const f = (pz + dz * t) - sg.z;
+          const den = (1 + sg.s) * (1 + sg.s);
+          const fx = x * (2 * cx * (1 + sg.s) + sg.N * gx / sg.s) / den;
+          const fy = y * (2 * cy * (1 + sg.s) + sg.N * gy / sg.s) / den;
+          const fp = dz - (fx * dx + fy * dy);
+          if (fp === 0) break;
+          t = t - f / fp;
+        }
+      }
+      return t;
+    };
+    const valida = t => {
+      if (!(t > EPS)) return null;
+      const x = t * dx + px, y = t * dy + py;
+      if (Math.hypot(x, y) > AP) return null;
+      const sg = sag(x, y);
+      if (sg === null || Math.abs((pz + dz * t) - sg.z) > 1e-9 * Math.max(1, Math.abs(sg.z))) return null;
+      // normal ∝ (−∂sag/∂x, −∂sag/∂y, 1)
+      const den = (1 + sg.s) * (1 + sg.s);
+      const fx = x * (2 * cx * (1 + sg.s) + sg.N * gx / sg.s) / den;
+      const fy = y * (2 * cy * (1 + sg.s) + sg.N * gy / sg.s) / den;
+      let normal = normalize([-fx, -fy, 1]);
+      if (dot(normal, ray.d) > 0) normal = scale(normal, -1);
+      return { point: add(ray.p, scale(ray.d, t)), normal, t };
+    };
+    let prevT = null, prevF = null;
     for (let i = 0; i <= K; i++) {
-      const t = tA + (tB - tA) * (i / K);
+      const t = tA + paso * i;
       const f = F(t);
       if (f === null) { prevT = null; prevF = null; continue; }
-      if (Math.abs(f) < 1e-13) { bracket = [t, t]; break; }
-      if (prevF !== null && Math.sign(f) !== Math.sign(prevF)) { bracket = [prevT, t]; break; }
+      if (Math.abs(f) < 1e-13) {
+        const hit = valida(refina(t, t));
+        if (hit) return hit;
+        prevT = t; prevF = f;
+        continue;
+      }
+      if (prevF !== null && Math.sign(f) !== Math.sign(prevF)) {
+        const hit = valida(refina(prevT, t));
+        if (hit) return hit; // la primera raíz VÁLIDA gana; si falla apertura, seguimos
+      }
       prevT = t; prevF = f;
     }
-    if (!bracket) return null;
-    // Newton con salvaguarda de bisección dentro de la horquilla
-    let [lo, hi] = bracket;
-    let t = 0.5 * (lo + hi);
-    if (lo !== hi) {
-      let fLo = F(lo);
-      for (let iter = 0; iter < 60; iter++) {
-        const x = px + dx * t, y = py + dy * t;
-        const sg = sag(x, y);
-        let tNext = null;
-        if (sg !== null) {
-          const f = (pz + dz * t) - sg.z;
-          if (Math.abs(f) < 1e-13) break;
-          if (Math.sign(f) === Math.sign(fLo)) lo = t; else hi = t;
-          // derivada analítica: F' = dz − (∂sag/∂x·dx + ∂sag/∂y·dy)
-          const den = (1 + sg.s) * (1 + sg.s);
-          const fx = sg.s > 1e-12 ? x * (2 * cx * (1 + sg.s) + sg.N * gx / sg.s) / den : null;
-          const fy = sg.s > 1e-12 ? y * (2 * cy * (1 + sg.s) + sg.N * gy / sg.s) / den : null;
-          if (fx !== null && fy !== null) {
-            const fp = dz - (fx * dx + fy * dy);
-            if (fp !== 0) tNext = t - f / fp;
-          }
-        } else {
-          hi = t; // fuera de dominio: encoger hacia lo (el lado definido)
-        }
-        t = (tNext !== null && tNext > lo && tNext < hi) ? tNext : 0.5 * (lo + hi);
-        if (hi - lo < 1e-15) break;
-      }
-      // pulido final: dos pasos de Newton puros (sin horquilla) — a esta distancia el
-      // paso es ~cuadrático y lleva el residuo a precisión de máquina
-      for (let extra = 0; extra < 2; extra++) {
-        const x = px + dx * t, y = py + dy * t;
-        const sg = sag(x, y);
-        if (sg === null || sg.s < 1e-12) break;
-        const f = (pz + dz * t) - sg.z;
-        const den = (1 + sg.s) * (1 + sg.s);
-        const fx = x * (2 * cx * (1 + sg.s) + sg.N * gx / sg.s) / den;
-        const fy = y * (2 * cy * (1 + sg.s) + sg.N * gy / sg.s) / den;
-        const fp = dz - (fx * dx + fy * dy);
-        if (fp === 0) break;
-        t = t - f / fp;
-      }
-    }
-    if (t <= EPS) return null;
-    const x = t * dx + px, y = t * dy + py;
-    if (Math.hypot(x, y) > surface.aperture_mm + APERTURE_TOL_MM) return null;
-    const sg = sag(x, y);
-    if (sg === null || Math.abs((pz + dz * t) - sg.z) > 1e-9 * Math.max(1, Math.abs(sg.z))) return null;
-    // normal ∝ (−∂sag/∂x, −∂sag/∂y, 1)
-    const den = (1 + sg.s) * (1 + sg.s);
-    const fx = x * (2 * cx * (1 + sg.s) + sg.N * gx / sg.s) / den;
-    const fy = y * (2 * cy * (1 + sg.s) + sg.N * gy / sg.s) / den;
-    let normal = normalize([-fx, -fy, 1]);
-    if (dot(normal, ray.d) > 0) normal = scale(normal, -1);
-    const point = add(ray.p, scale(ray.d, t));
-    return { point, normal, t };
+    return null;
   }
   if (surface.kind === 'conic') {
     // F(x,y,z') = c·(x²+y²+(1+k)z'²) − 2z' = 0 a lo largo del rayo → cuadrática en t.

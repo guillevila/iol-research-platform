@@ -1,6 +1,6 @@
 # V1_PROJECT_PLAN — Calculadora de LIO por trazado de rayos
 
-**Versión:** 1.0 · **Fecha:** 10/08/2026 · **Base:** `v0.5-hardening-complete`
+**Versión:** 1.1 · **Fecha:** 11/08/2026 · **Base:** `v0.5-hardening-complete`
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ---
@@ -116,7 +116,8 @@ manteniendo pupila→0 → paraxial para todo k.
 ### V1.3 · Tilt y descentración — pose rígida de la LIO
 La pose es un VECTOR, no dos escalares: `iol_pose` con descentración (x,y), tilt como
 vector eje-ángulo (tx,ty) y `rotation_z` aplicada primero en el marco local (convención
-fijada para el tórico V1.7; hoy exactamente inerte en superficies de revolución). Las
+fijada entonces para el tórico; inerte en superficies de revolución — ACTIVA desde
+V1.6 con caras bicónicas, donde es el eje de implantación del cilindro). Las
 superficies se colocan por transformación rígida global↔local SIN duplicar la matemática
 de esfera/cónica (`transformedSurface` reutiliza la intersección de la base).
 Aceptación (ejecutada): pose CERO reproduce V1.2 **estructuralmente** (sin envoltorio);

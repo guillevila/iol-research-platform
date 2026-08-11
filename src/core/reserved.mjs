@@ -98,11 +98,9 @@ export const RESERVED_IOL = Object.freeze({
     consumidor_previsto: 'modelo mecánico de posición final en el saco',
     blocked_by: 'requiere datos postoperatorios de posición real',
   },
-  toric_design: {
-    que_es: "cara donde reside el cilindro: 'anterior' | 'posterior' | 'bitoric'",
-    consumidor_previsto: 'trazado tórico con la superficie correcta',
-    blocked_by: 'V1.6 + OPEN_QUESTIONS #4',
-  },
+  // toric_design SALIÓ del registro en V1.6: ya se CONSUME — createIOL valida su
+  // vocabulario y lo deriva de los bloques tóricos (contradicción = rechazo), y
+  // buildRaytraceEye registra un diseño declarado sin geometría documentada.
 });
 
 export const RESERVED_FIELDS = Object.freeze({

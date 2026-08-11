@@ -77,7 +77,7 @@ export const PER_MERIDIAN = 'PER_MERIDIAN';
  * Valida un bloque tórico de cara (V1.6): radios principales por meridiano LOCAL x/y
  * (±Infinity = meridiano plano, como en biconicSurface) y Q por meridiano.
  * La ORIENTACIÓN no vive aquí: los meridianos son los ejes locales de la lente por
- * convención, y el eje tórico se orienta EXCLUSIVAMENTE con pose.rotation_z (V1.3/V1.7).
+ * convención, y el eje tórico se orienta EXCLUSIVAMENTE con pose.rotation_z (V1.3/V1.6).
  * Convención de fábrica de este proyecto: meridiano MÁS potente en y local.
  */
 function normToricFace(tf, name) {
@@ -136,6 +136,23 @@ export function createIOL(f) {
         + 'la Q de una cara tórica vive POR MERIDIANO (q_x/q_y) dentro del bloque tórico');
     }
   }
+  // toric_design con vocabulario VALIDADO (caza adversarial V1.6: antes se almacenaba
+  // verbatim cualquier cadena y una declaración contradictoria con los bloques se
+  // sobrescribía en silencio). Con bloques, el diseño se DERIVA; si además viene
+  // declarado, debe coincidir — dos verdades contradictorias no se reconcilian solas.
+  const DISEÑOS = ['anterior', 'posterior', 'bitoric'];
+  const declaradoDesign = g.toric_design ?? UNKNOWN;
+  if (declaradoDesign !== UNKNOWN && !DISEÑOS.includes(declaradoDesign)) {
+    throw new TypeError(`toric_design desconocido: ${String(declaradoDesign)}. `
+      + `Válidos: ${DISEÑOS.join(', ')} o UNKNOWN`);
+  }
+  const designDerivado = (toricAnt || toricPost)
+    ? (toricAnt && toricPost ? 'bitoric' : (toricAnt ? 'anterior' : 'posterior'))
+    : null;
+  if (designDerivado !== null && declaradoDesign !== UNKNOWN && declaradoDesign !== designDerivado) {
+    throw new TypeError(`geometría contradictoria: toric_design declarado '${declaradoDesign}' pero `
+      + `los bloques tóricos presentes implican '${designDerivado}'`);
+  }
   const geometry = {
     kind: g.kind ?? 'thick_lens',               // 'thin_lens' | 'thick_lens'
     refractive_index: g.refractive_index ?? UNKNOWN,
@@ -147,9 +164,7 @@ export function createIOL(f) {
     asphericity_q_posterior: toricPost ? PER_MERIDIAN : normAsphericity(g.asphericity_q_posterior, 'asphericity_q_posterior'),
     toric_anterior: toricAnt,
     toric_posterior: toricPost,
-    toric_design: (toricAnt || toricPost)
-      ? (toricAnt && toricPost ? 'bitoric' : (toricAnt ? 'anterior' : 'posterior'))
-      : (g.toric_design ?? UNKNOWN),
+    toric_design: designDerivado ?? declaradoDesign,
     haptic_angulation_deg: g.haptic_angulation_deg ?? UNKNOWN,
   };
   const unknowns = ESSENTIAL_GEOMETRY.filter(k => isUnknown(geometry[k]));
@@ -207,6 +222,11 @@ export function assertTraceableGeometry(iol, context = 'trazado') {
  * Sirve para verificar que la etiqueta nominal se corresponde con la geometría.
  * La asfericidad no interviene y es correcto: la potencia paraxial depende solo de la
  * curvatura en el vértice (Q entra en la sagita a orden r⁴).
+ *
+ * CON CARA TÓRICA (V1.6) este escalar es el EE de la curvatura MEDIA — NO "la
+ * potencia" de una lente que tiene dos: las potencias por meridiano (y el cilindro
+ * físico) son `physicalPowersOfToricIOL`. El trazador registra la discrepancia
+ * etiqueta↔geometría; este helper no la oculta, simplemente responde otra pregunta.
  */
 export function physicalPowerOfIOL(iol, { n_before = 1.336, n_after = 1.336 } = {}) {
   assertTraceableGeometry(iol, 'physicalPowerOfIOL');

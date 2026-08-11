@@ -334,10 +334,11 @@ test('STRICT: una lente ASIMÉTRICA posicionada por su centro geométrico bloque
   assert.ok(eyeResearch.assumptions.some(a => /SUSTITUTO DE SIMULACIÓN/.test(a)));
 });
 
-test('fidelity: cilindro de LIO — declarado ≠ 0 se rechaza en el trazador; UNKNOWN se registra', () => {
+test('fidelity: cilindro de LIO — declarado ≠ 0 SIN cara tórica se rechaza en el trazador; UNKNOWN se registra', () => {
   const geom = { refractive_index: 1.47, central_thickness_mm: 0.7, r_anterior_mm: 20.0, r_posterior_mm: -20.0 };
   const post = postopDe(ojoCompleto());
-  // declarado ≠ 0: no hay superficies tóricas → rechazar, no trazar la esfera callando
+  // declarado ≠ 0 SIN cara tórica declarada (V1.6: las superficies tóricas EXISTEN,
+  // pero la etiqueta no fabrica radios): rechazar, no trazar la esfera callando
   const torica = createIOL({
     manufacturer: 'ACME', model: 'T1', nominal_power_d: 20, cylinder_d: 2.25,
     geometry: geom, geometry_status: GeometryStatus.MANUFACTURER, provenance: PROV,

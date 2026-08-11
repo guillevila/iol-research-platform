@@ -290,8 +290,11 @@ test('toric · STRICT bloquea TODA geometría tórica inventada; la vía de fabr
     fidelity: FidelityMode.STRICT,
   }), err => err instanceof StrictModeViolation && /DECLARADA/.test(err.message));
   // (d) LIO tórica de FABRICANTE documentada (Q por meridiano numéricas) sobre córnea
-  //     MEDIDA con Q medida: registro vacío → PASA STRICT
-  const mfrTorica = new ManufacturerIOLFactory({
+  //     MEDIDA con Q medida: registro vacío → PASA STRICT. La ETIQUETA debe además
+  //     corresponder a la geometría (V1.6 tras caza adversarial: la discrepancia
+  //     etiqueta↔geometría se registra y bloquearía STRICT) — se deriva del cilindro
+  //     FÍSICO, como haría un fabricante honesto que etiqueta en plano LIO.
+  const fabricaTorica = new ManufacturerIOLFactory({
     manufacturer: 'ACME', model: 'TOR', provenance: PROV,
     geometryByPower: {
       21: {
@@ -303,12 +306,32 @@ test('toric · STRICT bloquea TODA geometría tórica inventada; la vía de fabr
         r_posterior_mm: -20, asphericity_q_posterior: -0.1,
       },
     },
-  }).create({ power_d: 21, cylinder_d: 1.5 });
+  });
+  const sonda = fabricaTorica.create({ power_d: 21 });   // etiqueta de cilindro UNKNOWN
+  const cilFisico = physicalPowersOfToricIOL(sonda).cylinder_d;
+  const mfrTorica = fabricaTorica.create({ power_d: 21, cylinder_d: cilFisico });
   const eyeStrict = buildRaytraceEye(postopDe(preMedida), mfrTorica, {
     cornea: { policy: CorneaPolicy.TWO_SURFACE_MEASURED }, fidelity: FidelityMode.STRICT,
   });
   assert.deepEqual(eyeStrict.assumptions, []);
   assert.equal(eyeStrict.toric, true);
+  // (e) coherencia etiqueta↔geometría: la etiqueta contradictoria SE REGISTRA (y por
+  //     tanto bloquea STRICT); la etiqueta "esférica declarada" (0) con cara tórica
+  //     es contradicción dura y se rechaza; la etiqueta UNKNOWN se registra
+  const contradicha = fabricaTorica.create({ power_d: 21, cylinder_d: cilFisico + 1.0 });
+  const eyeContra = buildRaytraceEye(postopDe(preMedida), contradicha, {
+    cornea: { policy: CorneaPolicy.TWO_SURFACE_MEASURED },
+  });
+  assert.ok(eyeContra.assumptions.some(a => /etiqueta cylinder_d.*≠ cilindro FÍSICO/.test(a)));
+  assert.throws(() => buildRaytraceEye(postopDe(preMedida), contradicha, {
+    cornea: { policy: CorneaPolicy.TWO_SURFACE_MEASURED }, fidelity: FidelityMode.STRICT,
+  }), err => err instanceof StrictModeViolation);
+  assert.throws(() => buildRaytraceEye(postopDe(preMedida),
+    fabricaTorica.create({ power_d: 21, cylinder_d: 0 })), /ESFÉRICA declarada.*cara tórica/);
+  const sinEtiqueta = buildRaytraceEye(postopDe(preMedida), sonda, {
+    cornea: { policy: CorneaPolicy.TWO_SURFACE_MEASURED },
+  });
+  assert.ok(sinEtiqueta.assumptions.some(a => /etiqueta de cilindro NO documentada/.test(a)));
 });
 
 test('toric · guardas: paraxial, foco coaxial y objetivos escalares rechazan el sistema tórico', () => {

@@ -30,8 +30,12 @@
  * CONVENCIÓN DE EJES (explícita, para no comerse el error de 90°)
  * ---------------------------------------------------------------
  *  - MERIDIANO DE POTENCIA uᵢ: dirección PUPILAR cuyos rayos enfocan en zᵢ; el haz se
- *    comprime a lo largo de uᵢ en zᵢ. El foco más PRÓXIMO (z menor) corresponde al
- *    meridiano MÁS POTENTE (el "empinado").
+ *    comprime a lo largo de uᵢ en zᵢ. Cuando AMBOS focos son REALES y posteriores a la
+ *    referencia (el caso del ojo pseudofáquico), el foco más PRÓXIMO (z menor) es el
+ *    meridiano MÁS POTENTE (el "empinado"). Con focos VIRTUALES (delante de la
+ *    referencia: haces divergentes en algún meridiano) el orden en z NO es orden de
+ *    potencia — la reducción clínica lo detecta y rechaza explícitamente (corrección
+ *    de la revisión adversarial V1.6).
  *  - LÍNEA FOCAL en zᵢ: se extiende PERPENDICULAR a uᵢ (a lo largo del otro meridiano).
  *  - EJE CLÍNICO del cilindro corrector (convención cilindro NEGATIVO): coincide con el
  *    meridiano PLANO (el menos potente, foco más lejano) — que es también la orientación
@@ -217,9 +221,25 @@ export function clinicalFromAstigmaticAnalysis(analysis, { zRetina_mm, zReferenc
       etiqueta: 'SIMULACION / NO GROUND TRUTH CLINICO',
     };
   }
-  const [near, far] = analysis.foci; // z ascendente: near = empinado, far = plano
+  // near = empinado SOLO si ambos focos son reales tras la referencia: con un foco
+  // VIRTUAL (z ≤ referencia) el orden en z no es orden de potencia — se rechaza con
+  // nombre en vez de dejar que equivalentDefocus falle con un mensaje genérico
+  // (corrección adversarial V1.6)
+  const virtuales = analysis.foci.filter(f => f.z_mm <= zReference_mm);
+  if (virtuales.length > 0) {
+    throw new RangeError('clinicalFromAstigmaticAnalysis: foco(s) principal(es) VIRTUAL(es) o '
+      + `anteriores a la referencia (z=${virtuales.map(f => f.z_mm.toFixed(2)).join(', ')} mm ≤ `
+      + `zRef=${zReference_mm} mm) — el orden en z no es orden de potencia y la reducción `
+      + 'clínica no está definida. Analiza los focos directamente (analysis.foci).');
+  }
+  const [near, far] = analysis.foci; // ambos reales tras la referencia: near = empinado
   const dNear = equivalentDefocus_d(near.z_mm, zRetina_mm, zReference_mm);
   const dFar = equivalentDefocus_d(far.z_mm, zRetina_mm, zReference_mm);
+  // el residual de ortogonalidad VIAJA (corrección adversarial V1.6: se calculaba y la
+  // reducción clínica lo descartaba — un consumidor no podía saber que el haz era
+  // astigmáticamente IRREGULAR y que esfera/cilindro/eje son entonces una reducción
+  // forzada de algo que no es un cilindro cruzado ortogonal)
+  const orto = analysis.orthogonality_residual_deg;
   return {
     sphere_d: dFar,
     cylinder_d: dNear - dFar,                       // ≤ 0: cilindro negativo
@@ -227,6 +247,11 @@ export function clinicalFromAstigmaticAnalysis(analysis, { zRetina_mm, zReferenc
     se_d: (dNear + dFar) / 2,
     steep: { meridian_deg: near.power_meridian_deg, defocus_d: dNear, z_mm: near.z_mm },
     flat: { meridian_deg: far.power_meridian_deg, defocus_d: dFar, z_mm: far.z_mm },
+    orthogonality_residual_deg: orto,
+    warnings: orto > 1
+      ? [`meridianos principales NO ortogonales (residual ${orto.toFixed(2)}°): el haz es `
+        + 'astigmáticamente irregular y esfera/cilindro/eje son una reducción forzada']
+      : [],
     degenerate_reason: null,
     convencion: 'cilindro negativo; desenfoque equivalente (sin distancia de vértice); eje = meridiano plano',
     etiqueta: 'SIMULACION / NO GROUND TRUTH CLINICO',

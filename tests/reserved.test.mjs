@@ -111,7 +111,9 @@ test('reservados: cada entrada documenta qué es, quién lo usará y qué lo blo
   // el registro debe cubrir los tres modelos y no estar vacío
   assert.deepEqual(Object.keys(RESERVED_FIELDS).sort(),
     ['iol', 'predicted_postoperative_eye', 'preoperative_eye']);
-  assert.equal(RESERVED_NAMES.length, 11);
+  // 11 → 10 en V1.6: toric_design salió del registro (ya se consume: validado en
+  // createIOL y registrado en buildRaytraceEye cuando se declara sin geometría)
+  assert.equal(RESERVED_NAMES.length, 10);
   assert.equal(new Set(RESERVED_NAMES).size, RESERVED_NAMES.length, 'nombres duplicados');
 });
 

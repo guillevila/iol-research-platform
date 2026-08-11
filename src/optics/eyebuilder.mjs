@@ -10,7 +10,7 @@
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 import { mmToM, assertFinite, curvatureFromRadiusMm } from '../core/units.mjs';
-import { assertTraceableGeometry, ASSUMED_SPHERICAL, UNKNOWN, hasToricGeometry } from '../core/iol.mjs';
+import { assertTraceableGeometry, ASSUMED_SPHERICAL, UNKNOWN, hasToricGeometry, physicalPowersOfToricIOL } from '../core/iol.mjs';
 import { FidelityMode, DEFAULT_FIDELITY_MODE, assertFidelityMode, enforceStrictness, StrictModeViolation } from '../core/fidelity.mjs';
 import { predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, refract, transfer } from './paraxial.mjs';
 import { buildCorneaModel, CorneaPolicy } from './cornea.mjs';
@@ -227,6 +227,12 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
       + 'Usa SyntheticToricIOLFactory (sustituto declarado) o geometría de fabricante con '
       + 'toric_anterior/toric_posterior y procedencia.');
   }
+  // Y la dirección CONTRARIA (caza adversarial V1.6: la guarda era unidireccional y una
+  // etiqueta contradictoria con la geometría tórica se trazaba en silencio):
+  if (hasToricGeometry(iol) && iol.cylinder_d === 0) {
+    throw new TypeError('buildRaytraceEye: cylinder_d=0 (ESFÉRICA declarada) con cara tórica '
+      + 'declarada en la geometría — dos verdades contradictorias no se trazan.');
+  }
   const surfaces = [];
   const assumptions = [];
   let cornea;
@@ -252,6 +258,28 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
   // una lente genérica es EN SÍ un supuesto: sus radios/índice/espesor no proceden de
   // la lente implantada. En RESEARCH se registra; en STRICT bloquea vía la puerta.
   if (iol.is_simulation_surrogate) assumptions.push(notaSurrogate(iol));
+  // Coherencia etiqueta↔geometría tórica (caza adversarial V1.6): se traza SIEMPRE la
+  // GEOMETRÍA; una etiqueta que no la corresponde se registra, no se calla. La
+  // discrepancia puede ser legítima (etiquetas referidas a plano corneal) — por eso es
+  // nota registrada (STRICT la bloquea hasta explicarla), no rechazo.
+  if (hasToricGeometry(iol)) {
+    const cilFisico = physicalPowersOfToricIOL(iol).cylinder_d;
+    if (typeof iol.cylinder_d === 'number') {
+      if (Math.abs(iol.cylinder_d - cilFisico) > 0.1) {
+        assumptions.push(`iol: etiqueta cylinder_d=${iol.cylinder_d} D ≠ cilindro FÍSICO de la `
+          + `geometría ${cilFisico.toFixed(3)} D (plano LIO) — se traza la GEOMETRÍA; la etiqueta `
+          + 'puede estar referida a plano corneal o ser errónea: discrepancia registrada');
+      }
+    } else {
+      assumptions.push('iol: cara tórica declarada con etiqueta de cilindro NO documentada '
+        + '(UNKNOWN) — se traza la geometría; la etiqueta no se inventa');
+    }
+  } else if (typeof g.toric_design === 'string' && g.toric_design !== UNKNOWN) {
+    // diseño tórico DECLARADO sin bloques de geometría: la lente se traza con lo que
+    // hay (esférica/cónica) y el dato declarado no representado queda registrado
+    assumptions.push(`iol: toric_design='${g.toric_design}' DECLARADO sin geometría tórica `
+      + 'documentada — la toricidad declarada NO está representada en este trazado');
+  }
   if (centradoAsimetrico(iol)) assumptions.push(NOTA_CENTRADO);
   if (iol.cylinder_d === UNKNOWN) {
     assumptions.push('iol: cilindro no documentado; trazada como esférica (SUPUESTO registrado)');

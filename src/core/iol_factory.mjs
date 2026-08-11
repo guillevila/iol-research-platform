@@ -147,8 +147,15 @@ export class SyntheticToricIOLFactory {
     this.id = `synthetic_toric_n${n_iol}_t${thickness_mm}`;
   }
 
-  create({ power_d, cylinder_d }) {
+  create({ power_d, cylinder_d } = {}) {
     assertFinite(power_d, 'power_d');
+    if (cylinder_d === undefined) {
+      // mensaje específico (caza adversarial V1.6): el optimizador ESCALAR llama
+      // create({power_d}) a secas — el error debe decir la verdad útil, no el síntoma
+      throw new TypeError('SyntheticToricIOLFactory.create exige cylinder_d explícito. Si esto '
+        + 'viene del optimizador escalar de potencia: los objetivos escalares están PROHIBIDOS '
+        + 'para sistemas tóricos — usa el análisis 2D (raytrace/astigmatism.mjs).');
+    }
     assertFinite(cylinder_d, 'cylinder_d');
     if (!(cylinder_d >= 0)) {
       throw new RangeError('SyntheticToricIOLFactory: cylinder_d nominal debe ser ≥ 0 '
@@ -218,16 +225,21 @@ export class ManufacturerIOLFactory {
     this.id = `mfr_${manufacturer}_${model}`;
   }
 
-  create({ power_d, cylinder_d = 0 }) {
+  create({ power_d, cylinder_d }) {
     assertFinite(power_d, 'power_d');
     const key = String(power_d);
     const g = this.geometryByPower[key] ?? this.geometryByPower[power_d];
     const known = g && typeof g === 'object';
+    // Etiqueta de cilindro por defecto (corregido en V1.6, caza adversarial): con
+    // geometría ESFÉRICA documentada, 0 = "esférica declarada" es VERDAD; con cara
+    // TÓRICA documentada, un 0 por defecto sería fabricar una declaración falsa (y el
+    // trazador la rechaza como contradicción) — el defecto honesto es UNKNOWN.
+    const esToric = known && Boolean(g.toric_anterior || g.toric_posterior);
     return createIOL({
       manufacturer: this.manufacturer,
       model: this.model,
       nominal_power_d: power_d,
-      cylinder_d,
+      cylinder_d: cylinder_d ?? (esToric ? UNKNOWN : 0),
       toric_catalog_d: this.toric_catalog_d,
       power_range_d: this.power_range_d,
       geometry: known ? { kind: 'thick_lens', ...g } : {},

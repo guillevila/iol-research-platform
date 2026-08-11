@@ -1,6 +1,6 @@
 # OPEN_QUESTIONS — Incertidumbre científica registrada
 
-**Versión:** 1.0 · **Fecha:** 10/08/2026 · RESEARCH USE ONLY
+**Versión:** 1.1 · **Fecha:** 11/08/2026 · RESEARCH USE ONLY
 Regla del proyecto: la incertidumbre científica se registra aquí y se resuelve con
 evidencia, nunca con suposición.
 

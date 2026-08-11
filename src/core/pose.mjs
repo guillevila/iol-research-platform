@@ -2,9 +2,9 @@
  * pose.mjs — pose rígida de la LIO: descentración, tilt e índice de rotación (V1.3).
  *
  * POR QUÉ NO BASTAN ESCALARES: "tilt 5°" y "descentración 0.5 mm" no determinan un
- * sistema óptico — falta la DIRECCIÓN. V1.3 es 3D, y en cuanto exista el tórico (V1.7)
- * la orientación relativa entre el eje del cilindro y la dirección del tilt/descentración
- * será exactamente lo que importe. Los antiguos campos escalares quedan eliminados del
+ * sistema óptico — falta la DIRECCIÓN. V1.3 es 3D, y con el tórico trazado (existe
+ * desde V1.6) la orientación relativa entre el eje del cilindro y la dirección del
+ * tilt/descentración es exactamente lo que importa (V1.7 la penaliza). Los antiguos campos escalares quedan eliminados del
  * modelo (usarlos es un error explícito, no un alias).
  *
  * CONVENCIÓN DE COORDENADAS (documentada, la misma del datum del proyecto)
@@ -23,8 +23,8 @@
  *  - rotation_z_deg: rotación alrededor del eje óptico LOCAL de la lente, aplicada
  *    ANTES del tilt:   p_global = T + R_tilt · Rz(rotation_z) · p_local
  *    con T = (decenter_x_mm, decenter_y_mm, iol_position_mm). Este orden es la
- *    convención fijada para el tórico (V1.7): rotation_z orienta el cilindro EN la
- *    lente y el tilt inclina la lente entera ya orientada. Con superficies de
+ *    convención fijada para el tórico (vigente desde V1.6): rotation_z orienta el
+ *    cilindro EN la lente y el tilt inclina la lente entera ya orientada. Con superficies de
  *    revolución, rotation_z es ópticamente INERTE — se aplica igualmente (aplicar una
  *    rotación a una superficie simétrica no es ignorar un dato: la física no depende
  *    de él, exactamente). Con caras TÓRICAS (bicónicas, V1.6) rotation_z es ACTIVA:

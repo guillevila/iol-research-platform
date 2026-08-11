@@ -276,9 +276,14 @@ test('pose · regresión: recommendToric RECHAZA la pose en vez de ignorarla (by
 
 test('pose · regresión: Monte Carlo no puede tragarse una pose ni una sigma de K sin efecto', () => {
   const pre = ojoMedido();
+  // V1.6: la guarda dejó de ser enumerativa — CUALQUIER clave desconocida se rechaza
+  // NOMBRÁNDOLA (antes solo iol_pose/postop; iol:/cylinder_d: se tragaban en silencio)
   assert.throws(() => monteCarloRefraction({
     preop: pre, iol_position_mm: 4.9, power_d: 21, seed: 7, n: 50, iol_pose: { tilt_x_deg: 5 },
-  }), /no soporta pose/);
+  }), /parámetros no soportados: iol_pose/);
+  assert.throws(() => monteCarloRefraction({
+    preop: pre, iol_position_mm: 4.9, power_d: 21, seed: 7, n: 50, cylinder_d: 3,
+  }), /parámetros no soportados: cylinder_d/);
   // córnea de radios MEDIDOS + sigma de K: la perturbación no tendría efecto → rechazo
   assert.throws(() => monteCarloRefraction({
     preop: pre, iol_position_mm: 4.9, power_d: 21, seed: 7, n: 50, sigmas: { mean_k_d: 0.1 },

@@ -102,10 +102,10 @@ export function recommendToric({ postop, sePower_d, catalog_d, target_d = 0, sia
     implantation_axis_deg: tca.steepAxis_deg,
     cornea_kind: cornea.kind,
     cornea_policy: cornea.policy,
-    // la córnea del modelo es rotacionalmente simétrica: el TCA se compone
-    // VECTORIALMENTE sobre esa potencia media — que ningún consumidor lea
-    // "two_surface_physical" como córnea astigmática FÍSICA (no existe hasta el
-    // tórico trazado; caza adversarial V1.5)
+    // la córnea de ESTE motor es rotacionalmente simétrica (buildCorneaModel EE): el
+    // TCA se compone VECTORIALMENTE sobre esa potencia media — que ningún consumidor
+    // lea "two_surface_physical" como córnea astigmática FÍSICA (la trazada existe
+    // desde V1.6 en toric_cornea.mjs, pero NO es la que usa este motor; caza V1.5)
     cornea_rotationally_symmetric: cornea.rotationally_symmetric,
     fidelity,
     supuestos_modelo: supuestos,

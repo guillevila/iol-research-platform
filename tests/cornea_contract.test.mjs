@@ -11,9 +11,11 @@
  *      RATIO la construye SOLO con ratio+procedencia citada y el supuesto registrado,
  *      MEASURED con medidas y registro vacío;
  *   4. STRICT es diferencial por política también en la vía de trazado;
- *   5. toda córnea física actual es ROTACIONALMENTE SIMÉTRICA — la córnea física
- *      astigmática NO existe hasta el tórico (plan V1.6) y el colapso a EE de un
- *      astigmatismo medido queda registrado en ambas vías.
+ *   5. toda córnea física de las políticas EE (cornea.mjs) es ROTACIONALMENTE
+ *      SIMÉTRICA — la córnea astigmática trazada existe desde V1.6 pero SOLO vía
+ *      toric_cornea.mjs (política explícita, otro módulo): las políticas de AQUÍ
+ *      jamás construyen meridianos, y el colapso a EE de un astigmatismo medido
+ *      queda registrado en ambas vías.
  *
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
@@ -167,8 +169,8 @@ test('V1.5 · contrato 5: STRICT diferencial por política EN LA VÍA DE TRAZADO
 });
 
 test('V1.5 · simetría rotacional: el astigmatismo medido se colapsa CON registro en ambas vías', () => {
-  // la córnea física ASTIGMÁTICA (radios por meridiano, eje) no existe hasta el tórico:
-  // ninguna política produce superficies por meridiano, y el colapso queda registrado
+  // ninguna política EE produce superficies por meridiano (la córnea astigmática
+  // trazada vive en toric_cornea.mjs, V1.6, como opt-in), y el colapso queda registrado
   const post = postopDe(ojo({ astigmatico: true }));
   const par = buildParaxialEye(post, { cornea: { policy: CorneaPolicy.TWO_SURFACE_MEASURED } });
   const rt = buildRaytraceEye(post, LENTE, { cornea: { policy: CorneaPolicy.TWO_SURFACE_MEASURED } });
@@ -259,7 +261,7 @@ test('V1.5 · adversarial: la nota de LECTURA no afirma explicitud que no puede 
 test('V1.5 · adversarial: rotationally_symmetric viaja a los consumidores que RESUMEN', () => {
   // el flag existía en los builders pero los consumidores lo dejaban caer — incluido el
   // tórico, que es exactamente donde "two_surface_physical" podría leerse como córnea
-  // astigmática física (no existe hasta el tórico trazado)
+  // astigmática física (que desde V1.6 solo existe vía cornea_toric, jamás aquí)
   const pre = createPreopEye({
     al_mm: 23.5, k1_d: 42.0, k1_axis_deg: 180, k2_d: 45.0, k2_axis_deg: 90,
     acd_mm: 3.2, lt_mm: 4.5, keratometric_index: 1.3375, meta: { source: 'synthetic' },
