@@ -1,0 +1,204 @@
+{
+  "config": {
+    "id": "exp012_rotacion_torica",
+    "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO",
+    "pregunta": "Residual por rotación de LIO tórica calculado por física, frente a las anclas vectoriales",
+    "lente": "SyntheticToricIOLFactory — SUSTITUTO SINTÉTICO DECLARADO (única vía etiqueta→radios)",
+    "cornea": "TORIC_ANTERIOR_FROM_K (K1 42 / K2 45, empinada a 90°) — radios RECUPERADOS, no medidos",
+    "plan": "eje planificado del meridiano potente de la LIO = 0° (plano corneal); físico = 90° + rotation_z",
+    "errores_declarados_deg": [
+      0,
+      2.5,
+      5,
+      10,
+      15,
+      30,
+      45,
+      60,
+      90
+    ],
+    "pupilas_radio_mm": {
+      "ancla": 0.08,
+      "finita": 1.5
+    },
+    "fijos": {
+      "al_mm": 23.5,
+      "acd_mm": 3.2,
+      "lt_mm": 4.5,
+      "cct_um": 550,
+      "n_k": 1.3375,
+      "iol_position_mm": 4.9
+    }
+  },
+  "timestamp": "2026-08-11T15:09:37.421Z",
+  "commit": "e3762ca89084068a86749f2e05f0bf3aeb29addd",
+  "procedencia_commit": "último commit AL GENERAR: el experimento puede incluir cambios aún sin committear (hallazgo adversarial V1.3: el commit estampado era sistemáticamente el PADRE del que publica). La reproducibilidad NO la garantiza este campo sino scripts/check_experiments.mjs, que re-ejecuta contra el árbol del commit que publica y en cada push de CI.",
+  "componentes_medidos": {
+    "cornea": {
+      "cyl_d": 4.37747,
+      "steep_axis_deg": 90
+    },
+    "lio_etiqueta_3": {
+      "cyl_d": 3.22665
+    },
+    "lio_igualada": {
+      "etiqueta_d": 4.06998,
+      "cyl_efectivo_d": 4.37747
+    }
+  },
+  "resumen": {
+    "max_divergencia_ancla_2C_d": 0.00123,
+    "max_divergencia_vectorial_ancla_d": 0.0009,
+    "max_divergencia_vectorial_finita_d": 0.11263,
+    "residual_a_30_sobre_C": 0.9999,
+    "residual_a_90_sobre_C": 1.9997
+  },
+  "bloqueA_modulos_igualados": [
+    {
+      "error_derivado_deg": 0,
+      "residual_trazado_d": 0.00123,
+      "ancla_2C_sin_theta_d": 0,
+      "divergencia_d": 0.00123,
+      "fraccion_correccion_perdida": 0.0003
+    },
+    {
+      "error_derivado_deg": 2.5,
+      "residual_trazado_d": 0.38186,
+      "ancla_2C_sin_theta_d": 0.38188,
+      "divergencia_d": -0.00003,
+      "fraccion_correccion_perdida": 0.0872
+    },
+    {
+      "error_derivado_deg": 5,
+      "residual_trazado_d": 0.76299,
+      "ancla_2C_sin_theta_d": 0.76304,
+      "divergencia_d": -0.00005,
+      "fraccion_correccion_perdida": 0.1743
+    },
+    {
+      "error_derivado_deg": 10,
+      "residual_trazado_d": 1.52017,
+      "ancla_2C_sin_theta_d": 1.52028,
+      "divergencia_d": -0.00011,
+      "fraccion_correccion_perdida": 0.3473
+    },
+    {
+      "error_derivado_deg": 15,
+      "residual_trazado_d": 2.26577,
+      "ancla_2C_sin_theta_d": 2.26594,
+      "divergencia_d": -0.00017,
+      "fraccion_correccion_perdida": 0.5176
+    },
+    {
+      "error_derivado_deg": 30,
+      "residual_trazado_d": 4.37708,
+      "ancla_2C_sin_theta_d": 4.37747,
+      "divergencia_d": -0.00039,
+      "fraccion_correccion_perdida": 0.9999
+    },
+    {
+      "error_derivado_deg": 45,
+      "residual_trazado_d": 6.19003,
+      "ancla_2C_sin_theta_d": 6.19067,
+      "divergencia_d": -0.00064,
+      "fraccion_correccion_perdida": 1.4141
+    },
+    {
+      "error_derivado_deg": 60,
+      "residual_trazado_d": 7.58108,
+      "ancla_2C_sin_theta_d": 7.58199,
+      "divergencia_d": -0.00091,
+      "fraccion_correccion_perdida": 1.7318
+    },
+    {
+      "error_derivado_deg": 90,
+      "residual_trazado_d": 8.75374,
+      "ancla_2C_sin_theta_d": 8.75493,
+      "divergencia_d": -0.00119,
+      "fraccion_correccion_perdida": 1.9997
+    }
+  ],
+  "bloqueB_caso_general": [
+    {
+      "error_derivado_deg": 0,
+      "residual_vectorial_d": 1.15082,
+      "residual_trazado_pupila_ancla_d": 1.15172,
+      "divergencia_pupila_ancla_d": 0.0009,
+      "residual_trazado_pupila_finita_d": 1.24403,
+      "divergencia_pupila_finita_d": 0.09321,
+      "eje_residual_deg": 90
+    },
+    {
+      "error_derivado_deg": 2.5,
+      "residual_vectorial_d": 1.19661,
+      "residual_trazado_pupila_ancla_d": 1.19747,
+      "divergencia_pupila_ancla_d": 0.00086,
+      "residual_trazado_pupila_finita_d": 1.28762,
+      "divergencia_pupila_finita_d": 0.09101,
+      "eje_residual_deg": 83.29
+    },
+    {
+      "error_derivado_deg": 5,
+      "residual_vectorial_d": 1.32422,
+      "residual_trazado_pupila_ancla_d": 1.32497,
+      "divergencia_pupila_ancla_d": 0.00076,
+      "residual_trazado_pupila_finita_d": 1.41005,
+      "divergencia_pupila_finita_d": 0.08583,
+      "eje_residual_deg": 77.639
+    },
+    {
+      "error_derivado_deg": 10,
+      "residual_vectorial_d": 1.74012,
+      "residual_trazado_pupila_ancla_d": 1.74063,
+      "divergencia_pupila_ancla_d": 0.00051,
+      "residual_trazado_pupila_finita_d": 1.8157,
+      "divergencia_pupila_finita_d": 0.07558,
+      "eje_residual_deg": 70.549
+    },
+    {
+      "error_derivado_deg": 15,
+      "residual_vectorial_d": 2.26032,
+      "residual_trazado_pupila_ancla_d": 2.26062,
+      "divergencia_pupila_ancla_d": 0.0003,
+      "residual_trazado_pupila_finita_d": 2.33096,
+      "divergencia_pupila_finita_d": 0.07064,
+      "eje_residual_deg": 67.486
+    },
+    {
+      "error_derivado_deg": 30,
+      "residual_vectorial_d": 3.93051,
+      "residual_trazado_pupila_ancla_d": 3.93041,
+      "divergencia_pupila_ancla_d": -0.0001,
+      "residual_trazado_pupila_finita_d": 4.00614,
+      "divergencia_pupila_finita_d": 0.07563,
+      "eje_residual_deg": 67.601
+    },
+    {
+      "error_derivado_deg": 45,
+      "residual_vectorial_d": 5.43815,
+      "residual_trazado_pupila_ancla_d": 5.43775,
+      "divergencia_pupila_ancla_d": -0.0004,
+      "residual_trazado_pupila_finita_d": 5.52718,
+      "divergencia_pupila_finita_d": 0.08903,
+      "eje_residual_deg": 72.02
+    },
+    {
+      "error_derivado_deg": 60,
+      "residual_vectorial_d": 6.61045,
+      "residual_trazado_pupila_ancla_d": 6.6098,
+      "divergencia_pupila_ancla_d": -0.00065,
+      "residual_trazado_pupila_finita_d": 6.71188,
+      "divergencia_pupila_finita_d": 0.10144,
+      "eje_residual_deg": 77.653
+    },
+    {
+      "error_derivado_deg": 90,
+      "residual_vectorial_d": 7.60412,
+      "residual_trazado_pupila_ancla_d": 7.60323,
+      "divergencia_pupila_ancla_d": -0.00089,
+      "residual_trazado_pupila_finita_d": 7.71674,
+      "divergencia_pupila_finita_d": 0.11263,
+      "eje_residual_deg": 90
+    }
+  ]
+}

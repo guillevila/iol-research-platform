@@ -189,3 +189,21 @@ evidencia, nunca con suposición.
   dispositivo/zona/convención; entonces una política TORIC_TWO_SURFACE_MEASURED podrá
   existir y pasar STRICT.
 - **PROHIBIDO:** promover K1/K2 a "córnea astigmática medida" para esquivar la puerta.
+
+## #11 · Marcas de implantación de LIO comercial ↔ eje de la geometría tórica
+
+- **Pregunta:** para cada modelo comercial, ¿qué relación EXACTA declara el fabricante
+  entre las marcas de eje de la óptica y los meridianos principales de la geometría?
+- **Por qué importa:** en este proyecto conviven TRES ejes que no son el mismo: el de
+  la GEOMETRÍA tórica (meridiano potente, convención interna: y local + rotation_z),
+  el CLÍNICO minus-cylinder del residual (meridiano plano) y las MARCAS de una LIO
+  comercial. Los fabricantes marcan "típicamente" el meridiano plano de la óptica,
+  pero "típicamente" no es documentación: asumir la correspondencia sin ficha es un
+  error de 90° en potencia, exactamente la clase de confusión que la convención
+  explícita de astigmatism.mjs existe para impedir.
+- **Estado:** registrado, no resuelto. V1.7 trabaja SOLO con el eje de la geometría;
+  ninguna función del repo interpreta marcas comerciales.
+- **Acción futura:** al documentar una LIO tórica comercial (OQ #4), la ficha deberá
+  incluir la relación marcas↔meridianos; hasta entonces, cualquier comparación con
+  ejes de implantación clínicos reales queda fuera del alcance.
+- **PROHIBIDO:** mapear marcas→geometría por costumbre o por conveniencia.

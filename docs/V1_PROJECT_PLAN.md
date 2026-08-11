@@ -188,17 +188,54 @@ DECLARED) y solo pasa la de fabricante documentada; objetivos escalares GUARDADO
 (`evaluateObjective` rechaza `toric: true`); el residual de dos cilindros iguales
 sigue 2C|sen θ| (candado algebraico, ver V1.7). exp011.
 
-### V1.7 · Rotación tórica
-Penalización del residual por rotación respecto al eje diana. Aceptación: rotación 0
-reproduce V1.6; el residual de dos cilindros IGUALES de magnitud C separados un ángulo
-θ es **2·C·|sen θ|** — NO C·|sen 2θ| (en el espacio de doble ángulo la resta vale
-C·|1 − e^{i2θ}| = 2C·|sen θ|; la fórmula anterior de esta sección era una
-simplificación ERRÓNEA, corregida en V1.6 a petición: a 30° el residual es C entero,
-no 0.87·C, y a 90° es 2C, no 0). El caso GENERAL (cilindros distintos, ejes
-cualesquiera) se valida contra la RESTA VECTORIAL completa en doble ángulo, nunca
-contra una fórmula simplificada.
-`toric_rotation_deg` sale de `reserved.mjs`. **La distribución real de rotaciones sigue
-bloqueada** (OPEN_QUESTIONS #6): solo se admiten escenarios declarados.
+### V1.7 · Rotación tórica (EJECUTADO: `src/toric/toric_rotation.mjs`, exp012)
+**SIN `toric_rotation_deg`** (corrección a petición, antes de implementar): ese
+escalar fue ELIMINADO del modelo en V1.3 y NO se reintroduce — la frase anterior de
+esta sección ("sale de reserved.mjs") era una inconsistencia: el estado físico de
+orientación de la LIO ya vive en `iol_pose.rotation_z_deg`, ópticamente ACTIVO sobre
+las caras bicónicas desde V1.6. Un segundo escalar de rotación sería un segundo grado
+de libertad geométrico para el mismo estado físico.
+
+TRES CONCEPTOS SEPARADOS (ninguno se confunde con otro):
+1. **eje/orientación PLANIFICADA** — dónde se pretendía dejar el meridiano potente de
+   la geometría de la LIO (dato de planificación, mod 180; no toca la geometría);
+2. **orientación física postoperatoria** — `pose.rotation_z_deg`, el ÚNICO grado de
+   libertad geométrico (meridiano potente físico = 90° + rotation_z, convención de
+   fábrica en y local);
+3. **error de rotación** — diferencia angular DERIVADA entre (2) y (1), mod 180,
+   firmada en (−90°, 90°]: positivo = sentido de +rotation_z (regla de la mano
+   derecha sobre +z; el mapeo horario/antihorario clínico exige lateralidad, OQ #3).
+   JAMÁS es entrada geométrica.
+
+Motor = FÍSICA: modificar `pose.rotation_z_deg`, rotar de verdad la geometría
+bicónica (`transformedSurface`, orden ya fijado `R_tilt · Rz` — ninguna rotación
+nueva), volver a trazar y extraer el residual con el análisis astigmático 2D
+(astigmatism.mjs). `2C·|sen θ|` NO es motor de predicción: es ancla analítica para
+cilindros IGUALES en el límite paraxial (en doble ángulo |1 − e^{i2θ}| = 2|sen θ|;
+la fórmula C·|sen 2θ| que hubo aquí era errónea — a 30° el residual es C entero, a
+90° es 2C). El caso GENERAL se valida contra la RESTA VECTORIAL completa como segunda
+ancla independiente, nunca contra fórmula simplificada.
+
+Aceptación (EJECUTADA, tests/toric_rotation.test.mjs + exp012): orientación 0
+reproduce V1.6 (igualdad EXACTA: el módulo delega); +180° reproduce la misma óptica;
++90° intercambia los meridianos; ±θ cumplen las simetrías de sistema centrado
+(módulos iguales, meridianos espejados); pupila→0 converge a la resta vectorial
+(≤0.0009 D en exp012) y con módulos EFECTIVOS igualados a 2C·|sen θ| (≤0.0012 D; a
+30° la fracción de C es 0.9999 y a 90° 1.9997 — lo que la fórmula errónea negaba); a
+pupila finita la divergencia frente al vectorial se REPORTA (≤0.113 D en exp012),
+nunca se llama error; la combinación rotación + tilt + descentración produce
+exactamente los mismos números que el pipeline manual (delegación verificada: ninguna
+rotación nueva); una entrada `rotation_error_deg` se RECHAZA nombrándola (el error es
+derivado, no un grado de libertad).
+
+DISTINCIÓN EXPLÍCITA de tres ejes que no son el mismo: eje de la GEOMETRÍA tórica
+(meridiano potente, convención del proyecto), eje CLÍNICO minus-cylinder (meridiano
+plano del residual, astigmatism.mjs) y MARCAS/eje de implantación de una LIO
+comercial — la correspondencia marca↔geometría exige documentación del fabricante y
+NO se asume (OPEN_QUESTIONS #11).
+
+**La distribución real de rotaciones sigue bloqueada** (OPEN_QUESTIONS #6): solo se
+admiten escenarios declarados.
 
 ### V1.8 · `RaytraceEngine` en el benchmark
 Adaptador al contrato de `src/bench/interface.mjs`, junto a `ParaxialEngine` y `EvoEngine`.

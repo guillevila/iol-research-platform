@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
 **Fecha:** 11/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 246/246 tests verdes · CI verde (5 jobs) · 7 experimentos deterministas verificados en CI
+**Suite:** 256/256 tests verdes · CI verde (5 jobs) · 8 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
@@ -10,7 +10,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 |---|---|
 | V0 (motor paraxial + benchmark congelado) | DONE — ver histórico al pie |
 | **V0.5 endurecimiento** (10 hallazgos de `docs/V0_REVIEW.md`) | **DONE** — `docs/V0_5_CLOSURE.md`, tag `v0.5-hardening-complete` |
-| **V1** (calculadora por trazado, plan en `docs/V1_PROJECT_PLAN.md`) | **EN CURSO** — 7/15 sprints + revisión pre-V1.2 |
+| **V1** (calculadora por trazado, plan en `docs/V1_PROJECT_PLAN.md`) | **EN CURSO** — 8/15 sprints + revisión pre-V1.2 |
 
 ## V1 — estado por sprint
 
@@ -24,8 +24,9 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 | V1.3 Pose rígida de LIO (tilt/descentración vectoriales) | **DONE** | pose vector + transformadas rígidas; validación no-coaxial (reversibilidad/±pose/O(s²)); métrica de spot corregida a centroide; exp010 |
 | V1.5 Contrato política corneal ↔ trazador | **DONE** | verificado por política (misma interpretación, procedencia viaja, sin posterior fabricada, STRICT diferencial); `rotationally_symmetric` explícito y expuesto en consumidores; PoseSource; caza adversarial aplicada: medidas corneales PARCIALES se usan o se registran (antes: descarte silencioso) |
 | V1.6 Tórico trazado | **DONE** | `biconicSurface` (Newton salvaguardado, recupera cónica a 1e-12); métrica 2D (M(z) exacta → autoproblema generalizado, ejes sin plano degenerado); `SyntheticToricIOLFactory` (única vía etiqueta→radios, declarada); córnea tórica por política explícita (jamás "medida", OQ #10); STRICT bloquea todo tórico inventado; objetivos escalares GUARDADOS; exp011 (eje 0° error, vectorial ≤0.001 D); caza adversarial aplicada: intersección bicónica reescrita (ventana acotada, sin rama lejana), coherencia etiqueta↔geometría registrada, MC rechaza claves desconocidas, focos virtuales rechazados con nombre |
-| V1.7 Rotación tórica | **SIGUIENTE** | criterio CORREGIDO en V1.6 a petición: residual de cilindros iguales = 2C·\|sen θ\| (no C·\|sen 2θ\|); caso general contra resta vectorial completa — candado algebraico ya en tests |
-| V1.8 `RaytraceEngine` en benchmark · V1.9 Divergencia | pendiente | terminología: divergencia, nunca error |
+| V1.7 Rotación tórica | **DONE** | por FÍSICA (pose.rotation_z rota la bicónica y se re-traza; `toric_rotation_deg` NO reintroducido); error de rotación = DERIVADO (físico − planificado, mod 180, firmado; jamás entrada); anclas: 2C·\|sen θ\| solo módulos iguales (≤0.0012 D), resta vectorial completa en general (≤0.0009 D); divergencia a pupila finita REPORTADA; tres ejes distinguidos (geometría / minus-cyl / marcas → OQ #11); exp012 |
+| V1.8 `RaytraceEngine` en benchmark | **SIGUIENTE** | terminología: divergencia, nunca error |
+| V1.9 Divergencia vs EVO | pendiente | terminología: divergencia, nunca error |
 | V1.11 Pipeline EQ · V1.12 Incertidumbre · V1.14 Rendimiento · V1.15 Docs | pendiente | |
 | V1.10 Predictores de literatura | **BLOCKED** | OPEN_QUESTIONS #2: sin publicación con coeficientes, no se implementa |
 
@@ -76,7 +77,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 - Legado EVO byte-idéntico (102 hashes, en Linux y Windows).
 - El motor físico no importa nada del legado (test de arquitectura).
-- Los experimentos deterministas (exp001/003/007/008/009/010/011) reproducen su `results.json` publicado.
+- Los experimentos deterministas (exp001/003/007/008/009/010/011/012) reproducen su `results.json` publicado.
 - Ningún parámetro del motor procede de ajustar contra EVO.
 
 ---
