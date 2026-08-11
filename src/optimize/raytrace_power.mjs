@@ -183,6 +183,9 @@ export function optimizePowerByRaytrace({
       is_simulation_surrogate: factory instanceof GenericIOLFactory,
       cornea_policy: enOptimo.eye.cornea_policy,
       fidelity,
+      // la pose HONRADA deja rastro: un results.json posado no puede ser indistinguible
+      // de uno centrado (no es supuesto — es estado declarado — pero sí trazabilidad)
+      pose: postop.iol_pose ?? null,
     },
     // Supuestos de modelado ACTIVOS en el trazado del óptimo (p. ej. asfericidad no
     // documentada trazada como esfera). Sin esto, una recomendación podría salir de un

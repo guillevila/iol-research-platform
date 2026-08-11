@@ -2,7 +2,7 @@
 
 **Versión:** 1.0 · **Fecha:** 10/08/2026 · RESEARCH USE ONLY
 
-## Alcance actual (Sprint 3)
+## Alcance actual
 
 Trazado exacto (no paraxial) de rayos meridionales y oblicuos en 3D a través de
 superficies **esféricas y planas centradas** con apertura, refracción por ley de Snell
@@ -37,9 +37,17 @@ perdido **nunca** desaparece en silencio: se reporta con su causa (`raysLost`).
 ## Límites actuales y siguientes pasos
 
 - Solo superficies esféricas/planas **centradas**: asfericidad (cónicas con Q),
-  tilt y descentración de superficies son el trabajo natural del Sprint 4/8 (la
+  tilt y descentración de la CÓRNEA de superficies quedan pendientes (la LIO ya tiene pose rígida desde V1.3 y cónicas desde V1.2) (la
   arquitectura de `surfaces.mjs` admite añadir tipos sin tocar `trace.mjs`).
 - El "mejor foco" por RMS es una métrica geométrica; métricas de calidad de imagen
   (MTF, Strehl) quedan fuera del alcance V0.
 - La comparación sistemática paraxial↔trazado sobre el ojo completo pertenece al
   Sprint 4 (builder de superficies del ojo) y al benchmark del Sprint 11.
+
+## Métrica de foco (corrección V1.3)
+
+El tamaño de mancha es el RMS alrededor del CENTROIDE del haz (definición estándar):
+el desplazamiento del centroide es apuntamiento, no borrosidad. Los haces meridionales
+son pares ±h (180°-simétricos), de modo que en sistemas coaxiales el centroide cae en
+el eje y la métrica coincide con la histórica — los resultados publicados anteriores a
+la corrección se conservan sin cambio (verificado por scripts/check_experiments.mjs).

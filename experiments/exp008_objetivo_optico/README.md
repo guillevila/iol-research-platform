@@ -1,6 +1,6 @@
 # exp008 — ¿Cuánto importa el criterio óptico elegido?
 
-**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `4d7636b868` · 2026-08-10T11:14:38.705Z
+**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `972878cdd9` · 2026-08-11T08:31:41.509Z
 
 ## Pregunta
 

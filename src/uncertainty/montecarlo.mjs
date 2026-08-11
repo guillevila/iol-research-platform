@@ -46,8 +46,21 @@ function percentile(sorted, p) {
  * Cada extracción perturba el ojo y la posición; las extracciones físicamente
  * inválidas (rechazadas por los validadores) se cuentan, no se ocultan.
  */
-export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas = {}, n = 2000, seed, fidelity = DEFAULT_FIDELITY_MODE }) {
+export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas = {}, n = 2000, seed, fidelity = DEFAULT_FIDELITY_MODE, ...resto }) {
+  if ('iol_pose' in resto || 'postop' in resto) {
+    throw new TypeError('monteCarloRefraction: no soporta pose de LIO todavía — simular '
+      + 'la lente centrada callándose una pose declarada sería el patrón prohibido.');
+  }
   if (!Number.isInteger(seed)) throw new TypeError('seed entera obligatoria (reproducibilidad)');
+  // Con córnea de radios MEDIDOS la política usa los radios: perturbar K no cambiaría
+  // nada y la dispersión reportada EXCLUIRÍA en silencio esa sigma — se rechaza.
+  const radiosMedidos = typeof preop.cornea?.r_anterior_mm === 'number'
+    && typeof preop.cornea?.r_posterior_mm === 'number' && typeof preop.cct_um === 'number';
+  if (radiosMedidos && (sigmas.mean_k_d ?? 0) > 0) {
+    throw new RangeError('monteCarloRefraction: sigma de K con córnea de radios MEDIDOS — '
+      + 'la política corneal usa los radios y la perturbación de K no tendría efecto. '
+      + 'Perturba radios (no soportado aún) o elimina esa sigma.');
+  }
   assertFinite(power_d, 'power_d'); assertFinite(iol_position_mm, 'iol_position_mm');
   // Ojo base sin perturbar: fija los supuestos del modelo y aplica la puerta de
   // fidelidad UNA vez, ANTES de las extracciones (antes esta función tragaba los
@@ -57,6 +70,7 @@ export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas =
     k2_d: preop.k2_d, k2_axis_deg: preop.k2_axis_deg,
     acd_mm: preop.acd_mm, lt_mm: preop.lt_mm, cct_um: preop.cct_um,
     keratometric_index: preop.keratometric_index,
+    cornea: preop.cornea,                   // córnea MEDIDA del llamador: no se descarta
     meta: { source: 'synthetic', note: 'base MC' },
   }), { iol_position_mm, position_source: 'montecarlo_base' }), { fidelity });
   const s = { iol_position_mm: 0, al_mm: 0, mean_k_d: 0, ...sigmas };
@@ -74,6 +88,7 @@ export function monteCarloRefraction({ preop, iol_position_mm, power_d, sigmas =
         k2_d: preop.k2_d + dK, k2_axis_deg: preop.k2_axis_deg,
         acd_mm: preop.acd_mm, lt_mm: preop.lt_mm, cct_um: preop.cct_um,
         keratometric_index: preop.keratometric_index,
+        cornea: preop.cornea,               // córnea MEDIDA del llamador: no se descarta
         meta: { source: 'synthetic', note: 'draw MC' },
       });
       const post = createPredictedPostopEye(pre, {
@@ -121,6 +136,7 @@ export function alternativeBetterProbability({ preop, iol_position_mm, powerA_d,
         k2_d: preop.k2_d + dK, k2_axis_deg: preop.k2_axis_deg,
         acd_mm: preop.acd_mm, lt_mm: preop.lt_mm, cct_um: preop.cct_um,
         keratometric_index: preop.keratometric_index,
+        cornea: preop.cornea,               // córnea MEDIDA del llamador: no se descarta
         meta: { source: 'synthetic', note: 'draw MC' },
       });
       const post = createPredictedPostopEye(pre, {

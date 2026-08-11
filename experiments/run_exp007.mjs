@@ -111,6 +111,11 @@ const result = {
   config: CONFIG,
   timestamp: new Date().toISOString(),
   commit: execSync('git rev-parse HEAD').toString().trim(),
+  procedencia_commit: 'último commit AL GENERAR: el experimento puede incluir cambios aún '
+    + 'sin committear (hallazgo adversarial V1.3: el commit estampado era sistemáticamente '
+    + 'el PADRE del que publica). La reproducibilidad NO la garantiza este campo sino '
+    + 'scripts/check_experiments.mjs, que re-ejecuta contra el árbol del commit que publica '
+    + 'y en cada push de CI.',
   resumen: {
     n_casos: rows.length,
     max_rango_entre_convenciones_lectura_d: maxRangoLectura,

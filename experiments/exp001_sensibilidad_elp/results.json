@@ -49,8 +49,9 @@
    "target_d": 0
   }
  },
- "timestamp": "2026-08-10T08:02:47.133Z",
- "commit": "c28ab23c7eb570db7d750121da1c3819a66633fd",
+ "timestamp": "2026-08-11T08:31:40.781Z",
+ "commit": "972878cdd9bb093f4c7a1ab55bcfd80f65e89377",
+ "procedencia_commit": "último commit AL GENERAR: el experimento puede incluir cambios aún sin committear (hallazgo adversarial V1.3: el commit estampado era sistemáticamente el PADRE del que publica). La reproducibilidad NO la garantiza este campo sino scripts/check_experiments.mjs, que re-ejecuta contra el árbol del commit que publica y en cada push de CI.",
  "rows": [
   {
    "id": "corto_K_plana",

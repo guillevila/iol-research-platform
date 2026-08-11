@@ -54,24 +54,26 @@ export const RESERVED_PREOP = Object.freeze({
   },
   lens_tilt_deg: {
     que_es: 'inclinación del cristalino respecto al eje óptico (grados)',
-    consumidor_previsto: 'inicialización del tilt de la LIO en el trazado',
-    blocked_by: 'V1.3 — el trazador aún no admite superficies inclinadas',
+    consumidor_previsto: 'inicialización de la POSE prevista de la LIO desde el cristalino',
+    blocked_by: 'el trazador ya admite pose (V1.3); falta el MAPEO cristalino→pose de LIO, '
+      + 'que es una hipótesis biológica: exige datos postoperatorios (OPEN_QUESTIONS #6) — '
+      + 'y estos campos son escalares sin dirección: al consumirse deberán ganar eje',
   },
   lens_decentration_mm: {
     que_es: 'descentración del cristalino (mm)',
-    consumidor_previsto: 'inicialización de la descentración de la LIO',
-    blocked_by: 'V1.3 — el trazador aún no admite superficies descentradas',
+    consumidor_previsto: 'inicialización de la POSE prevista de la LIO desde el cristalino',
+    blocked_by: 'ídem lens_tilt_deg: el mapeo cristalino→pose exige datos (OQ #6) y dirección',
   },
 });
 
 /**
  * Campos del modelo `predicted_postoperative_eye` almacenados y no consumidos.
  *
- * NOTA: `iol_tilt_deg`, `iol_decentration_mm` y `toric_rotation_deg` SALIERON de este
- * registro cuando los builders empezaron a consumirlos como GUARDA (un valor declarado
- * ≠ 0 se rechaza porque el modelo aún no lo representa; ignorarlo sería callar un dato
- * declarado). Su consumo FÍSICO sigue bloqueado por los sprints de tilt/rotación del
- * plan V1 y, para la rotación, por datos reales (OPEN_QUESTIONS #6).
+ * NOTA histórica: los escalares `iol_tilt_deg`/`iol_decentration_mm`/`toric_rotation_deg`
+ * salieron de este registro al convertirse en guardas, y en V1.3 fueron ELIMINADOS del
+ * modelo (error de migración explícito): la pose vive en `iol_pose` (vectorial,
+ * src/core/pose.mjs) y el trazador la representa de verdad. La distribución REAL de
+ * poses postoperatorias sigue exigiendo datos (OPEN_QUESTIONS #6).
  */
 export const RESERVED_POSTOP = Object.freeze({
   capsule_state: {

@@ -1,6 +1,6 @@
 # exp003 — Paraxial vs ray tracing (ojo completo, LIO genérica)
 
-**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `db8b0ad7be` · 2026-08-10T08:52:12.805Z
+**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `972878cdd9` · 2026-08-11T08:31:40.979Z
 
 | Ojo | AL | P (D) | Validación h→0: Δfoco (mm) / ΔD | Pupila 3 mm: Δfoco (mm) / ΔD | Spot RMS (mm) |
 |---|---|---|---|---|---|

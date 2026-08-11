@@ -143,6 +143,11 @@ evidencia, nunca con suposición.
   sobrevive a la asfericidad de LIO en ese rango; el siguiente candidato a separarlos
   es el tilt (V1.3). La Q en sí mueve la potencia óptima hasta 0.15 D (|Q|=1, 6 mm):
   relevante, y sin fichas de fabricante ese dato sigue sin existir para lentes reales.
+- **Reevaluación tras V1.3 (exp010):** tampoco la pose separa los criterios — máx A–C
+  0.0157 D con tilt ≤7.5° + descentración ≤0.75 mm (0.0025 sin pose): ~32 veces bajo el
+  escalón de 0.5 D. Nota metodológica: la primera ejecución de exp010 dio "9.7 D" de
+  separación — era la métrica de spot sobre el EJE mezclando prisma con desenfoque
+  (corregida a centroide en V1.3), no física. Siguiente candidato: el tórico (V1.6).
 - **Lo que exige zanjarlo:** cohorte postoperatoria. Ningún criterio se declara preferible
   mientras no exista; `compareObjectives()` existe precisamente para no tener que elegir.
 - **PROHIBIDO:** elegir criterio por proximidad a EVO o a cualquier otra calculadora.

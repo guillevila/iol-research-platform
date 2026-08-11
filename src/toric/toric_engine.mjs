@@ -20,6 +20,7 @@
  */
 import { mmToM } from '../core/units.mjs';
 import { DEFAULT_FIDELITY_MODE, assertFidelityMode, enforceStrictness } from '../core/fidelity.mjs';
+import { isIdentityPose } from '../core/pose.mjs';
 import { predictedRefraction } from '../optics/paraxial.mjs';
 import { corneaModelOf } from '../optics/eyebuilder.mjs';
 import { toVec, fromVec, addVec, cylFromMeridians, siaVec } from './vectors.mjs';
@@ -51,6 +52,14 @@ export function totalCornealAstigmatism(preop, { sia_d = 0, sia_axis_deg = 0 } =
 export function recommendToric({ postop, sePower_d, catalog_d, target_d = 0, sia_d = 0, sia_axis_deg = 0, fidelity = DEFAULT_FIDELITY_MODE }) {
   if (!Array.isArray(catalog_d) || catalog_d.length === 0) throw new TypeError('catalog_d requerido (cilindros de fabricante)');
   assertFidelityMode(fidelity);
+  // La vía tórica es paraxial por meridianos: no puede representar una pose de LIO.
+  // Ignorarla en silencio sería el bypass que la caza de fidelidad ya cerró una vez —
+  // se RECHAZA con remisión, hasta que el tórico trace (plan V1).
+  if (!isIdentityPose(postop.iol_pose)) {
+    throw new TypeError('recommendToric: pose de LIO declarada — el motor tórico paraxial '
+      + 'por meridianos no puede representarla y no la va a ignorar en silencio. '
+      + 'La vía de trazado (buildRaytraceEye) la honra; el tórico trazado llega con el plan V1.');
+  }
   const preop = postop.preop;
   const cornea = corneaModelOf(preop);
   const tca = totalCornealAstigmatism(preop, { sia_d, sia_axis_deg });

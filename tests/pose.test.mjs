@@ -19,14 +19,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { sphericalSurface, conicSurface, planarSurface, transformedSurface, intersect, refractDirection } from '../src/optics/raytrace/surfaces.mjs';
-import { traceRay } from '../src/optics/raytrace/trace.mjs';
+import { traceRay, bestFocus } from '../src/optics/raytrace/trace.mjs';
 import { createIOLPose, poseFromClinical, negatePose, isIdentityPose, rotationOfPose } from '../src/core/pose.mjs';
 import { createPreopEye, createPredictedPostopEye } from '../src/core/eye.mjs';
-import { GenericIOLFactory } from '../src/core/iol_factory.mjs';
+import { GenericIOLFactory, ManufacturerIOLFactory } from '../src/core/iol_factory.mjs';
 import { buildRaytraceEye, paraxialFocusOfRaytraceEye, compareParaxialVsRaytrace } from '../src/optics/eyebuilder.mjs';
 import { ObjectiveKind, evaluateObjective } from '../src/optics/objective.mjs';
 import { generateBundle, SamplingKind } from '../src/optics/raytrace/bundle.mjs';
 import { optimizePowerByRaytrace } from '../src/optimize/raytrace_power.mjs';
+import { recommendToric } from '../src/toric/toric_engine.mjs';
+import { monteCarloRefraction } from '../src/uncertainty/montecarlo.mjs';
+import { FidelityMode } from '../src/core/fidelity.mjs';
 
 const norm = v => { const n = Math.hypot(...v); return v.map(x => x / n); };
 
@@ -259,4 +262,74 @@ test('pose · rotation_z es exactamente inerte en superficies de revolución (co
       assert.ok(Math.abs(a.ray.d[i] - b.ray.d[i]) < 1e-12, `d[${i}]`);
     }
   }
+});
+
+// ---------------------------------------------------------------------------
+// Regresiones de la revisión adversarial de V1.3
+// ---------------------------------------------------------------------------
+
+test('pose · regresión: recommendToric RECHAZA la pose en vez de ignorarla (bypass reeditado, cerrado)', () => {
+  const posado = postopCon(createIOLPose({ tilt_x_deg: 5 }));
+  assert.throws(() => recommendToric({ postop: posado, sePower_d: 20, catalog_d: [1.5, 2.25] }),
+    /motor tórico paraxial\s+por meridianos no puede representarla/s);
+});
+
+test('pose · regresión: Monte Carlo no puede tragarse una pose ni una sigma de K sin efecto', () => {
+  const pre = ojoMedido();
+  assert.throws(() => monteCarloRefraction({
+    preop: pre, iol_position_mm: 4.9, power_d: 21, seed: 7, n: 50, iol_pose: { tilt_x_deg: 5 },
+  }), /no soporta pose/);
+  // córnea de radios MEDIDOS + sigma de K: la perturbación no tendría efecto → rechazo
+  assert.throws(() => monteCarloRefraction({
+    preop: pre, iol_position_mm: 4.9, power_d: 21, seed: 7, n: 50, sigmas: { mean_k_d: 0.1 },
+  }), /sigma de K con córnea de radios MEDIDOS/);
+  // y la córnea medida del llamador YA NO se descarta: la política del MC es la medida
+  const r = monteCarloRefraction({ preop: pre, iol_position_mm: 4.9, power_d: 21, seed: 7, n: 50 });
+  assert.deepEqual(r.supuestos_modelo, [], 'con córnea medida el MC no debe asumir nada');
+});
+
+test('pose · regresión: evaluateObjective rechaza haz MERIDIONAL sobre ojo posado (guarda replicada)', () => {
+  const eye = buildRaytraceEye(postopCon(createIOLPose({ tilt_x_deg: 5 })), factory.create({ power_d: 21 }));
+  const meridional = generateBundle({ radius_mm: 1.5, kind: SamplingKind.MERIDIONAL, n: 6 }).rays;
+  assert.throws(() => evaluateObjective(eye, meridional, ObjectiveKind.EQUIVALENT_DEFOCUS),
+    /haz meridional.*sobre un ojo\s+con pose/s);
+  // el mismo ojo con haz 2D evalúa sin problema
+  const ev = evaluateObjective(eye, haz2D(1.5), ObjectiveKind.EQUIVALENT_DEFOCUS);
+  assert.ok(Number.isFinite(ev.cost));
+});
+
+test('pose · regresión: un ojo POSADO con todo documentado pasa STRICT (estado previsto ≠ imputación)', () => {
+  const pre = createPreopEye({
+    al_mm: 23.5, k1_d: 43.5, k1_axis_deg: 180, k2_d: 43.5, k2_axis_deg: 90,
+    acd_mm: 3.2, lt_mm: 4.5, cct_um: 550, keratometric_index: 1.3375,
+    cornea: { r_anterior_mm: 7.7, r_posterior_mm: 6.8, asphericity_q_anterior: -0.18, asphericity_q_posterior: -0.30 },
+    meta: { source: 'synthetic' },
+  });
+  const posado = createPredictedPostopEye(pre, {
+    iol_position_mm: 4.9, position_source: 'test', iol_pose: { tilt_x_deg: 5, decenter_y_mm: 0.3 },
+  });
+  const lenteQ = new ManufacturerIOLFactory({
+    manufacturer: 'ACME', model: 'MQ', provenance: 'FICTICIA — fixture de test, no es una ficha real',
+    geometryByPower: { 20: { refractive_index: 1.47, central_thickness_mm: 0.7, r_anterior_mm: 20, r_posterior_mm: -20, asphericity_q_anterior: -0.1, asphericity_q_posterior: -0.1 } },
+  }).create({ power_d: 20 });
+  const eye = buildRaytraceEye(posado, lenteQ, { fidelity: FidelityMode.STRICT });
+  assert.deepEqual(eye.assumptions, [], 'la pose declarada no es imputación: STRICT pasa');
+  assert.equal(eye.surfaces.filter(s => s.kind === 'transformed').length, 2);
+});
+
+test('pose · regresión: el optimizador deja rastro de la pose honrada, y bestFocus no clava bordes', () => {
+  const pose = createIOLPose({ tilt_x_deg: 5, decenter_y_mm: 0.4 });
+  const r = optimizePowerByRaytrace({
+    postop: postopCon(pose), factory, pupil_mm: 4,
+    sampling: SamplingKind.FIBONACCI_SPIRAL, n_anillos: 32,
+  });
+  assert.equal(r.parametros_declarados.pose.tilt_total_deg, 5);
+  assert.equal(r.parametros_declarados.pose.decenter_total_mm, 0.4);
+  const sinPose = optimizePowerByRaytrace({ postop: postopCon(undefined), factory, pupil_mm: 4 });
+  assert.equal(sinPose.parametros_declarados.pose, null);
+  // bestFocus: un bracket que excluye el foco falla en vez de devolver el borde
+  const eye = buildRaytraceEye(postopCon(undefined), factory.create({ power_d: 21 }));
+  const rays = haz2D(1.5).map(r0 => traceRay(eye.surfaces, r0)).filter(t => t.ok).map(t => t.ray);
+  assert.throws(() => bestFocus(rays, eye.retina_z_mm + 5, eye.retina_z_mm + 20),
+    /borde del\s+bracket/s);
 });

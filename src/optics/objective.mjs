@@ -156,6 +156,15 @@ export function evaluateObjective(eye, bundle, kind = ObjectiveKind.EQUIVALENT_D
           + 'cabecera de objective.mjs). Su métrica se reporta en detail.desplazamiento_mm.'
         : ''));
   }
+  // Un haz PLANAR (meridional: todo en el plano x=0) sobre un ojo POSADO mediría un
+  // solo corte de un sistema sin simetría de revolución — y devolvería un número
+  // plausible en silencio. La guarda del optimizador se replica aquí porque este
+  // evaluador también es API pública.
+  if (eye.pose && (eye.pose.tilt_total_deg !== 0 || eye.pose.decenter_total_mm !== 0)
+    && bundle.every(r => r.p[0] === 0 && r.d[0] === 0)) {
+    throw new TypeError(`objetivo ${kind}: haz meridional (planar en x=0) sobre un ojo `
+      + 'con pose — un sistema sin simetría de revolución exige muestreo 2D (bundle.mjs).');
+  }
   const { rays, lost } = traceBundle(eye.surfaces, bundle);
   if (rays.length < 2) {
     throw new RangeError(`objetivo ${kind}: haz insuficiente (${rays.length} rayos, `

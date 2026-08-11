@@ -1,6 +1,6 @@
 # exp009 — Asfericidad de LIO: cuánta potencia mueve la Q y si separa a los criterios A y C
 
-**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `9e1acbeb8b` · 2026-08-10T15:26:10.635Z
+**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `972878cdd9` · 2026-08-11T08:31:41.904Z
 
 La lente es el **sustituto de simulación** con Q declarada como parámetro (ningún valor
 procede de una lente comercial, OPEN_QUESTIONS #4). Córnea medida esférica; el efecto

@@ -87,6 +87,16 @@ export function bestFocus(rays, zLo_mm, zHi_mm, tol_mm = 1e-6) {
     else { a = c; c = d; fc = fd; d = a + phi * (b - a); fd = spotRmsAt(rays, d); }
   }
   const z = (a + b) / 2;
+  // Un "mínimo" pegado al borde del bracket no es un mínimo: o el bracket no contiene
+  // el foco, o el haz es degenerado (paralelo: RMS constante, la búsqueda deriva hasta
+  // un extremo). Devolverlo en silencio produciría un número plausible y falso — mismo
+  // patrón que el borde del intervalo del optimizador de potencia.
+  const margen = Math.max(2 * tol_mm, (zHi_mm - zLo_mm) * 1e-6);
+  if (z - zLo_mm < margen || zHi_mm - z < margen) {
+    throw new RangeError(`bestFocus: el mínimo (${z.toFixed(4)} mm) cae en el borde del `
+      + `bracket [${zLo_mm.toFixed(3)}, ${zHi_mm.toFixed(3)}] — bracket sin el foco o haz `
+      + 'degenerado (¿paralelo?). No se devuelve el borde como foco.');
+  }
   return { z_mm: z, rms_mm: spotRmsAt(rays, z) };
 }
 

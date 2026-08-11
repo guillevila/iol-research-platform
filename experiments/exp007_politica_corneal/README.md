@@ -1,6 +1,6 @@
 # exp007 — Política corneal: ¿depende la recomendación de la convención de índice queratométrico?
 
-**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `4d14b615db` · 2026-08-10T11:20:43.241Z
+**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `972878cdd9` · 2026-08-11T08:31:41.219Z
 
 ## Pregunta
 

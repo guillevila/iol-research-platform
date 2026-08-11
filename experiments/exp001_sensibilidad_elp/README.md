@@ -1,6 +1,6 @@
 # exp001 — Sensibilidad a la posición de la LIO
 
-**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `c28ab23c7e` · 2026-08-10T08:02:47.133Z
+**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `972878cdd9` · 2026-08-11T08:31:40.781Z
 
 Δ refracción prevista (D) al desplazar SOLO la posición de la LIO, manteniendo la potencia óptima del ojo base:
 

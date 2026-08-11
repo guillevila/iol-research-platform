@@ -1,6 +1,6 @@
 # exp010 — Pose de LIO: tilt, descentración e interacción sobre potencia y criterios
 
-**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `1d71ece492` · 2026-08-11T08:15:30.307Z
+**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `972878cdd9` · 2026-08-11T08:31:42.461Z
 
 Lente: sustituto de simulación esférico. Poses = escenarios DECLARADOS (las
 distribuciones reales de tilt/descentración exigen datos de imagen, OQ #6). Geometría
