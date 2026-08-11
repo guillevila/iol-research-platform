@@ -33,6 +33,7 @@ const EXPERIMENTOS = [
   { id: 'exp007_politica_corneal', script: 'experiments/run_exp007.mjs' },
   { id: 'exp008_objetivo_optico', script: 'experiments/run_exp008.mjs' },
   { id: 'exp009_asfericidad_lio', script: 'experiments/run_exp009.mjs' },
+  { id: 'exp010_pose_lio', script: 'experiments/run_exp010.mjs' },
 ];
 
 /** Campos que cambian por construcción en cada ejecución y no son parte del resultado. */

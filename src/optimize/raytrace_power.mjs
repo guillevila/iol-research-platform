@@ -25,6 +25,7 @@ import { generateBundle, SamplingKind, isTwoDimensional } from '../optics/raytra
 import { GenericIOLFactory } from '../core/iol_factory.mjs';
 import { hasTraceableGeometry } from '../core/iol.mjs';
 import { FidelityMode, DEFAULT_FIDELITY_MODE, assertFidelityMode, StrictModeViolation } from '../core/fidelity.mjs';
+import { isIdentityPose } from '../core/pose.mjs';
 
 /**
  * Haz por defecto: MERIDIONAL con alturas equiespaciadas en área.
@@ -102,6 +103,14 @@ export function optimizePowerByRaytrace({
   fidelity = DEFAULT_FIDELITY_MODE,
 }) {
   assertFidelityMode(fidelity);
+  // Un sistema con pose NO tiene simetría de revolución: el muestreo MERIDIONAL mediría
+  // un solo corte y lo haría en silencio — la trampa que bundle.mjs documenta desde
+  // V1.4. Con pose declarada, el muestreo 2D es obligatorio.
+  if (!isIdentityPose(postop.iol_pose) && sampling === SamplingKind.MERIDIONAL) {
+    throw new TypeError('optimizePowerByRaytrace: muestreo MERIDIONAL con pose de LIO '
+      + 'declarada — un sistema sin simetría de revolución exige muestreo 2D '
+      + '(sampling: RINGS_EQUAL_AREA o FIBONACCI_SPIRAL).');
+  }
   if (pupil_mm === null || pupil_mm === undefined) {
     if (fidelity === FidelityMode.STRICT) {
       throw new StrictModeViolation('optimizePowerByRaytrace', [

@@ -146,3 +146,23 @@ evidencia, nunca con suposición.
 - **Lo que exige zanjarlo:** cohorte postoperatoria. Ningún criterio se declara preferible
   mientras no exista; `compareObjectives()` existe precisamente para no tener que elegir.
 - **PROHIBIDO:** elegir criterio por proximidad a EVO o a cualquier otra calculadora.
+
+## #9 · Procedencia y comparabilidad de la asfericidad corneal (Q)
+
+- **Pregunta:** ¿qué dispositivo, zona de ajuste y convención hay detrás de una Q
+  corneal "medida"?
+- **Por qué importa:** la Q depende de la ZONA DE AJUSTE (6/8/10 mm), del algoritmo del
+  topógrafo/tomógrafo y de la convención de signo/definición; dos dispositivos pueden
+  reportar Q distintas para la misma córnea. V1.2 hizo la Q trazable y STRICT hoy trata
+  "Q numérica presente" como dato completo — **no debe confundirse con "Q comparable
+  entre dispositivos"**. Es la misma clase de problema que el índice queratométrico
+  (resuelto con `keratometric_index` declarado, exp007): convención sin declarar =
+  física que hereda el aparato.
+- **Estado:** registrado, no resuelto (a propósito: la integración de dispositivos no
+  toca este sprint). El campo `cornea.asphericity_q_*` existe sin metadatos de
+  procedencia.
+- **Acción futura:** al integrar datos reales, la Q corneal deberá llevar procedencia
+  (dispositivo, zona de ajuste, convención) como parte del esquema clínico, y la
+  validación STRICT de trazado deberá exigirla — hasta entonces, un trazado STRICT con
+  Q "medida" valida el motor bajo LA CONVENCIÓN de esa medida, no una Q universal.
+- **PROHIBIDO:** ajustar Q contra EVO o elegir convención por conveniencia.

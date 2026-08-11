@@ -10,6 +10,7 @@
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 import { assertFinite, assertInRange, normMeridianDeg } from './units.mjs';
+import { createIOLPose } from './pose.mjs';
 
 /** Rangos de PLAUSIBILIDAD física amplia (no rangos clínicos de dispositivo). */
 export const PLAUSIBLE = Object.freeze({
@@ -77,7 +78,11 @@ export function createPreopEye(f) {
       posterior_k2_d: f.cornea?.posterior_k2_d ?? null,
       posterior_axis_deg: optAxis(f.cornea?.posterior_axis_deg, 'posterior_axis_deg'),
       // asfericidad corneal MEDIDA (constante cónica Q del topógrafo/tomógrafo);
-      // null = no medida (el trazador registrará el supuesto de esfera)
+      // null = no medida (el trazador registrará el supuesto de esfera).
+      // PENDIENTE (OPEN_QUESTIONS #9): una Q real exige PROCEDENCIA — dispositivo,
+      // zona de ajuste (6/8/10 mm) y convención — para ser comparable entre aparatos;
+      // "Q numérica presente" NO equivale a "Q comparable". El esquema de procedencia
+      // llegará con la integración de datos reales.
       asphericity_q_anterior: optQ(f.cornea?.asphericity_q_anterior, 'cornea.asphericity_q_anterior'),
       asphericity_q_posterior: optQ(f.cornea?.asphericity_q_posterior, 'cornea.asphericity_q_posterior'),
     },
@@ -108,15 +113,25 @@ export function createPredictedPostopEye(preop, p) {
   if (preop?.kind !== 'preoperative_eye') throw new TypeError('se requiere preoperative_eye');
   const pos = assertInRange(p.iol_position_mm, 1.5, 8.5, 'iol_position_mm');
   if (pos >= preop.al_mm) throw new RangeError('posición de LIO por detrás de la retina');
+  // Migración V1.3: los antiguos escalares no determinaban un sistema óptico (faltaba
+  // la DIRECCIÓN) y se eliminan con error explícito, no con alias silencioso.
+  for (const legado of ['iol_tilt_deg', 'iol_decentration_mm', 'toric_rotation_deg']) {
+    if (legado in p) {
+      throw new TypeError(`${legado} fue sustituido por \`iol_pose\` (V1.3): la pose `
+        + 'necesita dirección explícita, no solo magnitud. Ver src/core/pose.mjs '
+        + '(componentes o poseFromClinical con magnitud+azimut).');
+    }
+  }
+  const pose = p.iol_pose === null || p.iol_pose === undefined
+    ? null
+    : (p.iol_pose.kind === 'iol_pose' ? p.iol_pose : createIOLPose(p.iol_pose));
   return Object.freeze({
     kind: 'predicted_postoperative_eye',
     preop,
     iol_position_mm: pos,
     position_source: String(p.position_source ?? 'unspecified'),
-    // soporte de diseño para el futuro (hoy pueden ser null):
-    iol_tilt_deg: p.iol_tilt_deg ?? null,
-    iol_decentration_mm: p.iol_decentration_mm ?? null,
-    toric_rotation_deg: p.toric_rotation_deg ?? null,
+    /** pose rígida PREVISTA de la LIO (V1.3); null = predicción por defecto: centrada */
+    iol_pose: pose,
     capsule_state: p.capsule_state ?? null,
     simulation_flag: 'SIMULACION / NO GROUND TRUTH CLINICO',
   });

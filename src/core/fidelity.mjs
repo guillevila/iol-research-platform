@@ -66,10 +66,11 @@
  *  - La predicción de posición de LIO: es el objeto del cálculo, no un dato faltante;
  *    su procedencia viaja etiquetada aparte (`position_source`, OQ #2).
  *  - La distancia de vértice convencional (12 mm): parámetro declarado del cálculo.
- *  - El estado postoperatorio PREVISTO (posición; y mientras el modelo no represente
- *    tilt/descentración/rotación, ese estado es "centrado y sin rotación"): es el
- *    objeto de la predicción, no un dato faltante. Un valor DECLARADO ≠ 0 en esos
- *    campos se RECHAZA (no se ignora): mismo patrón que la asfericidad Q documentada.
+ *  - El estado postoperatorio PREVISTO (posición y POSE de la LIO): es el objeto de la
+ *    predicción/escenario, no un dato faltante del caso. La pose declarada (V1.3) la
+ *    HONRA el trazador; el modelo paraxial coaxial no puede representarla y la RECHAZA
+ *    (tilt/descentración) en vez de ignorarla; `iol_pose: null` = predicción por
+ *    defecto "centrada".
  *  - Las primitivas de bajo nivel (paraxial.mjs, raytrace/) NO llevan puerta: operan
  *    sobre números sin procedencia y son capa legítima de física pura. La fidelidad
  *    gobierna la capa de CONSTRUCCIÓN (builders, optimizadores, motor tórico, MC):

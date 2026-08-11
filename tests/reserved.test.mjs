@@ -51,7 +51,8 @@ const PREOP_COMPLETO = createPreopEye({
 });
 const POSTOP_COMPLETO = createPredictedPostopEye(PREOP_COMPLETO, {
   iol_position_mm: 4.9, position_source: 'test',
-  iol_tilt_deg: 3, iol_decentration_mm: 0.15, toric_rotation_deg: 5, capsule_state: 'intact',
+  iol_pose: { tilt_x_deg: 3, decenter_y_mm: 0.15, rotation_z_deg: 5 },
+  capsule_state: 'intact',
 });
 const IOL_COMPLETA = createIOL({
   manufacturer: 'X', model: 'Y', nominal_power_d: 21, a_constant: 119.3,

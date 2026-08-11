@@ -15,7 +15,8 @@ import { FidelityMode, DEFAULT_FIDELITY_MODE, assertFidelityMode, enforceStrictn
 import { predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, refract, transfer } from './paraxial.mjs';
 import { buildCorneaModel, CorneaPolicy } from './cornea.mjs';
 import { N_AIR, N_AQUEOUS, N_CORNEA, N_VITREOUS } from './constants.mjs';
-import { sphericalSurface, conicSurface } from './raytrace/surfaces.mjs';
+import { sphericalSurface, conicSurface, transformedSurface } from './raytrace/surfaces.mjs';
+import { isIdentityPose, rotationOfPose } from '../core/pose.mjs';
 import { focusOfSystem } from './raytrace/trace.mjs';
 
 /**
@@ -57,23 +58,19 @@ function notasDeColapsoSE(preop) {
 }
 
 /**
- * El estado postoperatorio previsto se representa hoy centrado y sin rotación. Un valor
- * DECLARADO distinto de 0 en tilt/descentración/rotación es un dato que el modelo no
- * puede honrar: se RECHAZA en lugar de ignorarse (mismo patrón que la asfericidad Q
- * documentada). null = no declarado: forma parte de la predicción del estado
- * postoperatorio, frontera documentada de la fidelidad (fidelity.mjs).
+ * El modelo PARAXIAL es coaxial: no puede representar tilt ni descentración. Una pose
+ * declarada con esos componentes se RECHAZA aquí (no se ignora: mismo patrón que la Q
+ * documentada) y se remite a la vía de trazado, que la honra desde V1.3. La rotación
+ * rotation_z sola se ACEPTA: para el equivalente esférico paraxial es exactamente
+ * inerte (superficies de revolución).
  */
-function rechazarEstadoPostopNoRepresentable(postop, context) {
-  for (const [campo, v] of [
-    ['iol_tilt_deg', postop.iol_tilt_deg],
-    ['iol_decentration_mm', postop.iol_decentration_mm],
-    ['toric_rotation_deg', postop.toric_rotation_deg],
-  ]) {
-    if (typeof v === 'number' && v !== 0) {
-      throw new TypeError(`${context}: ${campo}=${v} declarado, pero el modelo aún no representa `
-        + 'tilt/descentración/rotación. Se rechaza en lugar de ignorar un dato declarado '
-        + '(ver V1_PROJECT_PLAN.md).');
-    }
+function rechazarPoseEnParaxial(postop, context) {
+  const pose = postop.iol_pose;
+  if (pose && (pose.tilt_total_deg !== 0 || pose.decenter_total_mm !== 0)) {
+    throw new TypeError(`${context}: pose de LIO declarada (tilt ${pose.tilt_total_deg.toFixed(2)}°, `
+      + `descentración ${pose.decenter_total_mm.toFixed(2)} mm) — el modelo paraxial coaxial no `
+      + 'puede representarla. La vía de trazado (buildRaytraceEye/optimizePowerByRaytrace) '
+      + 'la honra desde V1.3; se rechaza en lugar de ignorar un estado declarado.');
   }
 }
 
@@ -108,7 +105,7 @@ const notaSurrogate = iol => `iol: geometría de SUSTITUTO DE SIMULACIÓN (${iol
  */
 export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = DEFAULT_FIDELITY_MODE } = {}) {
   assertFidelityMode(fidelity);
-  rechazarEstadoPostopNoRepresentable(postop, 'buildParaxialEye');
+  rechazarPoseEnParaxial(postop, 'buildParaxialEye');
   const preop = postop.preop;
   const cornea = corneaModelOf(preop, corneaOpts);
   // Los supuestos de la política corneal suben al nivel del ojo con prefijo propio: la
@@ -193,7 +190,6 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = D
  */
 export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corneaOpts = {}, fidelity = DEFAULT_FIDELITY_MODE } = {}) {
   assertFidelityMode(fidelity);
-  rechazarEstadoPostopNoRepresentable(postop, 'buildRaytraceEye');
   const preop = postop.preop;
   assertTraceableGeometry(iol, 'buildRaytraceEye');
   const g = iol.geometry;
@@ -277,15 +273,37 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
     surfaces.push(sphericalSurface({ id: 'cornea_eq', zVertex_mm: 0, radius_mm: r_mm, aperture_mm, n_before: N_AIR, n_after: N_AQUEOUS }));
   }
   const t = g.central_thickness_mm;
-  const zAnt = postop.iol_position_mm - t / 2;
-  surfaces.push(superficie({ id: 'iol_ant', zVertex_mm: zAnt, radius_mm: g.r_anterior_mm, q: g.asphericity_q_anterior, n_before: N_AQUEOUS, n_after: g.refractive_index }));
-  surfaces.push(superficie({ id: 'iol_post', zVertex_mm: zAnt + t, radius_mm: g.r_posterior_mm, q: g.asphericity_q_posterior, n_before: g.refractive_index, n_after: N_VITREOUS }));
+  const pose = postop.iol_pose;
+  let iol_back_z;
+  if (isIdentityPose(pose)) {
+    // pose nula (o no declarada): vía V1.2 EXACTA, sin envoltorio — la recuperación es
+    // estructural, no numérica
+    const zAnt = postop.iol_position_mm - t / 2;
+    surfaces.push(superficie({ id: 'iol_ant', zVertex_mm: zAnt, radius_mm: g.r_anterior_mm, q: g.asphericity_q_anterior, n_before: N_AQUEOUS, n_after: g.refractive_index }));
+    surfaces.push(superficie({ id: 'iol_post', zVertex_mm: zAnt + t, radius_mm: g.r_posterior_mm, q: g.asphericity_q_posterior, n_before: g.refractive_index, n_after: N_VITREOUS }));
+    iol_back_z = zAnt + t;
+  } else {
+    // marco LOCAL de la lente centrado en su centro geométrico (vértices en ∓t/2);
+    // colocación global por transformación RÍGIDA — la matemática de esfera/cónica no
+    // se duplica: el envoltorio mapea el rayo y reutiliza la intersección de la base
+    const R = rotationOfPose(pose);
+    const T = [pose.decenter_x_mm, pose.decenter_y_mm, postop.iol_position_mm];
+    const baseAnt = superficie({ id: 'iol_ant', zVertex_mm: -t / 2, radius_mm: g.r_anterior_mm, q: g.asphericity_q_anterior, n_before: N_AQUEOUS, n_after: g.refractive_index });
+    const basePost = superficie({ id: 'iol_post', zVertex_mm: t / 2, radius_mm: g.r_posterior_mm, q: g.asphericity_q_posterior, n_before: g.refractive_index, n_after: N_VITREOUS });
+    surfaces.push(transformedSurface({ base: baseAnt, R, T }));
+    const post_ = transformedSurface({ base: basePost, R, T });
+    surfaces.push(post_);
+    iol_back_z = post_.zVertex_mm;
+  }
   // La puerta STRICT: con supuestos registrados, el trazado no se entrega. Se evalúa al
   // FINAL para que el error enumere TODOS los supuestos, no solo el primero.
+  // La POSE no registra supuesto: es estado previsto DECLARADO (frontera de fidelidad),
+  // y el trazador la representa de verdad — no hay imputación que registrar.
   enforceStrictness(fidelity, assumptions, 'buildRaytraceEye');
   return {
     surfaces, cornea_kind, cornea_policy: cornea.policy, cornea, fidelity,
-    retina_z_mm: preop.al_mm, iol_back_z_mm: zAnt + t,
+    pose: pose ?? null,
+    retina_z_mm: preop.al_mm, iol_back_z_mm: iol_back_z,
     /** supuestos de modelado ACTIVOS en este trazado; vacío no significa "sin supuestos
      *  declarados", significa "sin supuestos NO verificados" */
     assumptions,
@@ -298,6 +316,12 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
  * Devuelve la z absoluta (mm) del foco para objeto en infinito.
  */
 export function paraxialFocusOfRaytraceEye(eye) {
+  if (eye.pose && !isIdentityPose(eye.pose)) {
+    throw new TypeError('paraxialFocusOfRaytraceEye: el límite paraxial COAXIAL no está '
+      + 'definido para un sistema con tilt/descentración. La validación de sistemas '
+      + 'posados usa reversibilidad, casos analíticos, simetría ±pose y continuidad '
+      + 'pose→0 (tests/pose.test.mjs), no la puerta pupila→0 coaxial.');
+  }
   let V = 0;
   let z = null;
   let nAfterLast = null;

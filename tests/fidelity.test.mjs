@@ -279,23 +279,38 @@ test('STRICT: la toricidad posterior MEDIDA pero no usada en el EE también bloq
     /toricidad posterior MEDIDA no usada/);
 });
 
-test('fidelity: tilt/descentración/rotación DECLARADOS se rechazan, no se ignoran', () => {
-  // el modelo aún no los representa; ignorar un valor declarado sería callar un dato
-  // (mismo patrón que la Q documentada). null = no declarado: frontera documentada
-  // (estado postoperatorio previsto), no bloquea.
+test('fidelity: la POSE declarada la honra el trazador y la rechaza el paraxial (V1.3)', () => {
   const pre = ojoCompleto();
+  // los antiguos escalares son un error de migración explícito, no un alias
   for (const campo of ['iol_tilt_deg', 'iol_decentration_mm', 'toric_rotation_deg']) {
-    const post = createPredictedPostopEye(pre, {
+    assert.throws(() => createPredictedPostopEye(pre, {
       iol_position_mm: 4.9, position_source: 'test', [campo]: 3,
-    });
-    assert.throws(() => buildParaxialEye(post), new RegExp(campo));
-    assert.throws(() => buildRaytraceEye(post, MFR.create({ power_d: 20 })), new RegExp(campo));
+    }), /iol_pose/);
   }
-  // 0 declarado = centrado declarado: pasa incluso en STRICT
+  const posado = createPredictedPostopEye(pre, {
+    iol_position_mm: 4.9, position_source: 'test',
+    iol_pose: { tilt_x_deg: 5, decenter_y_mm: 0.4 },
+  });
+  // el paraxial coaxial no puede representarla: rechaza con remisión al trazador
+  assert.throws(() => buildParaxialEye(posado), /paraxial coaxial no puede representarla/);
+  // el trazador la HONRA: superficies transformadas, sin supuesto registrado por la pose
+  const eye = buildRaytraceEye(posado, MFR.create({ power_d: 20 }));
+  assert.equal(eye.surfaces.filter(s => s.kind === 'transformed').length, 2);
+  assert.equal(eye.pose.tilt_total_deg, 5);
+  assert.ok(!eye.assumptions.some(a => /pose|tilt|descentr/.test(a)),
+    'la pose es estado previsto declarado: no es una imputación que registrar');
+  // pose CERO declarada = centrado declarado: pasa incluso en STRICT (paraxial)
   const centrado = createPredictedPostopEye(pre, {
-    iol_position_mm: 4.9, position_source: 'test', iol_tilt_deg: 0, iol_decentration_mm: 0,
+    iol_position_mm: 4.9, position_source: 'test',
+    iol_pose: { tilt_x_deg: 0, decenter_y_mm: 0 },
   });
   assert.deepEqual(buildParaxialEye(centrado, { fidelity: FidelityMode.STRICT }).assumptions, []);
+  // rotación z sola: exactamente inerte para el EE paraxial → aceptada
+  const soloRot = createPredictedPostopEye(pre, {
+    iol_position_mm: 4.9, position_source: 'test', iol_pose: { rotation_z_deg: 30 },
+  });
+  assert.equal(buildParaxialEye(soloRot).refractionForThinPower(20),
+    buildParaxialEye(centrado).refractionForThinPower(20));
 });
 
 test('STRICT: una lente ASIMÉTRICA posicionada por su centro geométrico bloquea (datum OQ #3)', () => {

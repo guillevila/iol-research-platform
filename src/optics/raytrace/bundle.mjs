@@ -89,8 +89,16 @@ export function generateBundle({
   const rays = [];
 
   if (kind === SamplingKind.MERIDIONAL) {
-    // alturas equiespaciadas en área sobre un solo radio (plano y-z)
-    for (let i = 1; i <= n; i++) rays.push(rayo(0, radius_mm * Math.sqrt(i / n), zStart_mm));
+    // alturas equiespaciadas en área sobre un solo MERIDIANO (plano y-z), en pares ±h:
+    // el haz es 180°-simétrico, así que su centroide cae EXACTAMENTE en el eje y la
+    // métrica de spot por centroide coincide con la antigua métrica sobre el eje en
+    // sistemas coaxiales — los resultados publicados se conservan sin cambio. Un haz
+    // meridional de un solo lado, con métrica de centroide, encuentra el plano tangente
+    // a la cáustica (spread≈0) en vez del foco: patología medida al introducir V1.3.
+    for (let i = 1; i <= n; i++) {
+      const h = radius_mm * Math.sqrt(i / n);
+      rays.push(rayo(0, h, zStart_mm), rayo(0, -h, zStart_mm));
+    }
 
   } else if (kind === SamplingKind.RINGS_EQUAL_AREA) {
     if (!Number.isInteger(perRing) || perRing < 1) throw new RangeError('perRing debe ser entero ≥ 1');

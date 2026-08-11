@@ -28,21 +28,46 @@ export function traceRay(surfaces, ray0) {
   return { ok: true, ray, hits };
 }
 
-/** Haz de rayos paralelos al eje (objeto en infinito) a alturas dadas (mm). */
+/**
+ * Haz de rayos paralelos al eje (objeto en infinito) a alturas dadas (mm), en pares ±h:
+ * 180°-simétrico para que el centroide caiga exactamente en el eje en sistemas
+ * coaxiales (ver spotRmsAt) y la métrica por centroide reproduzca la antigua sobre el
+ * eje sin cambiar ningún resultado publicado.
+ */
 export function parallelBundle(heights_mm, zStart_mm = -10) {
-  return heights_mm.map(h => ({ p: [0, h, zStart_mm], d: [0, 0, 1] }));
+  return heights_mm.flatMap(h => [
+    { p: [0, h, zStart_mm], d: [0, 0, 1] },
+    { p: [0, -h, zStart_mm], d: [0, 0, 1] },
+  ]);
 }
 
-/** Radio RMS del spot del haz en el plano z (mm). */
+/**
+ * Radio RMS del spot del haz en el plano z (mm), alrededor del CENTROIDE del haz —
+ * la definición estándar de tamaño de mancha.
+ *
+ * CORRECCIÓN V1.3 (defecto latente destapado por exp010): la versión anterior medía
+ * alrededor del ORIGEN (el eje z). En sistemas coaxiales con haz simétrico el centroide
+ * cae en el eje y ambas definiciones coinciden; con una LIO posada el haz ENTERO está
+ * desplazado lateralmente (prisma) y el RMS sobre el eje mezcla ese desplazamiento con
+ * el desenfoque: el "mejor foco" resultante era el punto de máximo acercamiento al eje,
+ * no un foco — producía separaciones A–C absurdas (~10 D). El desplazamiento del
+ * centroide es apuntamiento (el ojo fija moviéndose), no borrosidad.
+ */
 export function spotRmsAt(rays, z_mm) {
-  let s = 0, n = 0;
+  let sx = 0, sy = 0, n = 0;
+  const pts = [];
   for (const r of rays) {
     if (Math.abs(r.d[2]) < 1e-12) continue;
     const t = (z_mm - r.p[2]) / r.d[2];
     const x = r.p[0] + r.d[0] * t, y = r.p[1] + r.d[1] * t;
-    s += x * x + y * y; n++;
+    pts.push(x, y); sx += x; sy += y; n++;
   }
   if (!n) throw new RangeError('spotRmsAt: sin rayos válidos');
+  const cx = sx / n, cy = sy / n;
+  let s = 0;
+  for (let i = 0; i < pts.length; i += 2) {
+    s += (pts[i] - cx) * (pts[i] - cx) + (pts[i + 1] - cy) * (pts[i + 1] - cy);
+  }
   return Math.sqrt(s / n);
 }
 

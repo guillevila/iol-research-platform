@@ -189,7 +189,8 @@ test('V1.1: toda salida declara sus parámetros de simulación y su etiqueta', (
   const r = optimizePowerByRaytrace({ postop: post, pupil_mm: 3.5, n_anillos: 7 });
   assert.match(r.etiqueta, /SIMULACION/);
   assert.equal(r.parametros_declarados.pupil_mm, 3.5);
-  assert.equal(r.parametros_declarados.rayos, 7);
+  // el meridional emite pares ±h: 7 anillos → 14 rayos (haz 180°-simétrico)
+  assert.equal(r.parametros_declarados.rayos, 14);
   assert.equal(r.parametros_declarados.is_simulation_surrogate, true);
   assert.ok(r.parametros_declarados.cornea_policy);
   assert.ok(r.objective_label.length > 20);

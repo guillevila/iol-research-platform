@@ -26,12 +26,15 @@
 5. **Tórico:** el motor tórico propio existe (vectores de doble ángulo, cálculo por
    meridianos, TCA solo si está MEDIDO). Su limitación real es que sin córnea posterior
    medida el astigmatismo posterior no se estima: queda declarado, no rellenado.
-6. **Ray tracer:** superficies esféricas, planas y CÓNICAS (asfericidad Q, desde
-   V1.2) centradas; sin tilt ni descentración de superficies, y la toricidad de LIO no
-   se traza (cilindro declarado ≠ 0 se rechaza); métrica de foco = RMS geométrico (sin
-   MTF/difracción). El ojo completo SÍ se traza (`buildRaytraceEye`), validado contra
-   su propio paraxial cuando la altura de rayo → 0 y contra formas cerradas cónicas
-   (paraboloide exacto; cartesiana de foco perfecto).
+6. **Ray tracer:** superficies esféricas, planas y CÓNICAS (V1.2), con POSE RÍGIDA de
+   la LIO — tilt y descentración vectoriales — desde V1.3 (la córnea sigue coaxial; la
+   toricidad de LIO no se traza: cilindro declarado ≠ 0 se rechaza); métrica de foco =
+   RMS geométrico alrededor del CENTROIDE del haz (el desplazamiento del centroide es
+   apuntamiento, no borrosidad — corregido en V1.3), sin MTF/difracción. Con pose ≠ 0
+   NO existe el límite paraxial coaxial: `paraxialFocusOfRaytraceEye` lo rechaza y la
+   validación usa reversibilidad, casos analíticos, simetría ±pose y continuidad
+   pose→0 (`tests/pose.test.mjs`). La Q corneal "medida" aún no lleva procedencia
+   (zona de ajuste/convención): OPEN_QUESTIONS #9.
 7. **Córnea sin radios medidos: la política por defecto NO es invariante al
    dispositivo.** `KERATOMETRIC_READING` usa la lectura K como potencia corneal. La
    conversión radio→K emplea un índice ficticio declarado por convención (1.3375 /

@@ -77,9 +77,61 @@ export function conicSurface({ zVertex_mm, radius_mm, k, aperture_mm = 4, n_befo
  */
 const APERTURE_TOL_MM = 1e-9;
 
+/**
+ * Superficie TRANSFORMADA (V1.3): una superficie base (esfera/cónica/plano, definida en
+ * el marco LOCAL) colocada en el mundo mediante una transformación RÍGIDA
+ *     p_global = R · p_local + T.
+ * La intersección NO duplica la matemática de la base: mapea el rayo al marco local
+ * (Rᵀ es la inversa de una rotación pura), reutiliza `intersect(base, ...)` y devuelve
+ * punto y normal al marco global. El parámetro t es invariante bajo transformaciones
+ * rígidas (|d| se conserva), así que la selección de rama, la sagita, la apertura (que
+ * vive en el marco local: se mueve CON la lente) y las guardas de la base aplican
+ * intactas.
+ */
+export function transformedSurface({ base, R, T, id = '' }) {
+  if (!base || !['sphere', 'conic', 'plane'].includes(base.kind)) {
+    throw new TypeError('transformedSurface: base debe ser esfera, cónica o plano');
+  }
+  if (!Array.isArray(R) || R.length !== 3 || !Array.isArray(T) || T.length !== 3) {
+    throw new TypeError('transformedSurface: R (3×3) y T (3) requeridos');
+  }
+  return {
+    kind: 'transformed', base, R, T, id: id || base.id,
+    n_before: base.n_before, n_after: base.n_after, aperture_mm: base.aperture_mm,
+    // z del vértice de la base llevado al marco global: referencia para el bracket de
+    // foco (zUltima). Con tilt, puntos de la superficie pueden superar este z: el
+    // bracket de bestFocus opera sobre RECTAS emergentes, así que sigue siendo válido.
+    zVertex_mm: (base.kind === 'plane')
+      ? R[2][0] * 0 + R[2][1] * 0 + R[2][2] * base.z_mm + T[2]
+      : R[2][2] * base.zVertex_mm + T[2],
+  };
+}
+
+const matTvec = (R, v) => [
+  R[0][0] * v[0] + R[1][0] * v[1] + R[2][0] * v[2],
+  R[0][1] * v[0] + R[1][1] * v[1] + R[2][1] * v[2],
+  R[0][2] * v[0] + R[1][2] * v[1] + R[2][2] * v[2],
+];
+const matVec = (R, v) => [
+  R[0][0] * v[0] + R[0][1] * v[1] + R[0][2] * v[2],
+  R[1][0] * v[0] + R[1][1] * v[1] + R[1][2] * v[2],
+  R[2][0] * v[0] + R[2][1] * v[1] + R[2][2] * v[2],
+];
+
 export function intersect(surface, ray) {
   const EPS = 1e-9;
   if (!isFiniteVec(ray.p) || !isFiniteVec(ray.d)) return null;
+  if (surface.kind === 'transformed') {
+    const { base, R, T } = surface;
+    const local = { p: matTvec(R, sub(ray.p, T)), d: matTvec(R, ray.d) };
+    const hit = intersect(base, local);
+    if (!hit) return null;
+    return {
+      point: add(matVec(R, hit.point), T),
+      normal: matVec(R, hit.normal),
+      t: hit.t,
+    };
+  }
   if (surface.kind === 'plane') {
     if (Math.abs(ray.d[2]) < EPS) return null;
     const t = (surface.z_mm - ray.p[2]) / ray.d[2];

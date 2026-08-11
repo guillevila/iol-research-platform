@@ -121,8 +121,10 @@ test('numérico: sin NaN en barrido de curvaturas y alturas; pérdidas reportada
   // rayo fuera de apertura en haz mixto: focusOfSystem lo reporta en raysLost
   const s = [sphericalSurface({ zVertex_mm: 0, radius_mm: 10, aperture_mm: 1, n_before: 1, n_after: 1.5 })];
   const f = focusOfSystem(s, { heights_mm: [0.05, 0.2, 0.5, 2.5], zSearchTo_mm: 50 });
-  assert.equal(f.raysLost.length, 1);
-  assert.equal(f.raysLost[0].h, 2.5);
+  // parallelBundle emite pares ±h (haz 180°-simétrico para la métrica de centroide):
+  // ambos rayos de 2.5 mm quedan fuera de la apertura de 1 mm
+  assert.equal(f.raysLost.length, 2);
+  assert.deepEqual(f.raysLost.map(l => Math.abs(l.h)).sort(), [2.5, 2.5]);
 });
 
 test('bestFocus/spotRms: guardas', () => {

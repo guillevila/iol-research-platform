@@ -113,11 +113,21 @@ cada superficie es auditable en la salida; y el criterio de salida añadido: el 
 trazado ejecutable en STRICT cuando córnea y LIO tienen todas sus Q medidas/documentadas,
 manteniendo pupila→0 → paraxial para todo k.
 
-### V1.3 · Tilt y descentración
-Transformación rígida por superficie. Aceptación: tilt/descentración nulos reproducen el
-sistema centrado **exactamente**; el invariante de Lagrange deja de aplicarse y se
-sustituye por la comprobación de reversibilidad; los campos `lens_tilt_deg`,
-`iol_tilt_deg`, `iol_decentration_mm` salen de `reserved.mjs` **solo** cuando se consuman.
+### V1.3 · Tilt y descentración — pose rígida de la LIO
+La pose es un VECTOR, no dos escalares: `iol_pose` con descentración (x,y), tilt como
+vector eje-ángulo (tx,ty) y `rotation_z` aplicada primero en el marco local (convención
+fijada para el tórico V1.7; hoy exactamente inerte en superficies de revolución). Las
+superficies se colocan por transformación rígida global↔local SIN duplicar la matemática
+de esfera/cónica (`transformedSurface` reutiliza la intersección de la base).
+Aceptación (ejecutada): pose CERO reproduce V1.2 **estructuralmente** (sin envoltorio);
+la puerta pupila→0 coaxial NO se aplica a sistemas posados (se rechaza con guía) y se
+sustituye por: reversibilidad de Snell sobre superficies transformadas, casos analíticos
+independientes (esfera girada sobre su centro ≡ invariante; descentración ≡ traslación;
+lámina inclinada con desplazamiento cerrado), simetría ±pose (con cuadratura
+180°-simétrica), continuidad/paridad pose→0 (O(s²) donde es teorema, eje a eje) y
+ausencia de pérdidas artificiales (tilt ≤ 10°, descentración ≤ 1 mm). El paraxial
+RECHAZA la pose (no puede representarla); el muestreo MERIDIONAL se rechaza con pose
+(un corte de un sistema asimétrico). Los antiguos escalares son error de migración.
 
 ### V1.4 · `RayBundleGenerator`
 Muestreo de pupila (anillos concéntricos, espiral de Fibonacci, malla cuadrada) con

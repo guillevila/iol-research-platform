@@ -1,0 +1,416 @@
+{
+ "config": {
+  "id": "exp010_pose_lio",
+  "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO",
+  "pregunta": "Efectos separados e interacción de tilt y descentración sobre potencia óptima y separación A–C",
+  "lente": "GenericIOLFactory esférica — SUSTITUTO DE SIMULACIÓN declarado, no comercial",
+  "predictor": "ConstantOffsetPredictor(1.7) — offset declarado, no calibrado",
+  "geometria": "tilt alrededor de +x, descentración a lo largo de +y (COPLANARIOS a propósito)",
+  "tilts_deg": [
+   0,
+   2.5,
+   5,
+   7.5
+  ],
+  "decs_mm": [
+   0,
+   0.25,
+   0.5,
+   0.75
+  ],
+  "pupilas_mm": [
+   3,
+   4.5
+  ],
+  "muestreo": {
+   "sampling": "FIBONACCI_SPIRAL",
+   "n_anillos": 32
+  },
+  "fijos": {
+   "al_mm": 23.5,
+   "k_d": 43.5,
+   "r_ant_mm": 7.7,
+   "r_post_mm": 6.8,
+   "acd_mm": 3.2,
+   "lt_mm": 4.5,
+   "cct_um": 550
+  },
+  "tol_d": 0.000001
+ },
+ "timestamp": "2026-08-11T08:15:30.307Z",
+ "commit": "1d71ece4928b0ebe202a0cf2d0181bff109be7be",
+ "resumen": {
+  "n_casos": 32,
+  "max_efecto_tilt_d": 0.32971,
+  "max_efecto_dec_d": 0.05876,
+  "max_interaccion_d": 0.20202,
+  "max_rango_A_C_d": 0.01566,
+  "rango_A_C_sin_pose_d": 0.00252,
+  "direccion": {
+   "3": {
+    "coplanar_d": 20.00047,
+    "ortogonal_d": 20.07181,
+    "diferencia_d": -0.07134
+   },
+   "4.5": {
+    "coplanar_d": 19.28039,
+    "ortogonal_d": 19.32943,
+    "diferencia_d": -0.04904
+   }
+  }
+ },
+ "rows": [
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 0,
+   "dec_mm": 0,
+   "pC_d": 20.22165,
+   "pA_d": 20.22113,
+   "rango_A_C_d": 0.00052,
+   "efecto_tilt_d": 0,
+   "efecto_dec_d": 0,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 0,
+   "dec_mm": 0.25,
+   "pC_d": 20.2102,
+   "pA_d": 20.20948,
+   "rango_A_C_d": 0.00072,
+   "efecto_tilt_d": 0,
+   "efecto_dec_d": -0.01145,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 0,
+   "dec_mm": 0.5,
+   "pC_d": 20.24301,
+   "pA_d": 20.24257,
+   "rango_A_C_d": 0.00044,
+   "efecto_tilt_d": 0,
+   "efecto_dec_d": 0.02136,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 0,
+   "dec_mm": 0.75,
+   "pC_d": 20.28041,
+   "pA_d": 20.28051,
+   "rango_A_C_d": 0.0001,
+   "efecto_tilt_d": 0,
+   "efecto_dec_d": 0.05876,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 2.5,
+   "dec_mm": 0,
+   "pC_d": 20.18205,
+   "pA_d": 20.18116,
+   "rango_A_C_d": 0.00089,
+   "efecto_tilt_d": -0.03959,
+   "efecto_dec_d": 0,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 2.5,
+   "dec_mm": 0.25,
+   "pC_d": 20.16054,
+   "pA_d": 20.15927,
+   "rango_A_C_d": 0.00126,
+   "efecto_tilt_d": -0.03959,
+   "efecto_dec_d": -0.01145,
+   "interaccion_d": -0.01007
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 2.5,
+   "dec_mm": 0.5,
+   "pC_d": 20.15352,
+   "pA_d": 20.15243,
+   "rango_A_C_d": 0.0011,
+   "efecto_tilt_d": -0.03959,
+   "efecto_dec_d": 0.02136,
+   "interaccion_d": -0.0499
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 2.5,
+   "dec_mm": 0.75,
+   "pC_d": 20.19061,
+   "pA_d": 20.19029,
+   "rango_A_C_d": 0.00032,
+   "efecto_tilt_d": -0.03959,
+   "efecto_dec_d": 0.05876,
+   "interaccion_d": -0.0502
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 5,
+   "dec_mm": 0,
+   "pC_d": 20.07307,
+   "pA_d": 20.07102,
+   "rango_A_C_d": 0.00206,
+   "efecto_tilt_d": -0.14857,
+   "efecto_dec_d": 0,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 5,
+   "dec_mm": 0.25,
+   "pC_d": 20.02043,
+   "pA_d": 20.0175,
+   "rango_A_C_d": 0.00293,
+   "efecto_tilt_d": -0.14857,
+   "efecto_dec_d": -0.01145,
+   "interaccion_d": -0.04119
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 5,
+   "dec_mm": 0.5,
+   "pC_d": 20.00047,
+   "pA_d": 19.99784,
+   "rango_A_C_d": 0.00263,
+   "efecto_tilt_d": -0.14857,
+   "efecto_dec_d": 0.02136,
+   "interaccion_d": -0.09397
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 5,
+   "dec_mm": 0.75,
+   "pC_d": 20.04036,
+   "pA_d": 20.03875,
+   "rango_A_C_d": 0.00161,
+   "efecto_tilt_d": -0.14857,
+   "efecto_dec_d": 0.05876,
+   "interaccion_d": -0.09148
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 7.5,
+   "dec_mm": 0,
+   "pC_d": 19.89485,
+   "pA_d": 19.89035,
+   "rango_A_C_d": 0.00449,
+   "efecto_tilt_d": -0.3268,
+   "efecto_dec_d": 0,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 7.5,
+   "dec_mm": 0.25,
+   "pC_d": 19.86859,
+   "pA_d": 19.86395,
+   "rango_A_C_d": 0.00464,
+   "efecto_tilt_d": -0.3268,
+   "efecto_dec_d": -0.01145,
+   "interaccion_d": -0.01481
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 7.5,
+   "dec_mm": 0.5,
+   "pC_d": 19.78401,
+   "pA_d": 19.77831,
+   "rango_A_C_d": 0.0057,
+   "efecto_tilt_d": -0.3268,
+   "efecto_dec_d": 0.02136,
+   "interaccion_d": -0.1322
+  },
+  {
+   "pupil_mm": 3,
+   "tilt_deg": 7.5,
+   "dec_mm": 0.75,
+   "pC_d": 19.86597,
+   "pA_d": 19.86261,
+   "rango_A_C_d": 0.00335,
+   "efecto_tilt_d": -0.3268,
+   "efecto_dec_d": 0.05876,
+   "interaccion_d": -0.08764
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 0,
+   "dec_mm": 0,
+   "pC_d": 19.47438,
+   "pA_d": 19.47187,
+   "rango_A_C_d": 0.00252,
+   "efecto_tilt_d": 0,
+   "efecto_dec_d": 0,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 0,
+   "dec_mm": 0.25,
+   "pC_d": 19.4626,
+   "pA_d": 19.45957,
+   "rango_A_C_d": 0.00303,
+   "efecto_tilt_d": 0,
+   "efecto_dec_d": -0.01178,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 0,
+   "dec_mm": 0.5,
+   "pC_d": 19.53089,
+   "pA_d": 19.52869,
+   "rango_A_C_d": 0.0022,
+   "efecto_tilt_d": 0,
+   "efecto_dec_d": 0.0565,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 0,
+   "dec_mm": 0.75,
+   "pC_d": 19.52694,
+   "pA_d": 19.52489,
+   "rango_A_C_d": 0.00205,
+   "efecto_tilt_d": 0,
+   "efecto_dec_d": 0.05255,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 2.5,
+   "dec_mm": 0,
+   "pC_d": 19.43283,
+   "pA_d": 19.42936,
+   "rango_A_C_d": 0.00347,
+   "efecto_tilt_d": -0.04156,
+   "efecto_dec_d": 0,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 2.5,
+   "dec_mm": 0.25,
+   "pC_d": 19.3808,
+   "pA_d": 19.37574,
+   "rango_A_C_d": 0.00506,
+   "efecto_tilt_d": -0.04156,
+   "efecto_dec_d": -0.01178,
+   "interaccion_d": -0.04024
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 2.5,
+   "dec_mm": 0.5,
+   "pC_d": 19.43808,
+   "pA_d": 19.43432,
+   "rango_A_C_d": 0.00376,
+   "efecto_tilt_d": -0.04156,
+   "efecto_dec_d": 0.0565,
+   "interaccion_d": -0.05125
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 2.5,
+   "dec_mm": 0.75,
+   "pC_d": 19.41171,
+   "pA_d": 19.40792,
+   "rango_A_C_d": 0.00379,
+   "efecto_tilt_d": -0.04156,
+   "efecto_dec_d": 0.05255,
+   "interaccion_d": -0.07367
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 5,
+   "dec_mm": 0,
+   "pC_d": 19.32289,
+   "pA_d": 19.31685,
+   "rango_A_C_d": 0.00604,
+   "efecto_tilt_d": -0.1515,
+   "efecto_dec_d": 0,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 5,
+   "dec_mm": 0.25,
+   "pC_d": 19.23079,
+   "pA_d": 19.22176,
+   "rango_A_C_d": 0.00902,
+   "efecto_tilt_d": -0.1515,
+   "efecto_dec_d": -0.01178,
+   "interaccion_d": -0.08032
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 5,
+   "dec_mm": 0.5,
+   "pC_d": 19.28039,
+   "pA_d": 19.2734,
+   "rango_A_C_d": 0.00699,
+   "efecto_tilt_d": -0.1515,
+   "efecto_dec_d": 0.0565,
+   "interaccion_d": -0.099
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 5,
+   "dec_mm": 0.75,
+   "pC_d": 19.23439,
+   "pA_d": 19.22724,
+   "rango_A_C_d": 0.00715,
+   "efecto_tilt_d": -0.1515,
+   "efecto_dec_d": 0.05255,
+   "interaccion_d": -0.14105
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 7.5,
+   "dec_mm": 0,
+   "pC_d": 19.14467,
+   "pA_d": 19.1339,
+   "rango_A_C_d": 0.01078,
+   "efecto_tilt_d": -0.32971,
+   "efecto_dec_d": 0,
+   "interaccion_d": 0
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 7.5,
+   "dec_mm": 0.25,
+   "pC_d": 19.01277,
+   "pA_d": 18.9971,
+   "rango_A_C_d": 0.01566,
+   "efecto_tilt_d": -0.32971,
+   "efecto_dec_d": -0.01178,
+   "interaccion_d": -0.12012
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 7.5,
+   "dec_mm": 0.5,
+   "pC_d": 19.05801,
+   "pA_d": 19.04532,
+   "rango_A_C_d": 0.01268,
+   "efecto_tilt_d": -0.32971,
+   "efecto_dec_d": 0.0565,
+   "interaccion_d": -0.14317
+  },
+  {
+   "pupil_mm": 4.5,
+   "tilt_deg": 7.5,
+   "dec_mm": 0.75,
+   "pC_d": 18.9952,
+   "pA_d": 18.98225,
+   "rango_A_C_d": 0.01295,
+   "efecto_tilt_d": -0.32971,
+   "efecto_dec_d": 0.05255,
+   "interaccion_d": -0.20202
+  }
+ ]
+}

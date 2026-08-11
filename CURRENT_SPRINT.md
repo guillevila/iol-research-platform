@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
 **Fecha:** 10/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 184/184 tests verdes · CI verde (5 jobs) · 5 experimentos deterministas verificados en CI
+**Suite:** 195/195 tests verdes · CI verde (5 jobs) · 6 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
@@ -10,7 +10,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 |---|---|
 | V0 (motor paraxial + benchmark congelado) | DONE — ver histórico al pie |
 | **V0.5 endurecimiento** (10 hallazgos de `docs/V0_REVIEW.md`) | **DONE** — `docs/V0_5_CLOSURE.md`, tag `v0.5-hardening-complete` |
-| **V1** (calculadora por trazado, plan en `docs/V1_PROJECT_PLAN.md`) | **EN CURSO** — 4/15 sprints + revisión pre-V1.2 |
+| **V1** (calculadora por trazado, plan en `docs/V1_PROJECT_PLAN.md`) | **EN CURSO** — 5/15 sprints + revisión pre-V1.2 |
 
 ## V1 — estado por sprint
 
@@ -21,8 +21,8 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 | V1.4 `RayBundleGenerator` (4 muestreos, convergencia medida) | **DONE** | `SQUARE_GRID` documentado como no-convergente (limitación medida) |
 | Revisión pre-V1.2 (a petición) | **DONE** | ver bloque siguiente |
 | V1.2 Superficies cónicas | **DONE** | k=0≡esfera (1e-12), paraboloide y cartesiana exactos; PRIMER trazado STRICT (todo Q documentado); exp009 |
-| V1.3 Tilt y descentración | **SIGUIENTE** | requiere muestreo 2D (ya disponible en V1.4); candidato a separar A–C (exp009) |
-| V1.5 Córnea física en el trazado | pendiente | políticas corneales ya explícitas (P0.1) |
+| V1.3 Pose rígida de LIO (tilt/descentración vectoriales) | **DONE** | pose vector + transformadas rígidas; validación no-coaxial (reversibilidad/±pose/O(s²)); métrica de spot corregida a centroide; exp010 |
+| V1.5 Córnea física en el trazado | **SIGUIENTE** | políticas corneales ya explícitas (P0.1); pose corneal no incluida |
 | V1.6 Tórico trazado · V1.7 Rotación | pendiente | |
 | V1.8 `RaytraceEngine` en benchmark · V1.9 Divergencia | pendiente | terminología: divergencia, nunca error |
 | V1.11 Pipeline EQ · V1.12 Incertidumbre · V1.14 Rendimiento · V1.15 Docs | pendiente | |
@@ -75,7 +75,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 - Legado EVO byte-idéntico (102 hashes, en Linux y Windows).
 - El motor físico no importa nada del legado (test de arquitectura).
-- Los experimentos deterministas (exp001/003/007/008/009) reproducen su `results.json` publicado.
+- Los experimentos deterministas (exp001/003/007/008/009/010) reproducen su `results.json` publicado.
 - Ningún parámetro del motor procede de ajustar contra EVO.
 
 ---
