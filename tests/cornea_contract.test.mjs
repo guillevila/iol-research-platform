@@ -21,7 +21,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createPreopEye, createPredictedPostopEye } from '../src/core/eye.mjs';
 import { GenericIOLFactory, ManufacturerIOLFactory } from '../src/core/iol_factory.mjs';
-import { CorneaPolicy } from '../src/optics/cornea.mjs';
+import { CorneaPolicy, buildCorneaModel, singleSurfacePowerFromRadiusMm } from '../src/optics/cornea.mjs';
+import { createIOLPose, PoseSource } from '../src/core/pose.mjs';
+import { recommendToric } from '../src/toric/toric_engine.mjs';
 import { corneaPowerTwoSurfaces } from '../src/optics/paraxial.mjs';
 import { N_AIR, N_AQUEOUS } from '../src/optics/constants.mjs';
 import { buildParaxialEye, buildRaytraceEye } from '../src/optics/eyebuilder.mjs';
@@ -62,7 +64,11 @@ test('V1.5 · contrato 1: paraxial y trazado consumen EXACTAMENTE la misma inter
     const post = postopDe(ojo());
     const par = buildParaxialEye(post, { cornea: opts });
     const rt = buildRaytraceEye(post, LENTE, { cornea: opts });
-    // el MISMO modelo corneal, campo a campo — no dos interpretaciones "parecidas"
+    // el MISMO modelo corneal, campo a campo. VALOR HONESTO de este assert (revisión
+    // adversarial V1.5): ambas vías llaman hoy a corneaModelOf con los mismos
+    // argumentos, así que esto NO verifica la física (eso lo hace el contrato 2, en
+    // forma cerrada) — es un guard ANTI-DIVERGENCIA: falla si una vía deja de delegar
+    // en corneaModelOf, pasa opciones distintas o muta el modelo tras construirlo.
     assert.deepEqual(rt.cornea, par.cornea, `${policy}: interpretaciones distintas entre vías`);
     assert.equal(par.cornea_policy, policy);
     assert.equal(rt.cornea_policy, policy);
@@ -177,4 +183,105 @@ test('V1.5 · simetría rotacional: el astigmatismo medido se colapsa CON regist
   assert.throws(() => buildRaytraceEye(post, LENTE, {
     cornea: { policy: CorneaPolicy.TWO_SURFACE_MEASURED }, fidelity: FidelityMode.STRICT,
   }), /astigmatismo queratométrico medido/);
+});
+
+// ---------------------------------------------------------------------------------
+// Regresiones de la REVISIÓN ADVERSARIAL V1.5: medidas corneales PARCIALES.
+// La detección todo-o-nada sobre el triple (r_ant + r_post + CCT) dejaba las medidas
+// parciales fuera del uso Y del registro — el patrón que el proyecto prohíbe.
+// ---------------------------------------------------------------------------------
+
+function ojoParcial({ r_ant = null, r_post = null, cct = null, qs = false } = {}) {
+  return createPreopEye({
+    al_mm: 23.5, k1_d: 43.5, k1_axis_deg: 180, k2_d: 43.5, k2_axis_deg: 90,
+    acd_mm: 3.2, lt_mm: 4.5, keratometric_index: 1.3375,
+    ...(cct !== null ? { cct_um: cct } : {}),
+    cornea: {
+      ...(r_ant !== null ? { r_anterior_mm: r_ant } : {}),
+      ...(r_post !== null ? { r_posterior_mm: r_post } : {}),
+      ...(qs ? { asphericity_q_anterior: -0.18, asphericity_q_posterior: -0.30 } : {}),
+    },
+    meta: { source: 'synthetic' },
+  });
+}
+
+test('V1.5 · adversarial: radios medidos SIN CCT — el descarte se REGISTRA, no se calla', () => {
+  // antes: caída silenciosa a LECTURA con r_anterior re-fabricado desde K (7.7586 pisando 7.7)
+  const par = buildParaxialEye(postopDe(ojoParcial({ r_ant: 7.7, r_post: 6.8 })));
+  assert.equal(par.cornea_policy, CorneaPolicy.KERATOMETRIC_READING);
+  assert.ok(par.assumptions.some(a => /radios corneales MEDIDOS no usados/.test(a)),
+    'radios medidos descartados sin registro');
+});
+
+test('V1.5 · adversarial: FROM_RADIUS usa el radio anterior MEDIDO aunque el triple esté incompleto', () => {
+  // antes: con solo r_anterior medido, la política llamada FROM_RADIUS lo re-fabricaba
+  // desde K sin nota (Δ = 0.33 D en este mismo caso)
+  const m = buildCorneaModel(ojoParcial({ r_ant: 7.4 }), { policy: CorneaPolicy.SINGLE_SURFACE_FROM_RADIUS });
+  assert.equal(m.r_anterior_mm, 7.4);
+  assert.equal(m.power_d, singleSurfacePowerFromRadiusMm(7.4));
+  assert.match(m.provenance, /MEDIDO/);
+  // y si además hay un r_posterior medido que la superficie única no puede modelar, se registra
+  const conPost = buildCorneaModel(ojoParcial({ r_ant: 7.4, r_post: 6.8 }), { policy: CorneaPolicy.SINGLE_SURFACE_FROM_RADIUS });
+  assert.ok(conPost.assumptions.some(a => /r_posterior MEDIDO disponible y NO usado/.test(a)));
+});
+
+test('V1.5 · adversarial: RATIO usa el r_anterior MEDIDO y registra el r_posterior medido que sustituye', () => {
+  const opts = { policy: CorneaPolicy.TWO_SURFACE_RATIO, posterior_ratio: 0.883, provenance: RATIO_OPTS.provenance };
+  // r_anterior medido + cct (sin posterior): el medido se usa — la política solo asume la posterior
+  const m = buildCorneaModel(ojoParcial({ r_ant: 7.4, cct: 550 }), opts);
+  assert.equal(m.r_anterior_mm, 7.4);
+  assert.ok(Math.abs(m.r_posterior_mm - 0.883 * 7.4) < 1e-12);
+  // triple completo + RATIO explícita: pisar una medida disponible queda registrado
+  const pisada = buildCorneaModel(ojoParcial({ r_ant: 7.7, r_post: 6.8, cct: 550 }), opts);
+  assert.ok(pisada.assumptions.some(a => /r_posterior MEDIDO disponible y NO usado/.test(a)));
+});
+
+test('V1.5 · adversarial: Q MEDIDA sobre radio NO medido (RATIO) — el injerto se registra en el trazador', () => {
+  // antes: quimera silenciosa — Q de topografía aplicada a radios asumidos/recuperados sin nota
+  const post = postopDe(ojoParcial({ cct: 550, qs: true }));
+  const rt = buildRaytraceEye(post, LENTE, { cornea: RATIO_OPTS });
+  assert.ok(rt.assumptions.some(a => /cornea_ant: asfericidad MEDIDA aplicada a un radio RECUPERADO/.test(a)));
+  assert.ok(rt.assumptions.some(a => /cornea_post: asfericidad MEDIDA aplicada a un radio ASUMIDO por ratio/.test(a)));
+  // las superficies siguen siendo cónicas con la Q medida: el injerto se usa Y se declara
+  const conicas = rt.surfaces.filter(s => /^cornea/.test(s.id) && s.kind === 'conic');
+  assert.equal(conicas.length, 2);
+});
+
+test('V1.5 · adversarial: la nota de LECTURA no afirma explicitud que no puede conocer', () => {
+  // buildCorneaModel DIRECTO sin opciones (API pública, política por DEFECTO) sobre ojo
+  // totalmente medido: antes la nota decía "se pidió EXPLÍCITAMENTE" — falso por esa vía
+  const m = buildCorneaModel(ojoParcial({ r_ant: 7.7, r_post: 6.8, cct: 550 }));
+  const nota = m.assumptions.find(a => /radios corneales MEDIDOS no usados/.test(a));
+  assert.ok(nota, 'el descarte debe registrarse también con política por defecto');
+  assert.ok(!/EXPL/i.test(nota), 'la nota no puede afirmar cómo llegó la política');
+});
+
+test('V1.5 · adversarial: rotationally_symmetric viaja a los consumidores que RESUMEN', () => {
+  // el flag existía en los builders pero los consumidores lo dejaban caer — incluido el
+  // tórico, que es exactamente donde "two_surface_physical" podría leerse como córnea
+  // astigmática física (no existe hasta el tórico trazado)
+  const pre = createPreopEye({
+    al_mm: 23.5, k1_d: 42.0, k1_axis_deg: 180, k2_d: 45.0, k2_axis_deg: 90,
+    acd_mm: 3.2, lt_mm: 4.5, keratometric_index: 1.3375, meta: { source: 'synthetic' },
+  });
+  const post = createPredictedPostopEye(pre, { iol_position_mm: 4.9, position_source: 'test' });
+  const toric = recommendToric({ postop: post, sePower_d: 20, catalog_d: [1.5, 2.25, 3.0] });
+  assert.equal(toric.cornea_rotationally_symmetric, true);
+});
+
+test('V1.5 · adversarial: la procedencia de pose sobrevive a la vía paraxial (rotation_z pura)', () => {
+  // antes: el paraxial aceptaba rotation_z pura (inerte) pero su salida no llevaba pose
+  // — una pose MEASURED perdía su procedencia por elegir la vía paraxial
+  const post = createPredictedPostopEye(ojo(), {
+    iol_position_mm: 4.9, position_source: 'test',
+    iol_pose: createIOLPose({ rotation_z_deg: 30, source: PoseSource.MEASURED }),
+  });
+  const par = buildParaxialEye(post);
+  assert.equal(par.pose.source, PoseSource.MEASURED);
+  // y el mensaje de rechazo (tilt/descentración) nombra la procedencia real
+  const conTilt = createPredictedPostopEye(ojo(), {
+    iol_position_mm: 4.9, position_source: 'test',
+    iol_pose: createIOLPose({ tilt_x_deg: 3, source: PoseSource.MEASURED }),
+  });
+  assert.throws(() => buildParaxialEye(conTilt), /source: MEASURED/);
 });

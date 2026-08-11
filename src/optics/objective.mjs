@@ -88,7 +88,8 @@
  * astigmatismo residual). Antes de usar el trazado para optimización tórica debe
  * existir una descripción 2D del spot — matriz de SEGUNDO MOMENTO con ejes principales
  * y orientación, o métrica equivalente que conserve astigmatismo y eje. PROHIBIDO
- * forzar el sistema tórico dentro del objetivo C actual.
+ * forzar el sistema tórico dentro de los objetivos escalares actuales (A o C): la
+ * reducción a escalar destruye SIEMPRE el eje, no solo a veces.
  *
  * Convenio de signo del residuo: **positivo = la luz enfoca por DETRÁS de la retina**
  * (ojo hipermétrope), que es el signo de la refracción de gafa necesaria para corregirlo.

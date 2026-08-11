@@ -70,7 +70,10 @@
  *    predicción/escenario, no un dato faltante del caso. La pose declarada (V1.3) la
  *    HONRA el trazador; el modelo paraxial coaxial no puede representarla y la RECHAZA
  *    (tilt/descentración) en vez de ignorarla; `iol_pose: null` = predicción por
- *    defecto "centrada".
+ *    defecto "centrada" (≡ PoseSource.DEFAULT_CENTERED). Su PROCEDENCIA viaja
+ *    etiquetada aparte (`pose.source`: MEASURED/PREDICTED/DECLARED_SCENARIO, V1.5) —
+ *    simétrico a `position_source` para la posición, y con el mismo estatus: una pose
+ *    MEASURED es un dato aportado, no una imputación — tampoco bloquea.
  *  - Las primitivas de bajo nivel (paraxial.mjs, raytrace/) NO llevan puerta: operan
  *    sobre números sin procedencia y son capa legítima de física pura. La fidelidad
  *    gobierna la capa de CONSTRUCCIÓN (builders, optimizadores, motor tórico, MC):

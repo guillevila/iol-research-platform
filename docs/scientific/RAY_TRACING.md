@@ -1,20 +1,22 @@
 # RAY_TRACING — Trazador de rayos propio
 
-**Versión:** 1.0 · **Fecha:** 10/08/2026 · RESEARCH USE ONLY
+**Versión:** 1.1 · **Fecha:** 11/08/2026 · RESEARCH USE ONLY
 
 ## Alcance actual
 
 Trazado exacto (no paraxial) de rayos meridionales y oblicuos en 3D a través de
-superficies **esféricas y planas centradas** con apertura, refracción por ley de Snell
-vectorial con detección de reflexión total interna, y localización del **mejor foco**
-como el plano que minimiza el radio RMS del spot. Unidades internas: milímetros.
+superficies **esféricas, cónicas (Q) y planas** con apertura — centradas, o con pose
+rígida (tilt/descentración/rotación) en la LIO desde V1.3 —, refracción por ley de
+Snell vectorial con detección de reflexión total interna, y localización del **mejor
+foco** como el plano que minimiza el radio RMS del spot respecto del CENTROIDE.
+Unidades internas: milímetros.
 
 ## Componentes
 
 | Módulo | Contenido |
 |---|---|
 | `vec3.mjs` | álgebra 3D mínima (dot, cross, normalize con guarda de vector nulo) |
-| `surfaces.mjs` | superficie esférica (vértice + radio firmado + apertura + índices a ambos lados), plana; intersección con selección de casquete útil y normal orientada contra el rayo; Snell vectorial: t = η·d + (η·cosθᵢ − cosθₜ)·n̂ |
+| `surfaces.mjs` | superficie esférica (vértice + radio firmado + apertura + índices a ambos lados), plana, CÓNICA (V1.2: raíces Citardauq estables, dominio de apertura validado) y envoltorio de transformación RÍGIDA global↔local (V1.3: pose sin duplicar la matemática); intersección con selección de casquete útil y normal orientada contra el rayo; Snell vectorial: t = η·d + (η·cosθᵢ − cosθₜ)·n̂ |
 | `trace.mjs` | `traceRay` (con causas de pérdida: apertura, TIR, NaN), haz paralelo, RMS de spot, `bestFocus` por sección áurea (RMS(z) unimodal), `focusOfSystem` con estimador paraxial numérico de contraste |
 
 ## Convenciones
@@ -36,9 +38,11 @@ perdido **nunca** desaparece en silencio: se reporta con su causa (`raysLost`).
 
 ## Límites actuales y siguientes pasos
 
-- Solo superficies esféricas/planas **centradas**: asfericidad (cónicas con Q),
-  tilt y descentración de la CÓRNEA de superficies quedan pendientes (la LIO ya tiene pose rígida desde V1.3 y cónicas desde V1.2) (la
-  arquitectura de `surfaces.mjs` admite añadir tipos sin tocar `trace.mjs`).
+- La asfericidad NO está pendiente: las cónicas (Q) existen desde V1.2 — una córnea
+  con Q medida en ambas caras se traza y pasa STRICT — y la LIO tiene pose rígida
+  (tilt/descentración/rotación) desde V1.3. Quedan pendientes tilt y descentración
+  de la CÓRNEA y las superficies TÓRICAS (V1.6); la arquitectura de `surfaces.mjs`
+  (`transformedSurface`, tipos nuevos sin tocar `trace.mjs`) los admite.
 - El "mejor foco" por RMS es una métrica geométrica; métricas de calidad de imagen
   (MTF, Strehl) quedan fuera del alcance V0.
 - La comparación sistemática paraxial↔trazado sobre el ojo completo pertenece al

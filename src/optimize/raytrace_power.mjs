@@ -30,11 +30,12 @@ import { isIdentityPose } from '../core/pose.mjs';
 /**
  * Haz por defecto: MERIDIONAL con alturas equiespaciadas en área.
  *
- * Es exacto mientras el sistema tenga simetría de revolución, que es el caso hoy
- * (superficies esféricas centradas). Cuando entren tilt, descentración o tórico habrá que
- * pasar a un muestreo 2D (`sampling: SamplingKind.RINGS_EQUAL_AREA` o `FIBONACCI_SPIRAL`),
- * porque un haz meridional mediría un solo corte de un sistema que ya no es igual en todas
- * las direcciones — y lo haría en silencio. Ver `bundle.mjs`.
+ * Es exacto mientras el sistema tenga simetría de revolución Y esté centrado. El tilt
+ * y la descentración EXISTEN desde V1.3: con pose no nula este optimizador RECHAZA el
+ * haz meridional (guarda más abajo) y exige un muestreo 2D (`RINGS_EQUAL_AREA` o
+ * `FIBONACCI_SPIRAL`), porque un haz meridional mediría un solo corte de un sistema
+ * que ya no es igual en todas las direcciones — y lo haría en silencio. El tórico
+ * (V1.6) exigirá además una métrica 2D del spot (ver objective.mjs). Ver `bundle.mjs`.
  */
 export function defaultBundle(pupil_radius_mm, n_anillos = 5) {
   return generateBundle({
@@ -182,9 +183,11 @@ export function optimizePowerByRaytrace({
       iol_factory: factory.id,
       is_simulation_surrogate: factory instanceof GenericIOLFactory,
       cornea_policy: enOptimo.eye.cornea_policy,
+      cornea_rotationally_symmetric: enOptimo.eye.cornea.rotationally_symmetric,
       fidelity,
       // la pose HONRADA deja rastro: un results.json posado no puede ser indistinguible
-      // de uno centrado (no es supuesto — es estado declarado — pero sí trazabilidad)
+      // de uno centrado (no es supuesto — es estado declarado — pero sí trazabilidad);
+      // null ≡ PoseSource.DEFAULT_CENTERED (pose no declarada: centrada por defecto)
       pose: postop.iol_pose ?? null,
     },
     // Supuestos de modelado ACTIVOS en el trazado del óptimo (p. ej. asfericidad no

@@ -72,6 +72,7 @@ export class ParaxialEngine {
         exact_power_d: s.exact_power_d,
         cornea_kind: s.cornea_kind,
         cornea_policy: s.cornea_policy,
+        cornea_rotationally_symmetric: s.cornea_rotationally_symmetric,
         iol_position_mm: postop.iol_position_mm,
         position_source: pos.source,
       },

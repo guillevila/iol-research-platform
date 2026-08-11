@@ -47,6 +47,7 @@ export function searchBestPower({ postop, target_d = 0, grid = powerGrid(), tieT
     exact_power_d: eye.exactPowerFor(target_d),
     cornea_kind: eye.cornea_kind,
     cornea_policy: eye.cornea_policy,
+    cornea_rotationally_symmetric: eye.cornea.rotationally_symmetric,
     fidelity,
     supuestos_modelo: eye.assumptions,
   };

@@ -28,7 +28,7 @@ import { focusOfSystem } from './raytrace/trace.mjs';
  * afirmar una potencia corneal sin poder decir bajo qué convención se obtuvo (H1).
  */
 export function corneaModelOf(preop, opts = {}) {
-  const c = preop.cornea;
+  const c = preop.cornea ?? {};
   const medida = typeof c.r_anterior_mm === 'number'
     && typeof c.r_posterior_mm === 'number'
     && typeof preop.cct_um === 'number';
@@ -42,12 +42,18 @@ export function corneaModelOf(preop, opts = {}) {
  * ignorando aquí (la vía tórica sí lo modela) — se registra, no se calla (hallazgo de
  * la caza adversarial de fidelidad).
  */
-function notasDeColapsoSE(preop) {
+function notasDeColapsoSE(preop, cornea) {
   const notas = [];
   const cyl = Math.abs(preop.k1_d - preop.k2_d);
   if (cyl > 1e-9) {
+    // bajo LECTURA la media ES la K media; bajo las políticas de radios la potencia
+    // media sale de los RADIOS del modelo — la nota no debe afirmar "K media" ahí
+    // (caza adversarial V1.5: bajo MEASURED difieren 0.44 D en el ojo de prueba)
+    const base = cornea.kind === 'keratometric_reading'
+      ? 'cálculo de equivalente esférico sobre K media'
+      : 'córnea ROTACIONALMENTE SIMÉTRICA sobre la potencia media del modelo corneal';
     notas.push(`cornea: astigmatismo queratométrico medido (${cyl.toFixed(2)} D) no modelado: `
-      + 'cálculo de equivalente esférico sobre K media (la vía tórica sí lo modela)');
+      + `${base} (la vía tórica sí lo modela)`);
   }
   const c = preop.cornea ?? {};
   if (typeof c.posterior_k1_d === 'number' && typeof c.posterior_k2_d === 'number') {
@@ -67,7 +73,8 @@ function notasDeColapsoSE(preop) {
 function rechazarPoseEnParaxial(postop, context) {
   const pose = postop.iol_pose;
   if (pose && (pose.tilt_total_deg !== 0 || pose.decenter_total_mm !== 0)) {
-    throw new TypeError(`${context}: pose de LIO declarada (tilt ${pose.tilt_total_deg.toFixed(2)}°, `
+    // el mensaje nombra la PROCEDENCIA: una pose MEASURED rechazada no es "declarada"
+    throw new TypeError(`${context}: pose de LIO no nula (source: ${pose.source}; tilt ${pose.tilt_total_deg.toFixed(2)}°, `
       + `descentración ${pose.decenter_total_mm.toFixed(2)} mm) — el modelo paraxial coaxial no `
       + 'puede representarla. La vía de trazado (buildRaytraceEye/optimizePowerByRaytrace) '
       + 'la honra desde V1.3; se rechaza en lugar de ignorar un estado declarado.');
@@ -115,7 +122,7 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = D
   // se registra es el colapso del astigmatismo medido a esa media.
   const assumptions = [
     ...cornea.assumptions.map(a => `cornea_policy: ${a}`),
-    ...notasDeColapsoSE(preop),
+    ...notasDeColapsoSE(preop, cornea),
   ];
   enforceStrictness(fidelity, assumptions, 'buildParaxialEye');
   const base = {
@@ -128,6 +135,10 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = D
     cornea_policy: cornea.policy,
     cornea,
     fidelity,
+    // pose aceptada (nula o rotation_z pura, inerte para el EE): viaja para
+    // trazabilidad — la PROCEDENCIA (PoseSource) no debe perderse por elegir la vía
+    // paraxial (caza adversarial V1.5)
+    pose: postop.iol_pose ?? null,
     assumptions,
     corneaPower_d: cornea.power_d,
     al_mm: preop.al_mm,
@@ -208,7 +219,7 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
   // supuestos de la política corneal (mismos que en el paraxial, mismo prefijo)
   assumptions.push(...cornea.assumptions.map(a => `cornea_policy: ${a}`));
   // colapso a EE del astigmatismo medido: el trazador construye la córnea con la media
-  assumptions.push(...notasDeColapsoSE(preop));
+  assumptions.push(...notasDeColapsoSE(preop, cornea));
   // una lente genérica es EN SÍ un supuesto: sus radios/índice/espesor no proceden de
   // la lente implantada. En RESEARCH se registra; en STRICT bloquea vía la puerta.
   if (iol.is_simulation_surrogate) assumptions.push(notaSurrogate(iol));
@@ -254,6 +265,17 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
     }
     if (qCorneaPost === null) {
       assumptions.push('cornea_post: asfericidad no medida; superficie trazada como ESFERA — SUPUESTO registrado');
+    }
+    // Q MEDIDA sobre radio NO medido (política RATIO): la superficie resultante no es
+    // ni la medida ni el supuesto puro — el injerto se registra, no se calla (caza
+    // adversarial V1.5: antes solo la rama equivalente registraba la Q no aplicable)
+    if (cornea.kind === 'two_surface_assumed_ratio') {
+      if (qCorneaAnt !== null && typeof preop.cornea?.r_anterior_mm !== 'number') {
+        assumptions.push('cornea_ant: asfericidad MEDIDA aplicada a un radio RECUPERADO de la lectura K (no medido)');
+      }
+      if (qCorneaPost !== null) {
+        assumptions.push('cornea_post: asfericidad MEDIDA aplicada a un radio ASUMIDO por ratio (no medido)');
+      }
     }
     surfaces.push(superficie({ id: 'cornea_ant', zVertex_mm: 0, radius_mm: cornea.r_anterior_mm, q: qCorneaAnt, n_before: N_AIR, n_after: N_CORNEA }));
     surfaces.push(superficie({ id: 'cornea_post', zVertex_mm: preop.cct_um / 1000, radius_mm: cornea.r_posterior_mm, q: qCorneaPost, n_before: N_CORNEA, n_after: N_AQUEOUS }));

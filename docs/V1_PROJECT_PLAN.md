@@ -154,7 +154,8 @@ un RMS escalar ni a un mejor foco axial — dos líneas focales y un eje no cabe
 número. Antes de usar el trazado para optimización tórica debe existir una descripción
 2D del spot (matriz de SEGUNDO MOMENTO con ejes principales y orientación, o métrica
 equivalente que CONSERVE el astigmatismo y su eje). Prohibido forzar el tórico dentro
-del objetivo C actual si eso destruye información (también registrado en objective.mjs).
+de los objetivos escalares actuales (A o C) — la reducción a escalar destruye SIEMPRE
+el eje, no solo a veces (también registrado en objective.mjs, sin condicional).
 Contenido: superficies tóricas reales (dos radios principales) en la LIO y córnea física
 ASTIGMÁTICA (per-meridiano — hasta aquí toda córnea física es rotacionalmente simétrica).
 Aceptación: con los dos radios iguales reproduce la esférica exactamente; el astigmatismo

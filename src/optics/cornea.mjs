@@ -127,6 +127,21 @@ function requireMeasuredSurfaces(preop) {
 }
 
 /**
+ * Medidas corneales presentes DATO A DATO (V1.5, caza adversarial): la detección
+ * todo-o-nada sobre el triple (r_ant + r_post + CCT) dejaba las medidas PARCIALES
+ * fuera del uso Y del registro — un radio anterior medido se re-fabricaba desde K en
+ * silencio (Δ observado 0.33 D). Cada política usa ahora cada medida que puede
+ * consumir y REGISTRA cada medida disponible que descarta.
+ */
+function measuredDatum(preop) {
+  const c = preop.cornea ?? {};
+  return {
+    r_anterior_mm: typeof c.r_anterior_mm === 'number' ? c.r_anterior_mm : null,
+    r_posterior_mm: typeof c.r_posterior_mm === 'number' ? c.r_posterior_mm : null,
+  };
+}
+
+/**
  * Construye el modelo corneal bajo una política declarada.
  *
  * @returns {{
@@ -152,6 +167,7 @@ export function buildCorneaModel(preop, {
 
   // La medida real siempre puede satisfacer la política más completa.
   const measured = requireMeasuredSurfaces(preop);
+  const dato = measuredDatum(preop);
 
   if (policy === CorneaPolicy.TWO_SURFACE_MEASURED) {
     if (!measured) {
@@ -182,11 +198,15 @@ export function buildCorneaModel(preop, {
       throw new TypeError('TWO_SURFACE_RATIO exige `provenance` citada para el ratio '
         + '(estudio, ojo esquemático, DOI). Prohibido ajustarlo contra EVO.');
     }
-    if (n_k === null) throw new TypeError('se requiere keratometric_index para recuperar el radio');
+    if (dato.r_anterior_mm === null && n_k === null) {
+      throw new TypeError('se requiere keratometric_index para recuperar el radio');
+    }
     if (typeof preop.cct_um !== 'number') {
       throw new TypeError('TWO_SURFACE_RATIO requiere cct_um (medido) para la lente gruesa corneal');
     }
-    const r1 = measured?.r_anterior_mm ?? radiusMmFromKeratometry(K, n_k);
+    // el radio anterior MEDIDO se usa aunque falte el posterior: la política solo
+    // asume la posterior — no debe degradar también la anterior (V1.5)
+    const r1 = dato.r_anterior_mm ?? radiusMmFromKeratometry(K, n_k);
     const r2 = posterior_ratio * r1;
     const { power_d } = corneaPowerTwoSurfaces({
       r_anterior_m: mmToM(r1), r_posterior_m: mmToM(r2), cct_m: preop.cct_um / 1e6,
@@ -196,24 +216,38 @@ export function buildCorneaModel(preop, {
       power_d, policy, kind: 'two_surface_assumed_ratio', rotationally_symmetric: true,
       r_anterior_mm: r1, r_posterior_mm: r2,
       keratometric_index: n_k, invariant_to_device_index: true,
-      assumptions: [`r_posterior = ${posterior_ratio} · r_anterior (SUPUESTO declarado)`],
+      assumptions: [
+        `r_posterior = ${posterior_ratio} · r_anterior (SUPUESTO declarado)`,
+        ...(dato.r_posterior_mm !== null
+          ? ['r_posterior MEDIDO disponible y NO usado: el ratio lo sustituye — con la medida completa usa TWO_SURFACE_MEASURED']
+          : []),
+      ],
       provenance,
     };
   }
 
   if (policy === CorneaPolicy.SINGLE_SURFACE_FROM_RADIUS) {
-    if (n_k === null) {
+    // n_k solo hace falta si el radio hay que RECUPERARLO de K; con radio anterior
+    // MEDIDO la política lo usa directamente — se llama FROM_RADIUS (V1.5)
+    if (dato.r_anterior_mm === null && n_k === null) {
       throw new TypeError('SINGLE_SURFACE_FROM_RADIUS exige keratometric_index: sin saber con '
         + 'qué convención se generó la lectura K, el radio no es recuperable.');
     }
-    const r1 = measured?.r_anterior_mm ?? radiusMmFromKeratometry(K, n_k);
+    const r1 = dato.r_anterior_mm ?? radiusMmFromKeratometry(K, n_k);
     return {
       power_d: singleSurfacePowerFromRadiusMm(r1, { n_after: n_aqueous }),
       policy, kind: 'single_surface_from_radius', rotationally_symmetric: true,
       r_anterior_mm: r1, r_posterior_mm: null,
       keratometric_index: n_k, invariant_to_device_index: true,
-      assumptions: ['la superficie posterior no se modela (su potencia queda absorbida en n_ac)'],
-      provenance: 'radio recuperado de la lectura del dispositivo',
+      assumptions: [
+        'la superficie posterior no se modela (su potencia queda absorbida en n_ac)',
+        ...(dato.r_posterior_mm !== null
+          ? ['r_posterior MEDIDO disponible y NO usado: la superficie única no lo modela']
+          : []),
+      ],
+      provenance: dato.r_anterior_mm !== null
+        ? 'radio anterior MEDIDO'
+        : 'radio recuperado de la lectura del dispositivo',
     };
   }
 
@@ -228,9 +262,12 @@ export function buildCorneaModel(preop, {
     assumptions: [
       'P = K: se usa la lectura del dispositivo COMO potencia física',
       `depende de la convención de conversión declarada (n_k=${n_k}); otra convención daría otra P`,
-      // dato MEDIDO no usado por elección explícita: se registra, no se calla (V1.5)
-      ...(measured ? ['radios corneales MEDIDOS no usados: la política de lectura se pidió '
-        + 'EXPLÍCITAMENTE con radios disponibles'] : []),
+      // dato MEDIDO no usado: se registra, no se calla (V1.5; tras la caza adversarial
+      // la nota cubre también medidas PARCIALES y NO afirma que la política llegara
+      // explícita — esta función no puede saberlo cuando llega por defecto)
+      ...(dato.r_anterior_mm !== null || dato.r_posterior_mm !== null
+        ? ['radios corneales MEDIDOS no usados: la política de LECTURA no los consume (P = K)']
+        : []),
     ],
     provenance: 'convención del dispositivo, no magnitud física',
   };
