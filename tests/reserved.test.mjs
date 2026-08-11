@@ -112,8 +112,10 @@ test('reservados: cada entrada documenta qué es, quién lo usará y qué lo blo
   assert.deepEqual(Object.keys(RESERVED_FIELDS).sort(),
     ['iol', 'predicted_postoperative_eye', 'preoperative_eye']);
   // 11 → 10 en V1.6: toric_design salió del registro (ya se consume: validado en
-  // createIOL y registrado en buildRaytraceEye cuando se declara sin geometría)
-  assert.equal(RESERVED_NAMES.length, 10);
+  // createIOL y registrado en buildRaytraceEye cuando se declara sin geometría).
+  // 10 → 9 en V1.8: pupil_mm salió — la pupila es dato de primer nivel del escenario
+  // de benchmark (pupil_mm + pupil_source con procedencia) y alimenta el trazado.
+  assert.equal(RESERVED_NAMES.length, 9);
   assert.equal(new Set(RESERVED_NAMES).size, RESERVED_NAMES.length, 'nombres duplicados');
 });
 

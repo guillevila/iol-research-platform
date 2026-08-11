@@ -37,11 +37,11 @@ export const RESERVED_PREOP = Object.freeze({
     consumidor_previsto: 'dimensionado de lentes de sulcus / fáquicas',
     blocked_by: 'fuera del alcance actual (LIO en saco capsular)',
   },
-  pupil_mm: {
-    que_es: 'diámetro pupilar (mm)',
-    consumidor_previsto: 'apertura del trazado de rayos por paciente, en vez de fija',
-    blocked_by: 'V1 — el trazador aún usa apertura declarada, no la pupila del ojo',
-  },
+  // pupil_mm SALIÓ del registro en V1.8: la pupila entra ahora como dato de PRIMER
+  // NIVEL del escenario de benchmark (benchCase.pupil_mm + pupil_source con
+  // procedencia OBLIGATORIA) y alimenta la apertura del trazado por caso — una pupila
+  // MEDIDA del preoperatorio fluye por ese canal declarándose ('medida'). El defecto
+  // silencioso de 3 mm quedó cerrado en la capa de benchmark.
   lens_eq_plane_mm: {
     que_es: 'posición axial del plano ecuatorial del cristalino (mm)',
     consumidor_previsto: 'predictores de posición de tipo geométrico',

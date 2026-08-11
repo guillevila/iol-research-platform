@@ -133,10 +133,11 @@ RECHAZA la pose (no puede representarla); el muestreo MERIDIONAL se rechaza con 
 ### V1.4 · `RayBundleGenerator`
 Muestreo de pupila (anillos concéntricos, espiral de Fibonacci, malla cuadrada) con
 número de rayos declarado. Aceptación: el resultado converge al aumentar el número de
-rayos, y la **tasa de convergencia se mide**. NOTA (corregida en V1.7, revisión
-adversarial): `pupil_mm` del ojo NO salió de `reserved.mjs` — el optimizador usa una
-pupila DECLARADA como parámetro (defecto 3.0, registrado en la salida) y el dato
-`pupil_mm` medido del ojo sigue RESERVADO hasta que el trazador lo consuma de verdad.
+rayos, y la **tasa de convergencia se mide**. NOTA (corregida en V1.7; resuelta en
+V1.8): en V1.4 `pupil_mm` NO salió de `reserved.mjs` (el optimizador usaba una pupila
+DECLARADA con defecto 3.0 registrado); salió DE VERDAD en V1.8, cuando la pupila pasó
+a ser dato de primer nivel del escenario de benchmark (`pupil_mm` + `pupil_source`
+con procedencia obligatoria) que alimenta la apertura del trazado por caso.
 
 ### V1.5 · Córnea física en el trazado — cierre formal del contrato política↔trazador
 El trazador ya consumía las políticas (V1.2/V1.3): V1.5 NO reescribe la córnea de dos
@@ -239,9 +240,41 @@ NO se asume (OPEN_QUESTIONS #11).
 **La distribución real de rotaciones sigue bloqueada** (OPEN_QUESTIONS #6): solo se
 admiten escenarios declarados.
 
-### V1.8 · `RaytraceEngine` en el benchmark
-Adaptador al contrato de `src/bench/interface.mjs`, junto a `ParaxialEngine` y `EvoEngine`.
-Aceptación: terminología **divergencia**; ninguna salida afirma superioridad.
+### V1.8 · `RaytraceEngine` en el benchmark (EJECUTADO — contrato de COMPARABILIDAD)
+No un wrapper: un contrato auditable (`src/bench/engines/raytrace_engine.mjs`,
+`src/bench/comparisons.mjs`; a petición).
+- **Honestidad tórica**: el motor traza tórico (V1.6/V1.7) pero el optimizador busca
+  solo potencia EE con objetivos escalares — un caso ASTIGMÁTICO declara
+  `unsupported_dimensions: ['toric']` con campos NULL. `PredictionResult` extendido de
+  forma mínima y compatible, con VALIDACIÓN: UNSUPPORTED con valores que parezcan
+  físicos = rechazo; null sin declaración = rechazo. `ParaxialEngine` sin catálogo
+  tórico sobre caso astigmático: mismo contrato.
+- **Inyección explícita total**: positionPredictor, IOLFactory, objective, sampling,
+  search_d/catálogo, política corneal, fidelity y pupila son OBLIGATORIOS de
+  construcción. `iol_model`/`a_constant` = entradas ESPECÍFICAS DE EVO, reportadas
+  como ignoradas con nombre (jamás derivan geometría); `sia_d` = entrada tórica
+  UNSUPPORTED; campos desconocidos del caso = rechazo nombrándolos; `target_d ≠ 0` =
+  rechazo (el objetivo escalar optimiza emetropía; no se finge restando).
+- **Pupila de primer nivel** (V1.9): `benchCase.pupil_mm` + `pupil_source`
+  (procedencia OBLIGATORIA) o pupila declarada en la construcción — JAMÁS el defecto
+  silencioso de 3 mm; STRICT conserva su semántica. `pupil_mm` salió de reserved.mjs.
+- **Dos comparaciones separadas**: CONTROLLED_PHYSICS (Paraxial↔Raytrace, controles
+  VERIFICADOS sobre las salidas — mismo position_source, misma posición, misma
+  política corneal, o rechazo — aísla el modelo óptico) y FULL_ENGINE
+  (Raytrace↔EvoReplica: DIVERGENCIA ENTRE MOTORES con la lista de diferencias de
+  configuración que impiden atribuirla a una causa). Las refracciones previstas NO se
+  restan: gafa (paraxial/EVO) vs desenfoque equivalente (trazado) son convenciones
+  DISTINTAS declaradas.
+- **Trazabilidad para reproducir**: predictor/position_source, factory +
+  geometry_status/provenance, objetivo, pupila+procedencia, sampling+rayos, política
+  corneal, fidelity, pose, supuestos_trazado, potencia continua/catálogo/segunda
+  opción, search_d/tol, target.
+Aceptación (ejecutada, tests/bench_raytrace.test.mjs): pupila→0 + pose cero convergen
+al ancla paraxial del sistema controlado; adapter ≡ pipeline directo (igualdad
+exacta); ningún input se pierde; UNKNOWN = fallo, no sustituto; STRICT atraviesa
+(bloquea enumerando Y pasa con córnea medida por el caso + fabricante documentada);
+cambiar solo pupil_mm cambia solo lo esperado; sin "error frente a EVO" ni
+superioridad; UNSUPPORTED jamás como cero físico.
 
 ### V1.9 · Análisis de divergencia
 Mapa trazado ↔ paraxial ↔ EVO sobre rejilla declarada, por regiones (AL corta/larga, K

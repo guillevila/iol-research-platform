@@ -28,9 +28,9 @@ export class ParaxialEngine {
     this.id = `paraxial_v1+${positionPredictor.id}${toricCatalog_d ? '+toric' : ''}`;
   }
 
-  // fidelity: los motores de benchmark corren en RESEARCH por diseño — comparan
-  // estructura entre motores, no validan contra datos reales. La integración de
-  // `fidelity` en la capa de benchmark llega con el RaytraceEngine del plan V1.
+  // fidelity: ESTE motor corre en RESEARCH por diseño (compara estructura entre
+  // motores, no valida contra datos reales); el RaytraceEngine (V1.8) sí recibe
+  // fidelity por inyección explícita y STRICT atraviesa la capa de benchmark.
   predict(c) {
     const preop = createPreopEye({
       al_mm: c.al_mm, k1_d: c.k1_d, k1_axis_deg: c.k1_axis_deg ?? 0,
@@ -55,13 +55,25 @@ export class ParaxialEngine {
         target_d: target, sia_d: c.sia_d ?? 0, sia_axis_deg: c.sia_axis_deg ?? 0,
       });
     }
+    // dimensión tórica (contrato V1.8): con catálogo y astigmatismo se CALCULA (motor
+    // vectorial); sin astigmatismo, cilindro 0 es física del modelo; ASTIGMÁTICO sin
+    // catálogo inyectado = dimensión UNSUPPORTED con campos null — jamás un 0 que
+    // parezca resultado físico
+    const astigmatico = Math.abs(preop.k2_d - preop.k1_d) > 1e-9;
+    const toricUnsupported = astigmatico && !toric;
     return createPredictionResult({
       engine: this.id,
       predicted_refraction: toric ? toric.recommended.predicted_se_d : s.best.predicted_refraction_d,
-      predicted_cylinder: toric ? toric.recommended.residual_cyl_d : 0,
-      predicted_axis: toric ? (toric.recommended.residual_steep_axis_deg + 90) % 180 : null,
-      recommended_toric: toric ? toric.recommended.cylinder_d : 0,
-      recommended_axis: toric ? toric.implantation_axis_deg : null,
+      ...(toricUnsupported ? {
+        unsupported_dimensions: ['toric'],
+        predicted_cylinder: null, predicted_axis: null,
+        recommended_toric: null, recommended_axis: null,
+      } : {
+        predicted_cylinder: toric ? toric.recommended.residual_cyl_d : 0,
+        predicted_axis: toric ? (toric.recommended.residual_steep_axis_deg + 90) % 180 : null,
+        recommended_toric: toric ? toric.recommended.cylinder_d : 0,
+        recommended_axis: toric ? toric.implantation_axis_deg : null,
+      }),
       recommended_power: s.best.power_d,
       alternative: s.second && {
         power: s.second.power_d,
@@ -89,9 +101,10 @@ export class ParaxialEngine {
       warnings: [
         toric
           ? 'Motor paraxial: equivalente esférico + recomendación tórica sobre el catálogo inyectado.'
-          : (this.toricCatalog_d
-              ? 'Motor paraxial: solo equivalente esférico (ojo sin astigmatismo queratométrico).'
-              : 'Motor paraxial: solo equivalente esférico (no se inyectó catálogo tórico).'),
+          : (toricUnsupported
+              ? 'Motor paraxial: caso ASTIGMÁTICO sin catálogo tórico inyectado — la dimensión '
+                + 'tórica queda declarada UNSUPPORTED, no es un cero físico.'
+              : 'Motor paraxial: solo equivalente esférico (ojo sin astigmatismo queratométrico).'),
         `Política corneal: ${s.cornea_policy}.`,
       ],
     });
