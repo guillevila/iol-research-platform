@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
 **Fecha:** 11/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 281/281 tests verdes · CI verde (5 jobs) · 8 experimentos deterministas verificados en CI
+**Suite:** 282/282 tests verdes · CI verde (5 jobs) · 8 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
