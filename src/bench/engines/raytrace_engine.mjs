@@ -80,14 +80,51 @@ export class RaytraceEngine {
     if (!Object.values(ObjectiveKind).includes(objective)) {
       throw new TypeError(`RaytraceEngine: objective OBLIGATORIO (${Object.values(ObjectiveKind).join(' | ')})`);
     }
+    // El contrato PredictionResult exige `predicted_refraction` en DIOPTRÍAS. El coste
+    // del objetivo A es un radio RMS en MILÍMETROS: publicarlo en ese campo sería
+    // intercambiar unidades bajo el mismo nombre (0.0037 "D" parecería emetropía casi
+    // perfecta y son 3.7 µm de spot) — el patrón que este proyecto prohíbe. Se rechaza
+    // en CONSTRUCCIÓN (hallazgo adversarial V1.8).
+    if (objective === ObjectiveKind.SPOT_RMS_AT_RETINA) {
+      throw new TypeError('RaytraceEngine: el objetivo SPOT_RMS_AT_RETINA no es publicable en el '
+        + 'contrato de benchmark — su coste es un radio RMS en mm y `predicted_refraction` está '
+        + 'definido en dioptrías. Para comparar objetivos usa compareObjectives '
+        + '(src/optimize/raytrace_power.mjs), que los reporta cada uno en su unidad.');
+    }
     if (!sampling || !Object.values(SamplingKind).includes(sampling.kind) || !Number.isFinite(sampling.n_anillos)) {
-      throw new TypeError('RaytraceEngine: sampling OBLIGATORIO ({ kind: SamplingKind, n_anillos, perRing? })');
+      throw new TypeError('RaytraceEngine: sampling OBLIGATORIO ({ kind: SamplingKind, n_anillos, perRing })');
+    }
+    // perRing solo aplica a los muestreos por anillos; exigirlo ahí y RECHAZARLO donde
+    // es inerte evita el default silencioso que el docstring prohibía (adversarial V1.8)
+    const usaAnillos = sampling.kind === SamplingKind.RINGS_EQUAL_AREA;
+    if (usaAnillos && !Number.isFinite(sampling.perRing)) {
+      throw new TypeError(`RaytraceEngine: sampling.perRing OBLIGATORIO con ${sampling.kind}`);
+    }
+    if (!usaAnillos && sampling.perRing !== undefined) {
+      throw new TypeError(`RaytraceEngine: sampling.perRing no aplica a ${sampling.kind} — `
+        + 'declararlo sugeriría un control que ese muestreo no tiene');
     }
     if (!Array.isArray(search_d) || search_d.length !== 2 || !(search_d[1] > search_d[0])) {
       throw new TypeError('RaytraceEngine: search_d OBLIGATORIO ([min, max] D)');
     }
-    if (cornea === undefined || cornea === null || typeof cornea !== 'object') {
+    if (cornea === undefined || cornea === null || typeof cornea !== 'object' || Array.isArray(cornea)) {
       throw new TypeError('RaytraceEngine: cornea OBLIGATORIO (opciones de política corneal; {} = auto-elevación documentada)');
+    }
+    // vocabulario CERRADO de opciones corneales (hallazgo adversarial V1.8: `cornea`
+    // tragaba cualquier clave — `{posterior_ratio, provenance}` con el `policy`
+    // OLVIDADO caía a P=K en silencio, 1.59 D de desplazamiento creyendo haber
+    // configurado la política de ratio; y `cornea_toric` ni siquiera es alcanzable
+    // desde el optimizador, que no lo reenvía)
+    const OPCIONES_CORNEA = ['policy', 'posterior_ratio', 'provenance', 'n_cornea', 'n_aqueous'];
+    const corneaDesconocidas = Object.keys(cornea).filter(k => !OPCIONES_CORNEA.includes(k));
+    if (corneaDesconocidas.length > 0) {
+      throw new TypeError(`RaytraceEngine: opciones corneales no reconocidas: ${corneaDesconocidas.join(', ')}. `
+        + `Válidas: ${OPCIONES_CORNEA.join(', ')}. (La córnea TÓRICA no es alcanzable desde este `
+        + 'adaptador: el optimizador de potencia escalar no admite sistemas tóricos.)');
+    }
+    if (!cornea.policy && (cornea.posterior_ratio !== undefined || cornea.provenance !== undefined)) {
+      throw new TypeError('RaytraceEngine: opciones de política corneal (posterior_ratio/provenance) '
+        + 'SIN `policy` declarada — se aplicaría la política por defecto ignorándolas en silencio.');
     }
     assertFidelityMode(fidelity);
     if (pupil_mm !== 'FROM_CASE') {
@@ -97,7 +134,7 @@ export class RaytraceEngine {
     this.predictor = positionPredictor;
     this.factory = iolFactory;
     this.objective = objective;
-    this.sampling = { perRing: 6, ...sampling };
+    this.sampling = { ...sampling };
     this.search_d = [...search_d];
     this.catalog_d = catalog_d === null ? null : [...catalog_d];
     this.cornea = { ...cornea };
@@ -132,24 +169,36 @@ export class RaytraceEngine {
       acd_mm: c.acd_mm ?? null, lt_mm: c.lt_mm ?? null, cct_um: c.cct_um ?? null,
       keratometric_index: c.k_index ?? null,
       ...(c.cornea ? { cornea: c.cornea } : {}),
-      meta: { source: c.meta?.source ?? 'synthetic' },
+      // meta ENTERA (device/note incluidos): reconstruirla con solo `source` perdía
+      // metadatos del caso en silencio — hallazgo adversarial V1.8
+      meta: { ...(c.meta ?? {}), source: c.meta?.source ?? 'synthetic' },
     });
     const pos = this.predictor.predict(preop);
     const postop = createPredictedPostopEye(preop, {
       iol_position_mm: pos.iol_position_mm, position_source: pos.source,
     });
 
-    // pupila SIEMPRE explícita, con procedencia — jamás el defecto silencioso de 3 mm
+    // pupila SIEMPRE explícita, con procedencia — jamás el defecto silencioso de 3 mm.
+    // Y sin PRECEDENCIA TÁCITA (hallazgo adversarial V1.8): que el caso ganara en
+    // silencio sobre la pupila del motor movía el óptimo 1.58 D sin un solo aviso.
+    // O el motor declara la pupila del escenario, o la delega al caso ('FROM_CASE').
     let pupil_mm, pupil_source;
-    if (typeof c.pupil_mm === 'number') {
+    const casoTraePupila = typeof c.pupil_mm === 'number';
+    if (this.pupil_mm === 'FROM_CASE') {
+      if (!casoTraePupila) {
+        throw new TypeError('RaytraceEngine: el motor se construyó con pupil_mm="FROM_CASE" y el caso '
+          + 'no trae pupil_mm — no se cae en silencio al 3.0 mm por defecto de RESEARCH.');
+      }
       pupil_mm = c.pupil_mm;
       pupil_source = c.pupil_source;             // assertBenchCase la exige
-    } else if (this.pupil_mm !== 'FROM_CASE') {
-      pupil_mm = this.pupil_mm;
-      pupil_source = 'escenario declarado en la construcción del motor';
     } else {
-      throw new TypeError('RaytraceEngine: el motor se construyó con pupil_mm="FROM_CASE" y el caso '
-        + 'no trae pupil_mm — no se cae en silencio al 3.0 mm por defecto de RESEARCH.');
+      if (casoTraePupila && c.pupil_mm !== this.pupil_mm) {
+        throw new TypeError(`RaytraceEngine: CONFLICTO de pupila — el motor declara ${this.pupil_mm} mm `
+          + `y el caso ${c.pupil_mm} mm (${c.pupil_source}). No hay precedencia tácita: construye el `
+          + 'motor con pupil_mm="FROM_CASE" para que mande el caso, o retira la pupila del caso.');
+      }
+      pupil_mm = this.pupil_mm;
+      pupil_source = casoTraePupila ? c.pupil_source : 'escenario declarado en la construcción del motor';
     }
 
     const target_d = c.target_d ?? 0;
@@ -170,13 +219,17 @@ export class RaytraceEngine {
     const second = r.second;
     // metadatos de la lente REALMENTE recomendada (geometry_status/procedencia)
     const lenteBest = this.factory.create({ power_d: best.power_d });
-    const astigmatico = Math.abs(c.k1_d - c.k2_d) > 1e-9;
+    // la dimensión tórica es UNSUPPORTED si hay CUALQUIER entrada astigmática
+    // declarada — queratométrica o SIA (hallazgo adversarial V1.8: con K esférica y
+    // SIA declarada se publicaba cilindro 0 "físico" mientras se descartaba la SIA)
+    const astigmatico = Math.abs(c.k1_d - c.k2_d) > 1e-9 || toricIgnorados.length > 0;
 
     return createPredictionResult({
       engine: this.id,
-      // CONVENCIÓN: desenfoque equivalente (objetivo C) / coste (objetivo A) en la
-      // referencia LIO-posterior — NO refracción en plano de gafa (ver cabecera)
-      predicted_refraction: best.residual_d ?? best.cost,
+      // CONVENCIÓN: desenfoque equivalente en la referencia LIO-posterior — NO
+      // refracción en plano de gafa (ver cabecera). Siempre en DIOPTRÍAS: el objetivo
+      // A (coste en mm) está rechazado en construcción, así que residual_d existe.
+      predicted_refraction: best.residual_d,
       ...(astigmatico ? {
         unsupported_dimensions: ['toric'],
         predicted_cylinder: null, predicted_axis: null,
@@ -187,8 +240,8 @@ export class RaytraceEngine {
       recommended_power: best.power_d,
       alternative: second && {
         power: second.power_d,
-        predicted_refraction: second.residual_d ?? second.cost,
-        delta_d: r.delta_between_top2,
+        predicted_refraction: second.residual_d,
+        delta_d: r.delta_between_top2,   // objetivo C: |ΔD| — misma unidad que arriba
       },
       intermediate_values: {
         // trazabilidad SUFICIENTE para reproducir la predicción (criterio V1.8 §5)
@@ -216,6 +269,10 @@ export class RaytraceEngine {
         target_d,
         exact_power_d: r.exact_power_d,
         at_exact: r.at_exact,
+        // métricas de la lente REALMENTE recomendada (antes solo viajaban las del
+        // óptimo continuo NO implantable — asimetría de trazabilidad, hallazgo V1.8)
+        at_recommended: r.best ? { ...r.best } : null,
+        lens_model: 'thick_lens_from_factory',
         supuestos_trazado: r.supuestos_trazado,
         refraction_convention: 'desenfoque equivalente en referencia LIO-posterior '
           + '(sin distancia de vértice) — NO plano de gafa: no comparar con la '

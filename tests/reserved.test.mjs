@@ -31,13 +31,24 @@ const FUENTES = walk(SRC);
 /** Módulos donde un campo puede APARECER sin estar consumido: su definición y este registro. */
 const DEFINICIONES = new Set(['eye.mjs', 'iol.mjs', 'reserved.mjs']);
 
-/** ¿Algún módulo de src/ LEE `obj.campo`, fuera de donde se define? */
+/**
+ * La capa de BENCHMARK tiene su propio espacio de nombres de ESCENARIO (`benchCase`),
+ * con campos homónimos de los del modelo pero distinta procedencia — `pupil_mm` del
+ * escenario declarado no es `pupil_mm` medido del ojo. Escanearla haría que un
+ * homónimo diera por consumido un campo del modelo que sigue muerto: exactamente el
+ * fallo que dejó pasar la salida indebida de `pupil_mm` del registro (revisión
+ * adversarial V1.8).
+ */
+const ESPACIOS_AJENOS = ['src/bench/'];
+
+/** ¿Algún módulo de src/ LEE `obj.campo` del MODELO, fuera de donde se define? */
 function consumidoresDe(campo) {
   const re = new RegExp('\\.' + campo + '(?![A-Za-z0-9_])');
   return FUENTES
     .filter(f => !DEFINICIONES.has(path.basename(f)))
-    .filter(f => re.test(fs.readFileSync(f, 'utf8')))
-    .map(f => path.relative(ROOT, f).replace(/\\/g, '/'));
+    .map(f => path.relative(ROOT, f).replace(/\\/g, '/'))
+    .filter(rel => !ESPACIOS_AJENOS.some(pre => rel.startsWith(pre)))
+    .filter(rel => re.test(fs.readFileSync(path.join(ROOT, rel), 'utf8')));
 }
 
 /** Campos que un modelo expone realmente, construyéndolo con todo relleno. */
@@ -113,9 +124,12 @@ test('reservados: cada entrada documenta qué es, quién lo usará y qué lo blo
     ['iol', 'predicted_postoperative_eye', 'preoperative_eye']);
   // 11 → 10 en V1.6: toric_design salió del registro (ya se consume: validado en
   // createIOL y registrado en buildRaytraceEye cuando se declara sin geometría).
-  // 10 → 9 en V1.8: pupil_mm salió — la pupila es dato de primer nivel del escenario
-  // de benchmark (pupil_mm + pupil_source con procedencia) y alimenta el trazado.
-  assert.equal(RESERVED_NAMES.length, 9);
+  // pupil_mm salió en V1.8 y VOLVIÓ en la revisión adversarial del mismo sprint: el
+  // `pupil_mm` del benchCase es un ESCENARIO declarado, homónimo pero distinto del
+  // dato MEDIDO del ojo, que sigue sin consumirse. Y entró `a_constant`: al dejar de
+  // escanear la capa de benchmark quedó a la vista que el motor FÍSICO no la usa —
+  // es un input específico de EVO, declarado como tal.
+  assert.equal(RESERVED_NAMES.length, 11);
   assert.equal(new Set(RESERVED_NAMES).size, RESERVED_NAMES.length, 'nombres duplicados');
 });
 

@@ -152,6 +152,17 @@ export function optimizePowerByRaytrace({
     if (!Array.isArray(catalog_d) || catalog_d.length === 0) {
       throw new TypeError('catalog_d debe ser un array de potencias implantables');
     }
+    // El catálogo debe CONTENER el óptimo: si el óptimo continuo cae fuera de
+    // [min, max], el "mejor del catálogo" es un borde, no un óptimo — la misma
+    // disciplina que ya se aplicaba a search_d, que faltaba aquí (hallazgo adversarial
+    // V1.8: un catálogo lejano recomendaba 3 D con el óptimo en 19.65 D, en silencio).
+    const cMin = Math.min(...catalog_d), cMax = Math.max(...catalog_d);
+    if (exact_power_d < cMin || exact_power_d > cMax) {
+      throw new RangeError(
+        `RaytracePowerOptimizer: el óptimo continuo (${exact_power_d.toFixed(4)} D) cae FUERA del `
+        + `catálogo [${cMin}, ${cMax}] D: el mejor escalón sería un BORDE, no un óptimo. `
+        + 'No se devuelve el borde del catálogo como recomendación.');
+    }
     evaluaciones = catalog_d.map(p => {
       const e = f(p);
       return {

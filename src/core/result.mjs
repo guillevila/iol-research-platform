@@ -30,7 +30,15 @@ export function createPredictionResult(f) {
   assertFinite(f.predicted_refraction, 'predicted_refraction');
   assertFinite(f.recommended_power, 'recommended_power');
   const warnings = [RUO_WARNING, ...(f.warnings ?? [])];
+  // vocabulario CERRADO: una errata ('Toric') desactivaría la comprobación en silencio
+  const DIMENSIONES = ['toric'];
   const unsupported = Object.freeze([...(f.unsupported_dimensions ?? [])]);
+  for (const d of unsupported) {
+    if (!DIMENSIONES.includes(d)) {
+      throw new TypeError(`PredictionResult: dimensión desconocida en unsupported_dimensions: `
+        + `'${d}'. Válidas: ${DIMENSIONES.join(', ')}`);
+    }
+  }
   // COHERENCIA de la dimensión tórica (V1.8): declarada UNSUPPORTED ⇒ sus campos son
   // null (nada de ceros que parezcan física); un null sin declaración es ambigüedad
   // prohibida. `undefined` conserva el defecto histórico 0 (compatibilidad).
@@ -54,7 +62,12 @@ export function createPredictionResult(f) {
   return Object.freeze({
     engine: String(f.engine ?? 'unspecified'),
     predicted_refraction: f.predicted_refraction,
-    predicted_sphere: f.predicted_sphere ?? f.predicted_refraction,
+    // con la dimensión tórica UNSUPPORTED no hay DESCOMPOSICIÓN esfera/cilindro que
+    // publicar: `predicted_sphere` sería una "esfera" sin cilindro con el que formar
+    // par — se declara null como el resto de la dimensión (adversarial V1.8)
+    predicted_sphere: unsupported.includes('toric')
+      ? null
+      : (f.predicted_sphere ?? f.predicted_refraction),
     predicted_cylinder: toricFields.predicted_cylinder,
     predicted_axis: toricFields.predicted_axis,
     recommended_power: f.recommended_power,

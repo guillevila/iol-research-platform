@@ -4,12 +4,24 @@
  * RESEARCH USE ONLY.
  */
 import { createRequire } from 'node:module';
-import { run_evo_replica } from '../../../legacy/evo_replica/run_evo_replica.mjs';
+import { run_evo_replica, modelNames } from '../../../legacy/evo_replica/run_evo_replica.mjs';
 import { createPredictionResult } from '../../core/result.mjs';
 
 export class EvoReplicaEngine {
   constructor() { this.id = 'evo_replica_frozen_v1'; }
   predict(c) {
+    // El legado (CONGELADO, no se toca) acepta un `iol_model` inexistente y cae a un
+    // comportamiento por defecto no declarado: publicar una divergencia calculada
+    // sobre un modelo que no existe sería un número plausible y falso. La validación
+    // vive AQUÍ, en el adaptador (revisión adversarial V1.8).
+    if (c.iol_model !== undefined && c.iol_model !== null) {
+      const validos = modelNames();
+      if (!validos.includes(c.iol_model)) {
+        throw new TypeError(`EvoReplicaEngine: iol_model '${c.iol_model}' no existe en el benchmark `
+          + `congelado (${validos.length} modelos). El legado caería a un comportamiento por `
+          + 'defecto no declarado y la divergencia publicada sería falsa.');
+      }
+    }
     const r = run_evo_replica({
       al_mm: c.al_mm, k1_d: c.k1_d, k1_axis_deg: c.k1_axis_deg ?? 180,
       k2_d: c.k2_d, k2_axis_deg: c.k2_axis_deg ?? 90,

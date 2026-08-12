@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
 **Fecha:** 11/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 272/272 tests verdes · CI verde (5 jobs) · 8 experimentos deterministas verificados en CI
+**Suite:** 281/281 tests verdes · CI verde (5 jobs) · 8 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
@@ -25,7 +25,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 | V1.5 Contrato política corneal ↔ trazador | **DONE** | verificado por política (misma interpretación, procedencia viaja, sin posterior fabricada, STRICT diferencial); `rotationally_symmetric` explícito y expuesto en consumidores; PoseSource; caza adversarial aplicada: medidas corneales PARCIALES se usan o se registran (antes: descarte silencioso) |
 | V1.6 Tórico trazado | **DONE** | `biconicSurface` (Newton salvaguardado, recupera cónica a 1e-12); métrica 2D (M(z) exacta → autoproblema generalizado, ejes sin plano degenerado); `SyntheticToricIOLFactory` (única vía etiqueta→radios, declarada); córnea tórica por política explícita (jamás "medida", OQ #10); STRICT bloquea todo tórico inventado; objetivos escalares GUARDADOS; exp011 (eje 0° error, vectorial ≤0.001 D); caza adversarial aplicada: intersección bicónica reescrita (ventana acotada, sin rama lejana), coherencia etiqueta↔geometría registrada, MC rechaza claves desconocidas, focos virtuales rechazados con nombre |
 | V1.7 Rotación tórica | **DONE** | por FÍSICA (pose.rotation_z rota la bicónica y se re-traza; `toric_rotation_deg` NO reintroducido); error de rotación = DERIVADO (físico − planificado, mod 180, firmado; jamás entrada); anclas: 2C·\|sen θ\| solo módulos iguales (≤0.00123 D), resta vectorial completa en general (≤0.0009 D); divergencia a pupila finita REPORTADA; tres ejes distinguidos (geometría / minus-cyl / marcas → OQ #11); exp012 |
-| V1.8 `RaytraceEngine` en benchmark | **DONE** | contrato de COMPARABILIDAD: tórico UNSUPPORTED ≠ cero físico (PredictionResult validado); inyección explícita total; a_constant/iol_model = inputs EVO ignorados con nombre; pupil_mm de primer nivel con procedencia (salió de reserved); CONTROLLED_PHYSICS (controles verificados) / FULL_ENGINE (divergencia entre motores + diferencias listadas); convenciones de refracción NO se restan |
+| V1.8 `RaytraceEngine` en benchmark | **DONE** | contrato de COMPARABILIDAD: tórico UNSUPPORTED ≠ cero físico (PredictionResult validado); inyección explícita total; a_constant/iol_model = inputs EVO ignorados con nombre; pupil_mm de ESCENARIO de primer nivel con procedencia (el pupil_mm del OJO sigue reservado: homónimos); CONTROLLED_PHYSICS (controles verificados) / FULL_ENGINE (divergencia entre motores + diferencias listadas); convenciones de refracción NO se restan; caza adversarial aplicada: CONTROLLED_PHYSICS exige la MISMA lente gruesa (el paraxial evaluaba delgada y ese término era ~100% de la cifra), objetivo A rechazado por unidades, pupila sin precedencia tácita, opciones corneales con vocabulario cerrado, borde de catálogo guardado |
 | V1.9 Divergencia vs EVO | **SIGUIENTE** | explota el contrato V1.8: mapas por región (AL, K, pupila); terminología: divergencia, nunca error |
 | V1.11 Pipeline EQ · V1.12 Incertidumbre · V1.14 Rendimiento · V1.15 Docs | pendiente | |
 | V1.10 Predictores de literatura | **BLOCKED** | OPEN_QUESTIONS #2: sin publicación con coeficientes, no se implementa |

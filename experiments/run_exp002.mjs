@@ -43,8 +43,8 @@ for (const c of cases) {
     paraxial_power_d: par.ok ? par.result.recommended_power : null,
     evo_power_d: evo.ok ? evo.result.recommended_power : null,
     divergencia_d: par.ok && evo.ok ? +(par.result.recommended_power - evo.result.recommended_power).toFixed(2) : null,
-    evo_rechazo: evo.ok ? null : evo.error,
-    paraxial_rechazo: par.ok ? null : par.error,
+    evo_rechazo: evo.ok ? null : evo.fallo,
+    paraxial_rechazo: par.ok ? null : par.fallo,
   });
 }
 

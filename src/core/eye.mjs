@@ -71,7 +71,20 @@ export function createPreopEye(f) {
     // explícitamente en vez de adivinar (V0.5 / P0.1, hallazgo H1).
     keratometric_index: f.keratometric_index ?? null,
     // córnea física (opcional; si hay radios, la óptica puede usar 2 superficies)
-    cornea: {
+    cornea: (() => {
+      // vocabulario CERRADO (revisión adversarial V1.8): antes toda clave desconocida
+      // se descartaba en silencio, así que un `asphericity_q_ant` mal escrito no
+      // fallaba — y el trazado registraba "asfericidad no medida" cuando el caso SÍ la
+      // traía: un dato medido convertido en una afirmación falsa por un typo.
+      const CLAVES_CORNEA = ['r_anterior_mm', 'r_posterior_mm', 'posterior_k1_d',
+        'posterior_k2_d', 'posterior_axis_deg', 'asphericity_q_anterior', 'asphericity_q_posterior'];
+      const desconocidas = Object.keys(f.cornea ?? {}).filter(k => !CLAVES_CORNEA.includes(k));
+      if (desconocidas.length > 0) {
+        throw new TypeError(`createPreopEye: claves corneales no reconocidas: ${desconocidas.join(', ')}. `
+          + `Válidas: ${CLAVES_CORNEA.join(', ')}. (Una clave mal escrita se descartaría en silencio `
+          + 'y el trazado afirmaría que el dato no fue medido.)');
+      }
+      return {
       r_anterior_mm: opt(f.cornea?.r_anterior_mm, PLAUSIBLE.r_mm, 'r_anterior_mm'),
       r_posterior_mm: opt(f.cornea?.r_posterior_mm, PLAUSIBLE.r_mm, 'r_posterior_mm'),
       posterior_k1_d: f.cornea?.posterior_k1_d ?? null,
@@ -85,7 +98,8 @@ export function createPreopEye(f) {
       // llegará con la integración de datos reales.
       asphericity_q_anterior: optQ(f.cornea?.asphericity_q_anterior, 'cornea.asphericity_q_anterior'),
       asphericity_q_posterior: optQ(f.cornea?.asphericity_q_posterior, 'cornea.asphericity_q_posterior'),
-    },
+      };
+    })(),
     cct_um: opt(f.cct_um, PLAUSIBLE.cct_um, 'cct_um'),
     acd_mm: opt(f.acd_mm, PLAUSIBLE.acd_mm, 'acd_mm'),
     lt_mm: opt(f.lt_mm, PLAUSIBLE.lt_mm, 'lt_mm'),

@@ -37,11 +37,17 @@ export const RESERVED_PREOP = Object.freeze({
     consumidor_previsto: 'dimensionado de lentes de sulcus / fáquicas',
     blocked_by: 'fuera del alcance actual (LIO en saco capsular)',
   },
-  // pupil_mm SALIÓ del registro en V1.8: la pupila entra ahora como dato de PRIMER
-  // NIVEL del escenario de benchmark (benchCase.pupil_mm + pupil_source con
-  // procedencia OBLIGATORIA) y alimenta la apertura del trazado por caso — una pupila
-  // MEDIDA del preoperatorio fluye por ese canal declarándose ('medida'). El defecto
-  // silencioso de 3 mm quedó cerrado en la capa de benchmark.
+  pupil_mm: {
+    que_es: 'diámetro pupilar MEDIDO del ojo (mm)',
+    consumidor_previsto: 'apertura del trazado por paciente, tomada del ojo',
+    // CORRECCIÓN (revisión adversarial V1.8): este campo salió del registro por error
+    // y vuelve. Lo que V1.8 creó es OTRO campo — `benchCase.pupil_mm`, parámetro de
+    // ESCENARIO declarado con procedencia — y ninguna ruta mapea `preop.pupil_mm` a la
+    // apertura: la pupila del OJO sigue almacenada y sin consumir. Homónimos, no el
+    // mismo dato. (Reincidencia: la misma afirmación se corrigió ya en V1.7.)
+    blocked_by: 'V1 — el trazador usa la pupila del ESCENARIO (benchCase.pupil_mm), no la '
+      + 'del ojo; falta decidir la ruta preop.pupil_mm → apertura y su procedencia',
+  },
   lens_eq_plane_mm: {
     que_es: 'posición axial del plano ecuatorial del cristalino (mm)',
     consumidor_previsto: 'predictores de posición de tipo geométrico',
@@ -93,6 +99,16 @@ export const RESERVED_POSTOP = Object.freeze({
  * OPEN_QUESTIONS #4.
  */
 export const RESERVED_IOL = Object.freeze({
+  a_constant: {
+    que_es: 'constante A de la lente (input de fórmulas de regresión clásicas)',
+    // (V1.8, a petición del encargo y confirmado por el escáner endurecido): el motor
+    // FÍSICO no la consume — su única lectura viva está en el adaptador del benchmark
+    // congelado, que se la pasa a EVO. Queda identificada como INPUT ESPECÍFICO DE
+    // EVO, no fingida como consumida: el RaytraceEngine la reporta como ignorada con
+    // nombre y la geometría sale SIEMPRE de la IOLFactory inyectada.
+    consumidor_previsto: 'ninguno en el motor físico: es entrada de EVO/regresiones',
+    blocked_by: 'por diseño — una constante de regresión no entra en un trazado de rayos',
+  },
   haptic_angulation_deg: {
     que_es: 'angulación de los hápticos (grados)',
     consumidor_previsto: 'modelo mecánico de posición final en el saco',

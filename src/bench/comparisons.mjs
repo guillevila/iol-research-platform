@@ -29,44 +29,86 @@ const ETIQUETA = 'SIMULACION / NO GROUND TRUTH CLINICO';
  */
 export function controlledPhysicsComparison({ paraxialEngine, raytraceEngine, benchCase }) {
   assertBenchCase(benchCase);
-  const par = paraxialEngine.predict(benchCase);
-  const rt = raytraceEngine.predict(benchCase);
+  const par = ejecuta('paraxial', paraxialEngine, benchCase);
+  const rt = ejecuta('raytrace', raytraceEngine, benchCase);
   const iv = { par: par.intermediate_values, rt: rt.intermediate_values };
-  // CONTROLES: mismo predictor (misma posición y procedencia) y misma interpretación
-  // corneal. Si no se cumplen, esto NO aísla el modelo óptico — se rechaza con nombre.
+  // CONTROLES (reforzados tras la revisión adversarial V1.8): los tres primeros no
+  // BASTABAN — el término que DOMINA la divergencia era el modelo de LENTE (el
+  // paraxial evaluaba una lente DELGADA y el trazado una GRUESA de la factory: ~100 %
+  // de la cifra publicada). Ahora se exige también la MISMA lente. Si algún control
+  // falla, esto NO aísla el modelo óptico y se rechaza con nombre.
   const controles = [];
-  const exige = (nombre, a, b) => {
+  const exige = (nombre, a, b, remedio = '') => {
     if (a !== b) {
       throw new TypeError(`controlledPhysicsComparison: control violado — ${nombre} difiere `
-        + `entre motores (${String(a)} vs ${String(b)}): la divergencia ya no aísla el modelo óptico.`);
+        + `entre motores (${String(a)} vs ${String(b)}): la divergencia ya no aísla el modelo `
+        + `óptico.${remedio ? ' ' + remedio : ''}`);
     }
     controles.push(`${nombre} = ${String(a)}`);
   };
   exige('position_source', iv.par.position_source, iv.rt.position_source);
   exige('iol_position_mm', iv.par.iol_position_mm, iv.rt.iol_position_mm);
   exige('cornea_policy', iv.par.cornea_policy, iv.rt.cornea_policy);
+  exige('lens_model', iv.par.lens_model, 'thick_lens_from_factory',
+    'Inyecta la MISMA IOLFactory al ParaxialEngine ({ iolFactory }): con lente delgada, '
+    + 'la diferencia de geometría domina la cifra y no es modelo óptico.');
+  exige('iol_factory', iv.par.iol_factory, iv.rt.iol_factory,
+    'Ambos motores deben evaluar la MISMA geometría de lente.');
+  exige('target_d', iv.par.target_d, iv.rt.target_d);
+  // cuantización: solo se compara la potencia RECOMENDADA si ambos conjuntos de
+  // potencias implantables coinciden; si no, la resta mezclaría cuantizaciones
+  const mismaCuantizacion = JSON.stringify(iv.rt.catalog_d) === JSON.stringify(paraxialEngine.grid);
   return {
     modo: 'CONTROLLED_PHYSICS',
     que_aisla: 'divergencia introducida por el MODELO ÓPTICO (vergencias paraxiales vs '
-      + 'trazado exacto de rayos) con posición, córnea y parámetros compartidos',
+      + 'trazado exacto de rayos) con MISMA posición, MISMA córnea y MISMA lente gruesa',
     controles_verificados: controles,
     divergencia: {
-      recommended_power_d: rt.recommended_power - par.recommended_power,
+      // métrica principal: potencia CONTINUA (sin cuantización en ninguno de los dos)
       exact_power_d: iv.rt.exact_power_d - iv.par.exact_power_d,
+      recommended_power_d: mismaCuantizacion
+        ? rt.recommended_power - par.recommended_power
+        : null,
     },
     no_directamente_comparable: {
       predicted_refraction: 'convenciones distintas: gafa (paraxial) vs desenfoque '
         + 'equivalente en referencia LIO-posterior (trazado) — no se restan',
+      ...(mismaCuantizacion ? {} : {
+        recommended_power: `conjuntos de potencias implantables DISTINTOS (paraxial: rejilla `
+          + `de ${paraxialEngine.grid.length} pasos; trazado: `
+          + `${iv.rt.catalog_d ? `catálogo de ${iv.rt.catalog_d.length}` : 'continuo, sin catálogo'}) `
+          + '— la resta mezclaría cuantizaciones: se compara la potencia CONTINUA',
+      }),
+      ...(rt.unsupported_dimensions.includes('toric') || par.unsupported_dimensions.includes('toric') ? {
+        toric: `dimensión tórica no comparable: paraxial `
+          + `${par.unsupported_dimensions.includes('toric') ? 'UNSUPPORTED' : 'calculada'}, trazado `
+          + `${rt.unsupported_dimensions.includes('toric') ? 'UNSUPPORTED' : 'calculada'}`,
+      } : {}),
     },
     parametros_no_compartidos_declarados: {
-      pupila: `el paraxial no modela pupila; el trazado usa ${iv.rt.pupil_mm} mm (${iv.rt.pupil_source})`,
-      objetivo: `el paraxial minimiza |refracción−diana|; el trazado ${iv.rt.objective}`,
-      geometria_iol: `paraxial: lente gruesa por vergencias; trazado: ${iv.rt.iol_factory} `
-        + `(${iv.rt.iol_geometry_status})`,
+      pupila: `el paraxial no modela pupila (primer orden); el trazado usa ${iv.rt.pupil_mm} mm `
+        + `(${iv.rt.pupil_source}) — este ES el canal por el que aparece la aberración`,
+      objetivo: `el paraxial minimiza |refracción−diana| sobre su rejilla; el trazado ${iv.rt.objective}`,
+      cuantizacion: mismaCuantizacion
+        ? 'misma rejilla/catálogo en ambos'
+        : `distinta (ver no_directamente_comparable.recommended_power)`,
     },
     resultados: { paraxial: par, raytrace: rt },
     etiqueta: ETIQUETA,
   };
+}
+
+/** Ejecuta un motor nombrando el fallo: una excepción cruda perdería el contexto. */
+function ejecuta(nombre, engine, benchCase) {
+  try {
+    return engine.predict(benchCase);
+  } catch (err) {
+    const e = new Error(`[${ETIQUETA}] el motor ${nombre} (${engine?.id ?? '?'}) no pudo predecir `
+      + `este caso: ${err.message ?? err}`);
+    e.cause = err;
+    e.engine = nombre;
+    throw e;
+  }
 }
 
 /**
@@ -76,8 +118,8 @@ export function controlledPhysicsComparison({ paraxialEngine, raytraceEngine, be
  */
 export function fullEngineComparison({ raytraceEngine, evoEngine, benchCase }) {
   assertBenchCase(benchCase);
-  const rt = raytraceEngine.predict(benchCase);
-  const evo = evoEngine.predict(benchCase);
+  const rt = ejecuta('raytrace', raytraceEngine, benchCase);
+  const evo = ejecuta('evo_replica', evoEngine, benchCase);
   const iv = rt.intermediate_values;
   return {
     modo: 'FULL_ENGINE',
@@ -103,6 +145,15 @@ export function fullEngineComparison({ raytraceEngine, evoEngine, benchCase }) {
       `objetivo óptico: ${iv.objective} con pupila ${iv.pupil_mm} mm (${iv.pupil_source}) `
         + 'vs el criterio interno de EVO (sin pupila modelada)',
       `fidelity: ${iv.fidelity} con supuestos registrados en supuestos_trazado vs EVO sin registro de supuestos`,
+      // canales que la revisión adversarial V1.8 encontró SIN declarar y que dominan
+      // la cifra tanto o más que el modelo óptico:
+      `DISCRETIZACIÓN: catálogo inyectado al trazado (${iv.catalog_d ? `${iv.catalog_d.length} escalones, `
+        + `${Math.min(...iv.catalog_d)}–${Math.max(...iv.catalog_d)} D` : 'ninguno: potencia continua'}) `
+        + 'vs la tabla interna de EVO (escalones y rango propios) — parte de la divergencia es saturación '
+        + 'o cuantización de catálogo, no física',
+      `A-CONSTANT (${benchCase.a_constant ?? 'no declarada'}): la fija el LLAMANTE y mueve a EVO varios D `
+        + 'sin mover el motor físico, que la ignora — barrerla sola cambia la "divergencia" a voluntad',
+      `diana: ${iv.target_d} D en el trazado (solo emetropía soportada) vs la diana que EVO honre`,
     ],
     atribucion: 'IMPOSIBLE atribuir la divergencia a una sola causa: las pilas difieren '
       + 'en predictor, geometría, política corneal, objetivo y convención de refracción a la vez. '

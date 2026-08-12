@@ -11,6 +11,7 @@
  */
 import { createPreopEye, createPredictedPostopEye } from '../../core/eye.mjs';
 import { createPredictionResult } from '../../core/result.mjs';
+import { assertBenchCase } from '../interface.mjs';
 import { searchBestPower, powerGrid } from '../../optimize/power_search.mjs';
 import { recommendToric } from '../../toric/toric_engine.mjs';
 
@@ -20,18 +21,30 @@ export class ParaxialEngine {
    * @param toricCatalog_d    cilindros disponibles en plano de LIO (dato de
    *                          fabricante, inyectado); si se omite, motor esférico.
    */
-  constructor(positionPredictor, { grid = powerGrid(-5, 40, 0.5), toricCatalog_d = null } = {}) {
+  /**
+   * @param iolFactory (V1.8, opcional) si se inyecta, el motor evalúa la LENTE GRUESA
+   *   que produce esa factory en lugar de una lente delgada. Es lo que permite una
+   *   comparación CONTROLADA con el trazado: sin ella, la divergencia paraxial↔trazado
+   *   está dominada por el modelo de LENTE (delgada vs gruesa), no por el modelo óptico.
+   */
+  constructor(positionPredictor, { grid = powerGrid(-5, 40, 0.5), toricCatalog_d = null, iolFactory = null } = {}) {
     if (!positionPredictor?.predict) throw new TypeError('ParaxialEngine requiere positionPredictor');
+    if (iolFactory !== null && !iolFactory?.create) {
+      throw new TypeError('ParaxialEngine: iolFactory debe implementar create({power_d})');
+    }
     this.predictor = positionPredictor;
     this.grid = grid;
     this.toricCatalog_d = toricCatalog_d;
-    this.id = `paraxial_v1+${positionPredictor.id}${toricCatalog_d ? '+toric' : ''}`;
+    this.iolFactory = iolFactory;
+    this.id = `paraxial_v1+${positionPredictor.id}${toricCatalog_d ? '+toric' : ''}`
+      + (iolFactory ? `+${iolFactory.id}` : '+thin');
   }
 
   // fidelity: ESTE motor corre en RESEARCH por diseño (compara estructura entre
   // motores, no valida contra datos reales); el RaytraceEngine (V1.8) sí recibe
   // fidelity por inyección explícita y STRICT atraviesa la capa de benchmark.
   predict(c) {
+    assertBenchCase(c);   // la capa de benchmark valida IGUAL en los dos motores (V1.8)
     const preop = createPreopEye({
       al_mm: c.al_mm, k1_d: c.k1_d, k1_axis_deg: c.k1_axis_deg ?? 0,
       k2_d: c.k2_d, k2_axis_deg: c.k2_axis_deg ?? 90,
@@ -39,14 +52,17 @@ export class ParaxialEngine {
       // se propaga el índice del caso si lo trae; NO se inventa uno (P0.1/H1). El motor
       // corre bajo la política del dispositivo, que no lo necesita.
       keratometric_index: c.k_index ?? null,
-      meta: { source: c.meta?.source ?? 'synthetic' },
+      // córnea MEDIDA del caso: se propaga (antes se descartaba en silencio y hacía
+      // imposible la comparación controlada con el trazado — hallazgo adversarial V1.8)
+      ...(c.cornea ? { cornea: c.cornea } : {}),
+      meta: { ...(c.meta ?? {}), source: c.meta?.source ?? 'synthetic' },
     });
     const pos = this.predictor.predict(preop);
     const postop = createPredictedPostopEye(preop, {
       iol_position_mm: pos.iol_position_mm, position_source: pos.source,
     });
     const target = c.target_d ?? 0;
-    const s = searchBestPower({ postop, target_d: target, grid: this.grid });
+    const s = searchBestPower({ postop, target_d: target, grid: this.grid, iolFactory: this.iolFactory });
     // tórico opcional: solo si hay catálogo inyectado y el ojo tiene astigmatismo
     let toric = null;
     if (this.toricCatalog_d && Math.abs(preop.k2_d - preop.k1_d) > 1e-9) {
@@ -91,6 +107,12 @@ export class ParaxialEngine {
         // adversarial V1.6: se descartaban — el relleno tácito no debe volver por la
         // puerta de atrás de la capa que resume)
         supuestos_modelo: s.supuestos_modelo,
+        // modelo de LENTE explícito: delgada (la potencia es el dato) o gruesa de una
+        // factory inyectada — la comparación controlada con el trazado lo EXIGE igual
+        lens_model: s.lens_model,
+        iol_factory: s.iol_factory,
+        grid_step_d: this.grid.length > 1 ? +(this.grid[1] - this.grid[0]).toFixed(6) : null,
+        target_d: target,
         ...(toric ? { supuestos_toric: toric.supuestos_modelo } : {}),
       },
       uncertainty: {

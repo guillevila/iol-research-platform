@@ -85,21 +85,28 @@ test('bench · criterio 1: pupila→0 y pose cero convergen al ancla paraxial de
   const zFoco = paraxialFocusOfRaytraceEye(eye);
   assert.ok(Math.abs(zFoco - eye.retina_z_mm) < 2e-3,
     `foco paraxial a ${zFoco} mm vs retina ${eye.retina_z_mm} (Δ=${Math.abs(zFoco - eye.retina_z_mm)})`);
-  // y la comparación CONTROLLED_PHYSICS verifica sus controles y aísla el modelo óptico
+  // y la comparación CONTROLLED_PHYSICS verifica sus controles y aísla el modelo
+  // óptico: exige MISMO predictor, MISMA córnea y MISMA LENTE GRUESA (la lente
+  // delgada del paraxial dominaba la cifra — hallazgo adversarial V1.8)
   const predictor = new ConstantOffsetPredictor(1.7);
+  const factoryCompartida = new GenericIOLFactory();
   const cmp = controlledPhysicsComparison({
-    paraxialEngine: new ParaxialEngine(predictor),
-    raytraceEngine: motor({ positionPredictor: predictor, pupil_mm: 0.1 }),
+    paraxialEngine: new ParaxialEngine(predictor, { iolFactory: factoryCompartida }),
+    raytraceEngine: motor({ positionPredictor: predictor, iolFactory: factoryCompartida, pupil_mm: 0.1 }),
     benchCase: caso(),
   });
   assert.equal(cmp.modo, 'CONTROLLED_PHYSICS');
-  assert.ok(cmp.controles_verificados.length >= 3);
-  assert.ok(Number.isFinite(cmp.divergencia.exact_power_d));
-  // la divergencia paraxial(delgada)↔trazado(gruesa) del modelo óptico es acotada
-  assert.ok(Math.abs(cmp.divergencia.exact_power_d) < 1.5,
-    `divergencia de modelo óptico implausible: ${cmp.divergencia.exact_power_d} D`);
+  assert.ok(cmp.controles_verificados.length >= 6);
+  assert.ok(cmp.controles_verificados.some(x => /lens_model/.test(x)));
+  // con TODO controlado y pupila→0, la divergencia del modelo óptico es ~0: el trazado
+  // converge al paraxial del MISMO sistema (esta es la afirmación fuerte de V1.8)
+  assert.ok(Math.abs(cmp.divergencia.exact_power_d) < 5e-3,
+    `pupila→0 debía converger al paraxial: ${cmp.divergencia.exact_power_d} D`);
   // y las refracciones NO se restan: convenciones declaradas distintas
   assert.match(cmp.no_directamente_comparable.predicted_refraction, /convenciones distintas/);
+  // la potencia RECOMENDADA no se compara si las cuantizaciones difieren
+  assert.equal(cmp.divergencia.recommended_power_d, null);
+  assert.match(cmp.no_directamente_comparable.recommended_power, /cuantizaciones|DISTINTOS/);
 });
 
 test('bench · criterio 1b: los controles de CONTROLLED_PHYSICS se VERIFICAN — predictores distintos = rechazo', () => {
@@ -157,7 +164,10 @@ test('bench · criterio 4: geometría UNKNOWN = FALLO reportado, nunca sustituto
   const m = motor({ iolFactory: mfrVacia, catalog_d: [20, 21, 22] });
   const out = compareEngines([m], caso());
   assert.equal(out.results[m.id].ok, false);
-  assert.match(out.results[m.id].error, /geometría trazable|no se traza|prohibido sustituir/i);
+  // la clave es `fallo` (excepción de EJECUCIÓN), no "error": la terminología de
+  // divergencia se reserva a las comparaciones entre motores
+  assert.match(out.results[m.id].fallo, /geometría trazable|no se traza|prohibido sustituir/i);
+  assert.equal(out.results[m.id].error, undefined);
 });
 
 test('bench · criterio 5: STRICT atraviesa la capa benchmark — bloquea enumerando y también PASA', () => {
@@ -269,4 +279,121 @@ test('bench · criterio 8: una dimensión UNSUPPORTED jamás se presenta como ce
   assert.throws(() => createPredictionResult({
     engine: 'x', predicted_refraction: 0, recommended_power: 20, predicted_cylinder: null,
   }), /SIN declarar/);
+});
+
+// ---------------------------------------------------------------------------------
+// Regresiones de la REVISIÓN ADVERSARIAL V1.8 (adaptador).
+// ---------------------------------------------------------------------------------
+
+test('bench · adversarial: el objetivo A no es publicable en el contrato (unidades ≠ dioptrías)', () => {
+  // antes: con SPOT_RMS_AT_RETINA, predicted_refraction pasaba a ser mm de RMS con el
+  // mismo nombre y un warning que afirmaba que eran dioptrías (0.0037 "D" parecía
+  // emetropía casi perfecta y eran 3.7 µm de spot)
+  assert.throws(() => motor({ objective: ObjectiveKind.SPOT_RMS_AT_RETINA }),
+    /radio RMS en mm|dioptrías/);
+});
+
+test('bench · adversarial: la pupila no tiene precedencia tácita — conflicto motor↔caso = rechazo', () => {
+  // antes: el caso ganaba en silencio sobre la pupila del motor (1.58 D de movimiento)
+  const m = motor({ pupil_mm: 3.0 });
+  assert.throws(() => m.predict(caso({ pupil_mm: 5.5, pupil_source: 'medida del preop' })),
+    /CONFLICTO de pupila.*FROM_CASE/s);
+  // coincidencia exacta: no es conflicto (y la procedencia del caso es la que viaja)
+  const r = m.predict(caso({ pupil_mm: 3.0, pupil_source: 'medida del preop' }));
+  assert.equal(r.intermediate_values.pupil_source, 'medida del preop');
+});
+
+test('bench · adversarial: las opciones corneales tienen vocabulario CERRADO', () => {
+  // antes: `cornea` tragaba cualquier clave; lo peor, opciones de ratio SIN policy
+  // caían a P=K en silencio (1.59 D) creyendo haber configurado la política
+  assert.throws(() => motor({ cornea: { cornea_toric: { policy: 'X' } } }), /no reconocidas/);
+  assert.throws(() => motor({ cornea: { toric: true } }), /no reconocidas/);
+  assert.throws(() => motor({
+    cornea: { posterior_ratio: 0.82, provenance: 'ratio de ojo esquemático — test' },
+  }), /SIN `policy` declarada/);
+  // con policy declarada, la opción es válida
+  const ok = motor({
+    cornea: { policy: 'TWO_SURFACE_RATIO', posterior_ratio: 0.883, provenance: 'ratio de test declarado' },
+  });
+  assert.equal(ok.predict(caso()).intermediate_values.cornea_policy, 'TWO_SURFACE_RATIO');
+});
+
+test('bench · adversarial: el catálogo debe CONTENER el óptimo — un borde no es recomendación', () => {
+  // antes: catálogo [1,2,3] con óptimo en 19.65 D recomendaba 3 D en silencio
+  const m = motor({ catalog_d: [1, 2, 3] });
+  assert.throws(() => m.predict(caso()), /FUERA del catálogo|BORDE, no un óptimo/);
+});
+
+test('bench · adversarial: meta y córnea del caso viajan enteras; una clave corneal mal escrita FALLA', () => {
+  const espia = {
+    id: 'espia', predict(preop) { this.visto = preop; return { iol_position_mm: 4.9, source: 'espía' }; },
+  };
+  const m = motor({ positionPredictor: espia });
+  m.predict(caso({ meta: { source: 'measured', device: 'DISPOSITIVO_X', note: 'NOTA QUE NO DEBE PERDERSE' } }));
+  assert.equal(espia.visto.meta.device, 'DISPOSITIVO_X');
+  assert.equal(espia.visto.meta.note, 'NOTA QUE NO DEBE PERDERSE');
+  // un typo en una clave corneal ya no se descarta en silencio afirmando "no medida"
+  assert.throws(() => motor().predict(caso({
+    cornea: { r_anterior_mm: 7.7, asphericity_q_ant: -0.18 },
+  })), /claves corneales no reconocidas: asphericity_q_ant/);
+});
+
+test('bench · adversarial: SIA declarada con K esférica tampoco publica un cilindro 0 "físico"', () => {
+  const r = motor().predict(caso({ sia_d: 0.75, sia_axis_deg: 90 }));
+  assert.deepEqual([...r.unsupported_dimensions], ['toric']);
+  assert.equal(r.predicted_cylinder, null);
+  assert.deepEqual(r.intermediate_values.toric_inputs_ignorados, ['sia_d', 'sia_axis_deg']);
+});
+
+test('bench · adversarial: compareEngines rechaza ids duplicados (uno desaparecía en silencio)', () => {
+  const a = motor({ pupil_mm: 2.0 });
+  const b = motor({ pupil_mm: 5.0 });    // configuración distinta, MISMO id
+  assert.equal(a.id, b.id);
+  assert.throws(() => compareEngines([a, b], caso()), /ids de motor DUPLICADOS/);
+});
+
+test('bench · adversarial: un fallo de motor en las comparaciones se nombra y lleva etiqueta', () => {
+  // antes: la excepción de EVO fuera de dominio escapaba cruda, sin decir qué motor
+  const fuera = caso({ al_mm: 35, a_constant: 119.3 });
+  assert.throws(() => fullEngineComparison({
+    raytraceEngine: motor({ search_d: [1, 40], catalog_d: null }),
+    evoEngine: new EvoReplicaEngine(), benchCase: fuera,
+  }), err => /SIMULACION/.test(err.message) && /el motor (raytrace|evo_replica)/.test(err.message));
+});
+
+test('bench · adversarial: la trazabilidad declarada está COMPLETA (si un refactor la vacía, falla aquí)', () => {
+  const r = motor().predict(caso({ a_constant: 119.3 }));
+  const iv = r.intermediate_values;
+  for (const campo of ['position_predictor', 'position_source', 'iol_position_mm', 'iol_factory',
+    'iol_geometry_status', 'iol_provenance', 'is_simulation_surrogate', 'objective', 'objective_label',
+    'pupil_mm', 'pupil_source', 'sampling', 'n_anillos', 'perRing', 'rayos', 'muestreo_2d',
+    'cornea_policy', 'cornea_rotationally_symmetric', 'fidelity', 'search_d', 'tol_d', 'catalog_d',
+    'target_d', 'exact_power_d', 'at_exact', 'at_recommended', 'lens_model', 'supuestos_trazado',
+    'refraction_convention', 'evo_inputs_ignorados', 'toric_inputs_ignorados']) {
+    assert.ok(campo in iv, `falta el campo de trazabilidad: ${campo}`);
+  }
+  assert.equal(iv.pose, null);      // null ≡ DEFAULT_CENTERED, declarado
+  assert.ok(iv.at_recommended.power_d === r.recommended_power);
+});
+
+test('bench · adversarial (menores): sphere sin descomposición, vocabulario, pupila plausible, perRing, modelo EVO', () => {
+  // con la dimensión tórica UNSUPPORTED no hay descomposición: sphere también null
+  const r = motor().predict(caso({ k1_d: 42, k2_d: 45 }));
+  assert.equal(r.predicted_sphere, null);
+  assert.ok(Number.isFinite(r.predicted_refraction), 'la refracción SÍ existe: es la dimensión esférica');
+  // vocabulario cerrado de dimensiones
+  assert.throws(() => createPredictionResult({
+    engine: 'x', predicted_refraction: 0, recommended_power: 20, unsupported_dimensions: ['Toric'],
+  }), /dimensión desconocida/);
+  // pupila del escenario: rango plausible y procedencia con CONTENIDO
+  assert.throws(() => motor({ pupil_mm: 'FROM_CASE' }).predict(
+    caso({ pupil_mm: 25, pupil_source: 'medida' })), /fuera de plausibilidad/);
+  assert.throws(() => motor({ pupil_mm: 'FROM_CASE' }).predict(
+    caso({ pupil_mm: 4, pupil_source: '   ' })), /pupil_source/);
+  // perRing: obligatorio donde aplica, rechazado donde es inerte
+  assert.throws(() => motor({ sampling: { kind: SamplingKind.RINGS_EQUAL_AREA, n_anillos: 4 } }), /perRing OBLIGATORIO/);
+  assert.throws(() => motor({ sampling: { kind: SamplingKind.MERIDIONAL, n_anillos: 5, perRing: 6 } }), /no aplica/);
+  // un modelo comercial inexistente no produce una divergencia falsa
+  assert.throws(() => new EvoReplicaEngine().predict(caso({ iol_model: 'NO_EXISTE_XYZ', a_constant: 119.3 })),
+    /no existe en el benchmark congelado/);
 });
