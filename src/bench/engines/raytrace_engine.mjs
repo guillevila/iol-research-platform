@@ -273,6 +273,10 @@ export class RaytraceEngine {
         // óptimo continuo NO implantable — asimetría de trazabilidad, hallazgo V1.8)
         at_recommended: r.best ? { ...r.best } : null,
         lens_model: 'thick_lens_from_factory',
+        // sobre cuántos escalones se decidió realmente (y cuáles no eran evaluables):
+        // sin esto, un catálogo amplio parecería íntegramente considerado
+        catalog_evaluados: r.catalog_evaluations ? r.catalog_evaluations.length : null,
+        catalog_no_evaluables: r.catalog_no_evaluables ?? [],
         supuestos_trazado: r.supuestos_trazado,
         refraction_convention: 'desenfoque equivalente en referencia LIO-posterior '
           + '(sin distancia de vértice) — NO plano de gafa: no comparar con la '

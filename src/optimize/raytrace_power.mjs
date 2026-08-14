@@ -148,6 +148,7 @@ export function optimizePowerByRaytrace({
   const enOptimo = f(exact_power_d);
 
   let best = null, second = null, evaluaciones = null;
+  const noEvaluables = [];
   if (catalog_d) {
     if (!Array.isArray(catalog_d) || catalog_d.length === 0) {
       throw new TypeError('catalog_d debe ser un array de potencias implantables');
@@ -163,13 +164,27 @@ export function optimizePowerByRaytrace({
         + `catálogo [${cMin}, ${cMax}] D: el mejor escalón sería un BORDE, no un óptimo. `
         + 'No se devuelve el borde del catálogo como recomendación.');
     }
-    evaluaciones = catalog_d.map(p => {
-      const e = f(p);
-      return {
-        power_d: p, cost: e.cost, residual_d: e.residual_d,
-        spotRms_mm: e.spotRms_mm, bestFocus_mm: e.bestFocus_mm,
-      };
-    }).sort((a, b) => a.cost - b.cost);
+    // Un escalón LEJANO del óptimo puede no ser evaluable (su foco cae fuera del
+    // bracket de búsqueda): eso NO debe tumbar una recomendación cuyo óptimo está
+    // perfectamente dentro del catálogo. Se descarta ese escalón REGISTRÁNDOLO — ni se
+    // oculta (sería sesgo del superviviente) ni se pierde el caso entero (V1.9).
+    evaluaciones = [];
+    for (const p of catalog_d) {
+      try {
+        const e = f(p);
+        evaluaciones.push({
+          power_d: p, cost: e.cost, residual_d: e.residual_d,
+          spotRms_mm: e.spotRms_mm, bestFocus_mm: e.bestFocus_mm,
+        });
+      } catch (err) {
+        noEvaluables.push({ power_d: p, motivo: String(err?.message ?? err) });
+      }
+    }
+    if (evaluaciones.length === 0) {
+      throw new RangeError('RaytracePowerOptimizer: NINGÚN escalón del catálogo es evaluable '
+        + `(${noEvaluables.length} descartados; primero: ${noEvaluables[0]?.motivo})`);
+    }
+    evaluaciones.sort((a, b) => a.cost - b.cost);
     best = evaluaciones[0];
     second = evaluaciones[1] ?? null;
   }
@@ -188,6 +203,9 @@ export function optimizePowerByRaytrace({
     second,
     delta_between_top2: second ? second.cost - best.cost : null,
     catalog_evaluations: evaluaciones,
+    /** escalones del catálogo NO evaluables, con su motivo: descartados con registro,
+     *  nunca en silencio (su presencia acota sobre cuántos escalones se decidió) */
+    catalog_no_evaluables: noEvaluables,
     parametros_declarados: {
       pupil_mm, n_anillos, sampling, rayos: haz.actual,
       muestreo_2d: haz.twoDimensional, search_d, tol_d,

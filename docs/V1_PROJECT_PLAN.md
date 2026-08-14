@@ -284,11 +284,40 @@ exacta); ningún input se pierde; UNKNOWN = fallo, no sustituto; STRICT atravies
 cambiar solo pupil_mm cambia solo lo esperado; sin "error frente a EVO" ni
 superioridad; UNSUPPORTED jamás como cero físico.
 
-### V1.9 · Análisis de divergencia
-Mapa trazado ↔ paraxial ↔ EVO sobre rejilla declarada, por regiones (AL corta/larga, K
-plana/curva, pupila). Aceptación: cada celda reporta su n y su dispersión; se identifica
-**dónde** el trazado aporta información que el paraxial no tiene, sin afirmar que acierte
-más.
+### V1.9 · Atlas de divergencia (EJECUTADO: `src/bench/divergence.mjs`, exp013)
+Experimento interpretable, no una tabla grande de diferencias. **Pregunta primaria:**
+con posición, córnea y lente IDÉNTICAS, ¿dónde y cuánto diverge la potencia óptima
+CONTINUA al sustituir la aproximación paraxial por trazado exacto a apertura finita?
+Dos análisis COMPLETAMENTE separados:
+
+- **A · CONTROLLED_PHYSICS (principal).** Rejilla declarada AL × K × pupila sobre casos
+  ESFÉRICOS (con astigmatismo, la dimensión tórica UNSUPPORTED contaminaría la
+  pregunta). Métrica primaria ΔP = P_raytrace − P_paraxial en potencia CONTINUA — la
+  cuantización no se mezcla con la física; la decisión de catálogo se reporta aparte y
+  SOLO con discretización exactamente idéntica. Los seis controles de V1.8 se verifican
+  por celda. Ancla de apertura→0 en la propia rejilla. La monotonía en pupila se
+  OBSERVA (series no monótonas y cambios de signo se reportan), no se impone.
+- **B · FULL_ENGINE (secundario, descriptivo).** DIVERGENCIA ENTRE MOTORES frente al
+  benchmark congelado, con la lista V1.8 de canales de configuración distintos; sin
+  atribuir nada al trazado, sin restar refracciones de convenciones distintas, y
+  separando saturación/cuantización de catálogo.
+
+**Regla contra el sesgo del superviviente:** cada combinación INTENTADA aparece con su
+estado; los estadísticos van SIEMPRE con `n_intentados`/`n_comparables`/`n_rechazados`
+y motivos CLASIFICADOS (search/catalog/grid boundary, EVO fuera de dominio,
+geometría, fidelity, control violado…). Una región con muchos rechazos es un
+resultado. Las bandas de |ΔP| (<0.05 / 0.05–0.10 / 0.10–0.25 / ≥0.25 D) son
+DESCRIPTIVAS: no son umbrales de relevancia clínica y de ellas no se deduce beneficio.
+
+Aceptación (ejecutada, tests/divergence.test.mjs + exp013): ningún mapa mezcla lente
+delgada/gruesa (se rechaza y se cuenta); ningún default de pupila reaparece; AL/K/pupila
+viajan sin redondear ni intercambiarse; los rechazos no desaparecen de los denominadores
+(y con cero comparables los estadísticos son `null`, no cero); la cuantización no se
+interpreta como física; ninguna clave se llama `error` y ninguna salida afirma acierto o
+superioridad; el ancla de apertura→0 converge dentro de la tolerancia de V1.8.
+**Fuera de alcance declarado:** tórico, tilt/descentración y Q multidimensional — primero
+el atlas limpio del sistema centrado. Las fronteras observadas se registran como
+CANDIDATOS a estudio posterior, no como conclusiones.
 
 ### V1.10 · Predictores de posición
 Solo los que tengan fuente citable. Aceptación: `LiteraturePositionPredictor` únicamente

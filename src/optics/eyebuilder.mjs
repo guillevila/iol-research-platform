@@ -16,7 +16,7 @@ import { predictedRefraction, predictedRefractionThickIOL, iolPowerForTarget, re
 import { buildCorneaModel, CorneaPolicy } from './cornea.mjs';
 import { buildToricCorneaModel } from './toric_cornea.mjs';
 import { N_AIR, N_AQUEOUS, N_CORNEA, N_VITREOUS } from './constants.mjs';
-import { sphericalSurface, conicSurface, biconicSurface, transformedSurface } from './raytrace/surfaces.mjs';
+import { sphericalSurface, planarSurface, conicSurface, biconicSurface, transformedSurface } from './raytrace/surfaces.mjs';
 import { isIdentityPose, rotationOfPose, createIOLPose } from '../core/pose.mjs';
 import { focusOfSystem } from './raytrace/trace.mjs';
 
@@ -316,11 +316,22 @@ export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corne
   };
   if (g.toric_anterior) qToricDe(g.toric_anterior, 'iol_ant'); else qDe(g.asphericity_q_anterior, 'iol_ant');
   if (g.toric_posterior) qToricDe(g.toric_posterior, 'iol_post'); else qDe(g.asphericity_q_posterior, 'iol_post');
-  /** esfera o cónica según el estado de Q — el despacho de V1.2 */
-  const superficie = ({ id, zVertex_mm, radius_mm, q, n_before, n_after }) =>
-    typeof q === 'number'
+  /**
+   * esfera, cónica o PLANO según el estado de Q y del radio — el despacho de V1.2.
+   * Radio ±Infinity = curvatura 0 = PLANO (V1.9): la GenericIOLFactory produce ese
+   * radio A PROPÓSITO para potencia 0 ("un sentinela finito introduciría una potencia
+   * residual espuria"), el paraxial ya lo maneja (curvatureFromRadiusMm) y la bicónica
+   * lo admite como meridiano plano — solo el despacho esférico/cónico lo rechazaba, e
+   * impedía trazar cualquier catálogo que contuviera la potencia 0.
+   */
+  const superficie = ({ id, zVertex_mm, radius_mm, q, n_before, n_after }) => {
+    if (!Number.isFinite(radius_mm)) {
+      return planarSurface({ id, z_mm: zVertex_mm, aperture_mm, n_before, n_after });
+    }
+    return typeof q === 'number'
       ? conicSurface({ id, zVertex_mm, radius_mm, k: q, aperture_mm, n_before, n_after })
       : sphericalSurface({ id, zVertex_mm, radius_mm, aperture_mm, n_before, n_after });
+  };
   /**
    * Cara de LIO (V1.6): BICÓNICA si la cara es tórica (meridianos = ejes locales;
    * ASSUMED_SPHERICAL/UNKNOWN por meridiano → k=0, con la nota ya registrada arriba),

@@ -29,9 +29,19 @@ export function assertBenchCase(c) {
   }
   if (c.pupil_mm !== undefined && c.pupil_mm !== null) {
     // rango PLAUSIBLE (el mismo que el modelo de ojo impone a su pupila medida): la
-    // pupila del escenario no pasa por createPreopEye y se colaba fuera de rango
-    if (!Number.isFinite(c.pupil_mm) || c.pupil_mm < 1 || c.pupil_mm > 10) {
-      throw new TypeError(`benchCase.pupil_mm fuera de plausibilidad: ${c.pupil_mm} (esperado 1–10 mm)`);
+    // pupila del escenario no pasa por createPreopEye y se colaba fuera de rango.
+    // EXCEPCIÓN declarada: una apertura sub-fisiológica es legítima como ANCLA
+    // NUMÉRICA de convergencia (pupila→0 debe recuperar el paraxial, puerta V1.13),
+    // pero hay que DECIRLO en la procedencia — así un 0.5 accidental por unidades
+    // equivocadas sigue fallando, y el ancla deliberada pasa nombrándose.
+    if (!Number.isFinite(c.pupil_mm) || c.pupil_mm <= 0 || c.pupil_mm > 10) {
+      throw new TypeError(`benchCase.pupil_mm fuera de plausibilidad: ${c.pupil_mm} (esperado 1–10 mm, `
+        + 'o menor si se declara como ancla numérica)');
+    }
+    if (c.pupil_mm < 1 && !/ancla/i.test(String(c.pupil_source ?? ''))) {
+      throw new TypeError(`benchCase.pupil_mm = ${c.pupil_mm} mm es sub-fisiológica: si es un ANCLA `
+        + "NUMÉRICA de convergencia (pupila→0), declárala en `pupil_source` (p. ej. 'ancla numérica "
+        + "de convergencia'); si no, revisa las unidades.");
     }
     // procedencia con CONTENIDO: 3 espacios en blanco satisfacían la comprobación
     if (typeof c.pupil_source !== 'string' || c.pupil_source.trim().length < 3) {
