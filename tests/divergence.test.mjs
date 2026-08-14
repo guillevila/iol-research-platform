@@ -44,9 +44,11 @@ const raytrace = (opts = {}) => new RaytraceEngine({
   search_d: [-6, 45], catalog_d: null, cornea: {}, fidelity: FidelityMode.RESEARCH,
   pupil_mm: 'FROM_CASE', ...opts,
 });
+/** procedencia POR VALOR: una rejilla que mezcla ancla y escenario la EXIGE (V1.9) */
+const procedenciaPupila = p => (p < 1 ? 'ancla numérica de convergencia' : 'escenario declarado');
 const rejilla = (extra = {}) => ({
   al_mm: [22, 24], k_d: [42, 45], pupil_mm: [0.1, 3.0],
-  pupil_source: 'ancla numérica de convergencia / escenario declarado', ...extra,
+  pupil_source: procedenciaPupila, ...extra,
 });
 
 test('divergencia · ningún mapa mezcla lente delgada/gruesa: la celda se RECHAZA y se cuenta', () => {
@@ -244,4 +246,113 @@ test('divergencia · exp013 publicado: denominadores cuadran y el ancla converge
   // el bloque B declara sus rechazos y ninguno desaparece
   assert.equal(B.resumen.n_comparables + B.resumen.n_rechazados, B.resumen.n_intentados);
   assert.equal(B.celdas.length, B.resumen.n_intentados);
+});
+
+// ---------------------------------------------------------------------------------
+// Regresiones de la REVISIÓN ADVERSARIAL V1.9.
+// ---------------------------------------------------------------------------------
+
+test('divergencia · adversarial: un valor NO FINITO nunca se publica como dato', () => {
+  // Math.abs(null) === 0 publicaba "acuerdo perfecto" donde no había dato; un NaN
+  // corrompía el orden (mediana finita pero FALSA) y bandaDe(NaN) caía en la banda más
+  // alarmante. Una celda comparable sin número es una contradicción, no un dato.
+  for (const malo of [null, NaN, Infinity, undefined]) {
+    assert.throws(() => resumen([
+      { al_mm: 23, k_d: 43, pupil_mm: 3, estado: 'comparable', divergencia_d: 0.1 },
+      { al_mm: 23, k_d: 43, pupil_mm: 4, estado: 'comparable', divergencia_d: malo },
+    ]), /no finito/, `valor ${String(malo)} debía rechazarse`);
+  }
+  // y un estado desconocido rompería la identidad del denominador: también se rechaza
+  assert.throws(() => resumen([
+    { al_mm: 23, k_d: 43, pupil_mm: 3, estado: 'timeout', divergencia_d: null },
+  ]), /estado desconocido/);
+});
+
+test('divergencia · adversarial: un motor que devuelva NaN produce RECHAZO clasificado, no celda', () => {
+  const stub = (valor) => ({
+    id: 'stub_' + String(valor),
+    predict: () => ({
+      engine: 'stub', predicted_refraction: 0, recommended_power: 20,
+      predicted_cylinder: 0, recommended_toric: 0, unsupported_dimensions: [],
+      intermediate_values: {
+        exact_power_d: valor, position_source: 's', iol_position_mm: 4.9,
+        cornea_policy: 'KERATOMETRIC_READING', lens_model: 'thick_lens_from_factory',
+        iol_factory: 'f', target_d: 0, pupil_mm: 3, pupil_source: 'escenario declarado',
+        objective: 'EQUIVALENT_DEFOCUS', catalog_d: null, fidelity: 'RESEARCH',
+      },
+      warnings: [],
+    }),
+  });
+  for (const valor of [NaN, Infinity, null]) {
+    const s = controlledPhysicsSweep({
+      paraxialEngine: stub(20), raytraceEngine: stub(valor),
+      grid: { al_mm: [23], k_d: [43.5], pupil_mm: [3.0], pupil_source: 'escenario declarado' },
+      baseCase: BASE,
+    });
+    assert.equal(s.celdas[0].estado, 'rechazado', `${String(valor)} debía rechazarse`);
+    assert.equal(s.celdas[0].divergencia_d, null);
+  }
+});
+
+test('divergencia · adversarial: FULL_ENGINE sin discretización comparable NO publica acuerdo perfecto', () => {
+  // antes: todas las celdas "comparables" con divergencia null → mediana/p95/máx 0.0000
+  // y 100 % en la banda <0.05. Ahora hay que DECLARAR la comparabilidad...
+  assert.throws(() => fullEngineSweep({
+    raytraceEngine: raytrace({ catalog_d: REJILLA }), evoEngine: new EvoReplicaEngine(),
+    grid: { al_mm: [23.5], k_d: [43.5], pupil_mm: [3.0], pupil_mm_fija: 3.0, pupil_source: 'escenario declarado' },
+    baseCase: { ...BASE, a_constant: 119.3, iol_model: 'Posterior' },
+  }), /discretizacion_comparable.*debe declararse/s);
+  // ...y si se declara NO comparable, la celda se cuenta como RECHAZADA con motivo
+  const s = fullEngineSweep({
+    raytraceEngine: raytrace({ catalog_d: REJILLA }), evoEngine: new EvoReplicaEngine(),
+    grid: { al_mm: [23.5], k_d: [43.5], pupil_mm: [3.0], pupil_mm_fija: 3.0, pupil_source: 'escenario declarado' },
+    baseCase: { ...BASE, a_constant: 119.3, iol_model: 'Posterior' },
+    discretizacion_comparable: false,
+  });
+  assert.equal(s.celdas[0].estado, 'rechazado');
+  assert.equal(s.celdas[0].motivo, RejectionReason.UNSUPPORTED);
+  const r = resumen(s.celdas);
+  assert.equal(r.n_comparables, 0);
+  assert.equal(r.mediana_abs_d, null, 'sin comparables NO hay 0.0000 D que publicar');
+});
+
+test('divergencia · adversarial: la procedencia de pupila es POR VALOR y la guarda sub-fisiológica no se anula', () => {
+  // antes: una cadena única con la palabra "ancla" para toda la rejilla hacía que
+  // CUALQUIER pupila (incluso 1 µm) pasara la guarda de apertura sub-fisiológica
+  const mezclada = 'ancla numérica (0.1 mm) / escenario declarado (resto)';
+  assert.throws(() => controlledPhysicsSweep({
+    paraxialEngine: paraxial(), raytraceEngine: raytrace(),
+    grid: { al_mm: [23], k_d: [43.5], pupil_mm: [0.001, 3.0], pupil_source: mezclada },
+    baseCase: BASE,
+  }), /sub-fisiológica|ancla/);
+  // con procedencia POR VALOR, el ancla legítima pasa y cada celda lleva SU procedencia
+  const porValor = p => (p < 1 ? 'ancla numérica de convergencia' : 'escenario declarado');
+  const s = controlledPhysicsSweep({
+    paraxialEngine: paraxial(), raytraceEngine: raytrace(),
+    grid: { al_mm: [23], k_d: [43.5], pupil_mm: [0.1, 3.0], pupil_source: porValor },
+    baseCase: BASE,
+  });
+  assert.equal(s.celdas.filter(c => c.estado === 'comparable').length, 2);
+  // y una procedencia demasiado corta se rechaza EN LA REJILLA (error de configuración),
+  // no celda a celda como si fuera una región no comparable
+  assert.throws(() => controlledPhysicsSweep({
+    paraxialEngine: paraxial(), raytraceEngine: raytrace(),
+    grid: { al_mm: [23], k_d: [43.5], pupil_mm: [3.0], pupil_source: 'ab' },
+    baseCase: BASE,
+  }), /procedencia/);
+});
+
+test('divergencia · adversarial: exp013 publica muestreo convergido y la cota del criterio', () => {
+  const j = JSON.parse(fs.readFileSync('experiments/exp013_atlas_divergencia/results.json', 'utf8'));
+  const A = j.A_controlled_physics;
+  // la convergencia del muestreo se PUBLICA y la deriva del último paso es pequeña
+  const serie = A.convergencia_del_muestreo.serie;
+  assert.ok(serie.length >= 4);
+  assert.ok(Math.abs(A.convergencia_del_muestreo.deriva_ultimo_paso_d) < 0.01,
+    `deriva del último paso ${A.convergencia_del_muestreo.deriva_ultimo_paso_d} D: no convergido`);
+  // el n_anillos publicado es el usado en el atlas
+  assert.equal(A.convergencia_del_muestreo.n_anillos_publicado, j.config.muestreo.n_anillos);
+  // la sensibilidad al criterio existe y declara su limitación
+  assert.match(A.sensibilidad_al_criterio_de_foco.limitacion, /acotada, no aislada/);
+  assert.equal(A.sensibilidad_al_criterio_de_foco.por_objetivo.SPOT_RMS_AT_RETINA.disponible_en_benchmark, false);
 });

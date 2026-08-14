@@ -46,6 +46,19 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 
 const REJILLA_POTENCIAS = powerGrid(-5, 45, 0.5);   // COMPARTIDA (paraxial y catálogo)
 const PUPILA_ANCLA_MM = 0.1;
+/**
+ * Muestreo CONVERGIDO (revisión adversarial V1.9): con n_anillos = 5 (10 rayos) la
+ * cuadratura del haz meridional sobreestimaba |ΔP| ~7 % y ese sesgo NO lo veía el
+ * ancla (se anula con apertura→0). El bloque de convergencia publica la serie que
+ * justifica este valor: el muestreo es ahora un PARÁMETRO DECLARADO Y VERIFICADO.
+ */
+const N_ANILLOS = 40;
+const N_ANILLOS_CONVERGENCIA = [5, 10, 20, 40, 60];
+/** procedencia POR PUPILA: una cadena única para toda la rejilla mezclaba procedencias
+ *  y anulaba la guarda de apertura sub-fisiológica (adversarial V1.9). */
+const procedenciaPupila = p => (p < 1
+  ? 'ancla numérica de convergencia (apertura→0), no fisiológica'
+  : 'escenario declarado');
 
 const CONFIG = {
   id: 'exp013_atlas_divergencia',
@@ -57,7 +70,7 @@ const CONFIG = {
     al_mm: [21, 22, 23, 23.5, 24, 25, 26, 28],
     k_d: [38, 40, 42, 43.5, 45, 47],
     pupil_mm: [PUPILA_ANCLA_MM, 2.0, 3.0, 4.0, 5.0, 6.0],
-    pupil_source: 'ancla numérica de convergencia (0.1 mm) / escenario declarado (resto)',
+    pupil_source_regla: 'pupila < 1 mm: ancla numérica de convergencia (apertura→0), no fisiológica; resto: escenario declarado',
   },
   rejilla_B_full_engine: {
     al_mm: [21, 22, 23, 23.5, 24, 25, 26, 28],
@@ -74,11 +87,16 @@ const CONFIG = {
       + 'iol_factory y target_d, y RECHAZA la celda si alguno difiere',
   ],
   lente: 'GenericIOLFactory equibiconvexa — SUSTITUTO DE SIMULACIÓN declarado (OQ #4). '
-    + 'La MAGNITUD de la divergencia depende fuertemente de la geometría de la lente: '
-    + 'el bloque de sensibilidad lo cuantifica con una asférica declarada.',
+    + 'La MAGNITUD observada es propiedad del SISTEMA simulado (córnea + lente), no una '
+    + 'constante del método; el bloque de sensibilidad varía la ASFERICIDAD Q de la lente '
+    + 'y mide cuánto se mueve.',
   objetivo_trazado: ObjectiveKind.EQUIVALENT_DEFOCUS,
-  muestreo: { kind: SamplingKind.MERIDIONAL, n_anillos: 5 },
+  muestreo: { kind: SamplingKind.MERIDIONAL, n_anillos: N_ANILLOS },
   search_d: [-6, 45],
+  muestreo_convergencia: N_ANILLOS_CONVERGENCIA,
+  nota_muestreo: 'n_anillos declarado y VERIFICADO por el bloque de convergencia: no es un '
+    + 'parámetro libre. Con n_anillos = 5 la cuadratura sobreestimaba |ΔP| ~7 % y el ancla '
+    + 'apertura→0 no lo detectaba (ese sesgo se anula con p→0).',
   rejilla_potencias_compartida: `powerGrid(-5, 45, 0.5) — ${REJILLA_POTENCIAS.length} escalones`,
   a_constant_evo: 119.3,
   iol_model_evo: 'Posterior',
@@ -96,7 +114,7 @@ const paraxialCon = f => new ParaxialEngine(predictor, { grid: REJILLA_POTENCIAS
 const raytraceCon = (f, catalog_d = null) => new RaytraceEngine({
   positionPredictor: predictor, iolFactory: f,
   objective: ObjectiveKind.EQUIVALENT_DEFOCUS,
-  sampling: { kind: SamplingKind.MERIDIONAL, n_anillos: 5 },
+  sampling: { kind: SamplingKind.MERIDIONAL, n_anillos: N_ANILLOS },
   search_d: CONFIG.search_d, catalog_d,
   cornea: {}, fidelity: FidelityMode.RESEARCH, pupil_mm: 'FROM_CASE',
 });
@@ -106,7 +124,7 @@ const BASE = { acd_mm: 3.2, lt_mm: 4.5, cct_um: 550, k_index: 1.3375, target_d: 
 const A = controlledPhysicsSweep({
   paraxialEngine: paraxialCon(factoryEsferica),
   raytraceEngine: raytraceCon(factoryEsferica),
-  grid: CONFIG.rejilla_A,
+  grid: { ...CONFIG.rejilla_A, pupil_source: procedenciaPupila },
   baseCase: BASE,
 });
 const celdasA = A.celdas;
@@ -118,7 +136,7 @@ const conApertura = celdasA.filter(c => c.pupil_mm !== PUPILA_ANCLA_MM);
 const catalogo = controlledPhysicsSweep({
   paraxialEngine: paraxialCon(factoryEsferica),
   raytraceEngine: raytraceCon(factoryEsferica, REJILLA_POTENCIAS),
-  grid: { al_mm: [22, 23.5, 25], k_d: [40, 43.5, 47], pupil_mm: [3.0], pupil_source: 'escenario declarado' },
+  grid: { al_mm: [22, 23.5, 25], k_d: [40, 43.5, 47], pupil_mm: [3.0], pupil_source: procedenciaPupila },
   baseCase: BASE,
 });
 const catalogoComparables = catalogo.celdas.filter(c => c.estado === 'comparable');
@@ -127,17 +145,64 @@ const catalogoResumen = {
   n_con_divergencia_de_catalogo: catalogoComparables.filter(c => c.divergencia_catalogo_d !== null).length,
   divergencias_catalogo_d: catalogoComparables.map(c => c.divergencia_catalogo_d),
   divergencias_continuas_d: catalogoComparables.map(c => +c.divergencia_d.toFixed(6)),
+  desvio_max_vs_medio_paso_d: Math.max(...catalogoComparables.map(c => Math.abs(c.divergencia_catalogo_d - c.divergencia_d))),
+  compatible_con_cuantizacion: catalogoComparables.every(c => Math.abs(c.divergencia_catalogo_d - c.divergencia_d) <= 0.5 + 1e-9),
 };
 
 // ---------- A3 · sensibilidad a la GEOMETRÍA de la lente ----------
 const asferica = controlledPhysicsSweep({
   paraxialEngine: paraxialCon(factoryAsferica),
   raytraceEngine: raytraceCon(factoryAsferica),
-  grid: { al_mm: [22, 23.5, 25], k_d: [40, 43.5, 47], pupil_mm: [3.0, 5.0], pupil_source: 'escenario declarado' },
+  grid: { al_mm: [22, 23.5, 25], k_d: [40, 43.5, 47], pupil_mm: [3.0, 5.0], pupil_source: procedenciaPupila },
   baseCase: BASE,
 });
 const esfericaMismaSubrejilla = celdasA.filter(c =>
   [22, 23.5, 25].includes(c.al_mm) && [40, 43.5, 47].includes(c.k_d) && [3.0, 5.0].includes(c.pupil_mm));
+
+// ---------- A4 · CONVERGENCIA DEL MUESTREO (el parámetro se verifica, no se elige) ----
+// Subrejilla declarada × número de rayos: la cifra publicada debe estar convergida, y
+// la deriva residual se publica para que nadie tenga que suponerla.
+const convergencia = N_ANILLOS_CONVERGENCIA.map(n => {
+  const s = controlledPhysicsSweep({
+    paraxialEngine: paraxialCon(factoryEsferica),
+    raytraceEngine: new RaytraceEngine({
+      positionPredictor: predictor, iolFactory: factoryEsferica,
+      objective: ObjectiveKind.EQUIVALENT_DEFOCUS,
+      sampling: { kind: SamplingKind.MERIDIONAL, n_anillos: n },
+      search_d: CONFIG.search_d, catalog_d: null,
+      cornea: {}, fidelity: FidelityMode.RESEARCH, pupil_mm: 'FROM_CASE',
+    }),
+    grid: { al_mm: [21, 23.5, 26], k_d: [40, 47], pupil_mm: [3.0, 6.0], pupil_source: procedenciaPupila },
+    baseCase: BASE,
+  });
+  const r = resumen(s.celdas);
+  return { n_anillos: n, rayos: 2 * n, ...r };
+});
+const derivaFinal = convergencia.length >= 2
+  ? convergencia[convergencia.length - 1].mediana_abs_d - convergencia[convergencia.length - 2].mediana_abs_d
+  : null;
+
+// ---------- A5 · SENSIBILIDAD AL CRITERIO de foco ----------
+// La pregunta primaria dice "sustituir la aproximación paraxial por trazado exacto",
+// pero al hacerlo cambia TAMBIÉN el criterio: el paraxial iguala la refracción de
+// primer orden a la diana y el trazado sitúa el MEJOR FOCO (mínimo tamaño de spot).
+// Ambos criterios disponibles se publican para acotar cuánto pesa esa elección
+// (adversarial V1.9: la atribución sería ambigua sin esta cota).
+const criterioSub = { al_mm: [22, 23.5, 25], k_d: [40, 43.5, 47], pupil_mm: [3.0], pupil_source: procedenciaPupila };
+const porCriterio = Object.fromEntries(Object.values(ObjectiveKind).map(obj => {
+  if (obj === ObjectiveKind.SPOT_RMS_AT_RETINA) {
+    // el contrato de benchmark no publica el objetivo A (su coste es un RMS en mm, no
+    // una refracción): se declara la limitación en vez de fabricar una comparación
+    return [obj, { disponible_en_benchmark: false, motivo: 'su coste es un radio RMS en mm, '
+      + 'no una refracción en dioptrías: el adaptador lo rechaza (V1.8)' }];
+  }
+  const s = controlledPhysicsSweep({
+    paraxialEngine: paraxialCon(factoryEsferica),
+    raytraceEngine: raytraceCon(factoryEsferica),
+    grid: criterioSub, baseCase: BASE,
+  });
+  return [obj, { disponible_en_benchmark: true, ...resumen(s.celdas) }];
+}));
 
 // ---------- B · FULL_ENGINE (secundario, descriptivo) ----------
 const B = fullEngineSweep({
@@ -148,7 +213,7 @@ const B = fullEngineSweep({
     k_d: CONFIG.rejilla_B_full_engine.k_d,
     pupil_mm: [CONFIG.rejilla_B_full_engine.pupil_mm_fija],
     pupil_mm_fija: CONFIG.rejilla_B_full_engine.pupil_mm_fija,
-    pupil_source: CONFIG.rejilla_B_full_engine.pupil_source,
+    pupil_source: procedenciaPupila,
   },
   baseCase: { ...BASE, a_constant: CONFIG.a_constant_evo, iol_model: CONFIG.iol_model_evo },
   discretizacion_comparable: true,   // ambos en escalones de 0.5 D (EVO: tabla interna)
@@ -172,15 +237,52 @@ const result = {
     ancla_pupila_0: {
       pupil_mm: PUPILA_ANCLA_MM,
       ...anclaResumen,
-      converge: anclaResumen.max_abs_d !== null && anclaResumen.max_abs_d < 0.01,
-      criterio: 'con apertura→0 el trazado debe recuperar el paraxial del MISMO sistema '
-        + '(puerta V1.13); tolerancia de referencia 0.01 D',
+      converge: anclaResumen.max_abs_d !== null && anclaResumen.max_abs_d < 5e-3,
+      criterio: 'con apertura→0 el trazado debe recuperar el paraxial del MISMO sistema. '
+        + 'Tolerancia 5e-3 D: la de V1.8 a esta MISMA pupila (0.1 mm). La puerta V1.13 usa 1e-3 D '
+        + 'pero a pupila 0.05 mm — no es el mismo criterio y no se invoca aquí.',
+      residuo_esperado: 'el residuo medido NO es ruido: es el término físico O(p²) evaluado en '
+        + '0.1 mm. Con ΔP ≈ k·p² y el k medido a apertura finita, el valor esperado es ~7e-4 D, '
+        + 'del orden del observado.',
+      limitacion_del_ancla: 'el ancla solo excluye artefactos INDEPENDIENTES de la apertura: '
+        + 'cualquier sesgo que escale con p² la atraviesa sin ser visto (así pasó el sesgo de '
+        + 'cuadratura del muestreo, corregido aparte con el bloque de convergencia).',
     },
     global_con_apertura_finita: resumen(conApertura),
     por_pupila: resumenPorEje(celdasA, 'pupil_mm'),
     por_al: resumenPorEje(conApertura, 'al_mm'),
     por_k: resumenPorEje(conApertura, 'k_d'),
-    monotonia_en_pupila: analizarMonotoniaEnPupila(celdasA),
+    monotonia_en_pupila: {
+      ...analizarMonotoniaEnPupila(celdasA),
+      lectura_honesta: 'con esta lente ΔP resulta ≈ proporcional a p², así que la monotonía '
+        + 'de |ΔP| en pupila es prácticamente algebraica: el análisis se publica porque una '
+        + 'serie NO monótona o un cambio de signo serían resultados relevantes, no porque '
+        + 'encontrarlas monótonas confirme nada',
+    },
+    convergencia_del_muestreo: {
+      proposito: 'el muestreo NO es un parámetro libre: la cifra publicada debe estar '
+        + 'convergida en número de rayos. El ancla apertura→0 NO detecta este sesgo (se anula '
+        + 'con p→0), así que se verifica aparte',
+      subrejilla: 'AL {21, 23.5, 26} × K {40, 47} × pupila {3, 6} mm',
+      n_anillos_publicado: N_ANILLOS,
+      serie: convergencia.map(c => ({
+        n_anillos: c.n_anillos, rayos: c.rayos, n_comparables: c.n_comparables,
+        mediana_abs_d: c.mediana_abs_d, max_abs_d: c.max_abs_d,
+      })),
+      deriva_ultimo_paso_d: derivaFinal,
+    },
+    sensibilidad_al_criterio_de_foco: {
+      proposito: 'al sustituir paraxial por trazado cambia también el CRITERIO (primer orden '
+        + 'contra mejor foco por tamaño de spot): esta cota acota cuánto de ΔP depende de esa '
+        + 'elección dentro de los criterios que el motor publica',
+      subrejilla: 'AL {22, 23.5, 25} × K {40, 43.5, 47} × pupila 3 mm',
+      por_objetivo: porCriterio,
+      limitacion: 'los dos objetivos implementados (A y C) son AMBOS criterios de tamaño de '
+        + 'spot, y solo C es publicable en el contrato de benchmark: un criterio genuinamente '
+        + 'distinto (p. ej. RMS de frente de onda) no existe en el motor. La atribución '
+        + '"paraxial vs trazado" queda por tanto acotada, no aislada — registrado como '
+        + 'candidato en OPEN_QUESTIONS #8',
+    },
     catalogo_discretizacion_identica: catalogoResumen,
     sensibilidad_geometria_lente: {
       proposito: 'cuánto de la MAGNITUD es propiedad de la geometría de la lente y no del método',
@@ -258,13 +360,38 @@ const md = [
   'misma factory** y misma diana. Casos esféricos (k1 = k2) para que la dimensión tórica',
   'UNSUPPORTED no contamine la pregunta.',
   '',
+  '## Parámetros numéricos declarados',
+  '',
+  `- **Muestreo**: MERIDIONAL con n_anillos = ${N_ANILLOS} (${2 * N_ANILLOS} rayos), CONVERGIDO`,
+  '  (ver bloque de convergencia). No es un parámetro libre: con 5 anillos la cuadratura',
+  '  sobreestimaba |ΔP| ~7 %, y el ancla apertura→0 **no** detecta ese sesgo.',
+  `- **Objetivo**: ${CONFIG.objetivo_trazado} (desenfoque equivalente del mejor foco).`,
+  `- **Predictor de posición**: ConstantOffsetPredictor(1.7), el mismo en ambos motores.`,
+  `- **Rejilla de potencias compartida**: ${CONFIG.rejilla_potencias_compartida}.`,
+  '',
   '## Ancla de convergencia (apertura → 0)',
   '',
-  `| Pupila | n intentados | n comparables | máx \\|ΔP\\| | ¿converge < 0.01 D? |`,
+  `| Pupila | n intentados | n comparables | máx \\|ΔP\\| | ¿converge < 5e-3 D? |`,
   '|---|---|---|---|---|',
   `| ${PUPILA_ANCLA_MM} mm | ${A_.ancla_pupila_0.n_intentados} | ${A_.ancla_pupila_0.n_comparables} | `
     + `${A_.ancla_pupila_0.max_abs_d === null ? '—' : A_.ancla_pupila_0.max_abs_d.toFixed(5)} D | `
     + `${A_.ancla_pupila_0.converge ? 'SÍ' : 'NO'} |`,
+  '',
+  'Tolerancia 5e-3 D: la de V1.8 a esta misma pupila. El residuo observado **no es ruido**,',
+  'es el término físico O(p²) evaluado en 0.1 mm. **Límite del ancla**: solo excluye',
+  'artefactos INDEPENDIENTES de la apertura; un sesgo que escale con p² la atraviesa sin ser',
+  'visto — exactamente lo que ocurría con el muestreo sin converger.',
+  '',
+  '## A · Convergencia del muestreo (el parámetro se verifica, no se elige)',
+  '',
+  `Subrejilla ${A_.convergencia_del_muestreo.subrejilla}.`,
+  '',
+  '| n_anillos | rayos | n comparables | mediana \\|ΔP\\| | máx \\|ΔP\\| |',
+  '|---|---|---|---|---|',
+  ...A_.convergencia_del_muestreo.serie.map(s => `| ${s.n_anillos} | ${s.rayos} | ${s.n_comparables} | `
+    + `${s.mediana_abs_d.toFixed(4)} | ${s.max_abs_d.toFixed(4)} |`),
+  '',
+  `Deriva del último paso: ${fmt(A_.convergencia_del_muestreo.deriva_ultimo_paso_d)} D.`,
   '',
   '## A · Resumen por pupila (denominador SIEMPRE presente)',
   '',
@@ -305,18 +432,43 @@ const md = [
   `- divergencias de catálogo (D): ${A_.catalogo_discretizacion_identica.divergencias_catalogo_d.join(', ') || '—'}`,
   `- divergencias continuas de las mismas celdas (D): ${A_.catalogo_discretizacion_identica.divergencias_continuas_d.join(', ')}`,
   '',
-  'La diferencia entre ambas columnas **es cuantización**, no física.',
+  `La diferencia entre ambas columnas es compatible con CUANTIZACIÓN, no con física: el`,
+  `desvío máximo respecto de la continua es `
+    + `${A_.catalogo_discretizacion_identica.desvio_max_vs_medio_paso_d.toFixed(4)} D `
+    + `(≤ 0.5 D = un escalón; compatible: `
+    + `${A_.catalogo_discretizacion_identica.compatible_con_cuantizacion ? 'SÍ' : 'NO'}).`,
   '',
-  '## A · Sensibilidad a la geometría de la lente',
+  '## A · Sensibilidad a la ASFERICIDAD Q de la lente',
   '',
-  '| Lente (sustituto declarado) | n comp. | mediana \\|ΔP\\| | máx \\|ΔP\\| |',
-  '|---|---|---|---|',
-  `| equibiconvexa esférica | ${A_.sensibilidad_geometria_lente.esferica.n_comparables} | `
+  'Subrejilla AL {22, 23.5, 25} × K {40, 43.5, 47} × pupila {3, 5} mm. Se varía **un solo**',
+  'grado de libertad geométrico (la constante cónica Q de ambas caras); forma base, reparto',
+  'de radios, índice y espesor quedan FIJOS — de aquí no se concluye nada sobre "la',
+  'geometría" en general.',
+  '',
+  '| Lente (sustituto declarado) | n int. | n comp. | n rech. | mediana \\|ΔP\\| | máx \\|ΔP\\| |',
+  '|---|---|---|---|---|---|',
+  `| equibiconvexa esférica | ${A_.sensibilidad_geometria_lente.esferica.n_intentados} | `
+    + `${A_.sensibilidad_geometria_lente.esferica.n_comparables} | `
+    + `${A_.sensibilidad_geometria_lente.esferica.n_rechazados} | `
     + `${A_.sensibilidad_geometria_lente.esferica.mediana_abs_d?.toFixed(4) ?? '—'} | `
     + `${A_.sensibilidad_geometria_lente.esferica.max_abs_d?.toFixed(4) ?? '—'} |`,
-  `| equibiconvexa asférica (Q = −1 declarada) | ${A_.sensibilidad_geometria_lente.asferica_q_menos_1.n_comparables} | `
+  `| equibiconvexa con Q = −1 declarada | ${A_.sensibilidad_geometria_lente.asferica_q_menos_1.n_intentados} | `
+    + `${A_.sensibilidad_geometria_lente.asferica_q_menos_1.n_comparables} | `
+    + `${A_.sensibilidad_geometria_lente.asferica_q_menos_1.n_rechazados} | `
     + `${A_.sensibilidad_geometria_lente.asferica_q_menos_1.mediana_abs_d?.toFixed(4) ?? '—'} | `
     + `${A_.sensibilidad_geometria_lente.asferica_q_menos_1.max_abs_d?.toFixed(4) ?? '—'} |`,
+  '',
+  '## A · Sensibilidad al CRITERIO de foco',
+  '',
+  'Al sustituir paraxial por trazado cambia también el CRITERIO: el paraxial iguala la',
+  'refracción de primer orden a la diana; el trazado sitúa el mejor foco por tamaño de spot.',
+  `Subrejilla ${A_.sensibilidad_al_criterio_de_foco.subrejilla}:`,
+  '',
+  ...Object.entries(A_.sensibilidad_al_criterio_de_foco.por_objetivo).map(([obj, r]) => r.disponible_en_benchmark
+    ? `- **${obj}**: mediana \\|ΔP\\| ${r.mediana_abs_d.toFixed(4)} D sobre ${r.n_comparables}/${r.n_intentados} celdas.`
+    : `- **${obj}**: no publicable en el contrato de benchmark — ${r.motivo}.`),
+  '',
+  `**Limitación declarada:** ${A_.sensibilidad_al_criterio_de_foco.limitacion}`,
   '',
   '## B · DIVERGENCIA ENTRE MOTORES (secundario, descriptivo)',
   '',
@@ -332,19 +484,27 @@ const md = [
   '## Lectura (limitada a lo que estos datos de simulación permiten afirmar)',
   '',
   '1. Con apertura → 0 la divergencia se anula dentro de la tolerancia: el trazado recupera',
-  '   el paraxial del mismo sistema. Cualquier divergencia a apertura finita es, por tanto,',
-  '   efecto de la apertura y no un artefacto del montaje.',
-  `2. Con apertura finita la divergencia es sistemáticamente ${A_.global_con_apertura_finita.mediana_firmada_d < 0 ? 'NEGATIVA' : 'POSITIVA'}`,
-  `   (mediana firmada ${fmt(A_.global_con_apertura_finita.mediana_firmada_d)} D sobre `,
-  `   ${A_.global_con_apertura_finita.n_comparables} celdas comparables de `,
-  `   ${A_.global_con_apertura_finita.n_intentados} intentadas): con esta lente, el trazado sitúa`,
-  '   el óptimo por debajo del paraxial. Signo y magnitud se reportan; no se interpreta cuál',
-  '   de los dos "acierta" — eso exige datos postoperatorios (OQ #8).',
-  '3. La MAGNITUD es propiedad del sistema simulado, no una constante del método. El bloque',
-  '   de sensibilidad muestra además algo que este experimento NO estaba diseñado para',
-  '   responder: cambiar la LIO a una asférica declarada (Q = −1) apenas mueve la cifra, así',
-  '   que la geometría de la lente no parece dominarla. Queda REGISTRADO como candidato a un',
-  '   estudio posterior con la córnea y su política como ejes explícitos — no como conclusión.',
+  '   el paraxial del mismo sistema, luego **un artefacto INDEPENDIENTE de la apertura queda',
+  '   excluido**. La implicación inversa NO vale: un sesgo que escale con la apertura atraviesa',
+  '   el ancla sin ser visto — es lo que pasaba con el muestreo sin converger, y por eso su',
+  '   convergencia se verifica aparte.',
+  ...(A_.global_con_apertura_finita.n_comparables === 0 || A_.global_con_apertura_finita.mediana_firmada_d === null
+    ? ['2. Sin celdas comparables con apertura finita: no hay dirección que reportar.']
+    : [
+      `2. Con apertura finita la divergencia es sistemáticamente ${A_.global_con_apertura_finita.mediana_firmada_d < 0 ? 'NEGATIVA' : 'POSITIVA'}`,
+      `   (mediana firmada ${fmt(A_.global_con_apertura_finita.mediana_firmada_d)} D sobre `,
+      `   ${A_.global_con_apertura_finita.n_comparables} celdas comparables de `,
+      `   ${A_.global_con_apertura_finita.n_intentados} intentadas): en este sistema, el trazado`,
+      '   sitúa el óptimo por debajo del paraxial. Signo y magnitud se reportan; no se interpreta',
+      '   cuál de los dos "acierta" — eso exige datos postoperatorios (OQ #8).',
+    ]),
+  '3. La MAGNITUD es propiedad del SISTEMA simulado (córnea + lente + criterio), no una',
+  '   constante del método. Variar la ASFERICIDAD Q de la lente la mueve poco',
+  `   (${A_.sensibilidad_geometria_lente.esferica.mediana_abs_d?.toFixed(4)} → `
+    + `${A_.sensibilidad_geometria_lente.asferica_q_menos_1.mediana_abs_d?.toFixed(4)} D de mediana en la`,
+  '   subrejilla común), lo que sugiere —sin comprobarlo— que la asfericidad de la LIO no la',
+  '   domina. Queda REGISTRADO como candidato a estudio posterior con la córnea y su política',
+  '   como ejes explícitos; NO es una conclusión de este experimento.',
   `4. Rechazos: ${A_.global_con_apertura_finita.n_rechazados} de `
     + `${A_.global_con_apertura_finita.n_intentados} celdas con apertura finita, y `
     + `${B_.resumen.n_rechazados} de ${B_.resumen.n_intentados} en el bloque B `
@@ -360,7 +520,15 @@ const md = [
   '- La rejilla es **declarada y uniforme**, no una población: las frecuencias por banda no',
   '  son prevalencias (OQ #5).',
   '- El bloque B compara **pilas completas** que difieren en varios canales a la vez; su cifra',
-  '  no es atribuible al trazado ni mide acierto de nadie.',
+  '  no es atribuible al trazado ni mide acierto de nadie. Sus valores son restas de potencias',
+  '  CUANTIZADAS a 0.5 D, así que las bandas descriptivas (pensadas para la continua) no',
+  '  describen ahí una distribución: no se aplican al bloque B.',
+  '- **Fuera de alcance declarado** (no es que salgan nulos: no se han ensayado): toricidad,',
+  '  tilt/descentración (todo el atlas es POSE CERO) y la Q corneal / política corneal, que el',
+  '  atlas mantiene fijas. La divergencia observada corresponde al sistema CENTRADO, ESFÉRICO',
+  '  y bajo la política corneal por defecto.',
+  '- La atribución "paraxial vs trazado" está **acotada, no aislada**: al cambiar de modelo',
+  '  cambia también el criterio de foco (ver bloque de sensibilidad al criterio).',
 ].join('\n');
 fs.writeFileSync(join(OUT_DIR, 'README.md'), md + '\n');
 console.log(md);

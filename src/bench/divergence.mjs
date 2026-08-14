@@ -96,8 +96,27 @@ export function percentil(ordenados, p) {
 export function resumen(celdas, valorDe = c => c.divergencia_d) {
   const comparables = celdas.filter(c => c.estado === 'comparable');
   const rechazadas = celdas.filter(c => c.estado === 'rechazado');
+  // ESTADO DESCONOCIDO: una celda que no sea comparable ni rechazada entraría en el
+  // denominador sin caer en ninguna categoría — el hueco exacto que este módulo dice
+  // cerrar. Se rechaza ruidosamente (revisión adversarial V1.9).
+  const raras = celdas.filter(c => c.estado !== 'comparable' && c.estado !== 'rechazado');
+  if (raras.length > 0) {
+    throw new TypeError(`resumen: ${raras.length} celda(s) con estado desconocido `
+      + `(${[...new Set(raras.map(c => String(c.estado)))].join(', ')}): no entrarían en ninguna `
+      + 'categoría y romperían la identidad n_intentados = n_comparables + n_rechazados');
+  }
   const motivos = {};
   for (const c of rechazadas) motivos[c.motivo] = (motivos[c.motivo] ?? 0) + 1;
+  // VALORES NO FINITOS: `Math.abs(null) === 0` publicaría un "acuerdo perfecto" donde
+  // no hay dato, un NaN corrompería el orden (mediana finita pero FALSA) y
+  // `bandaDe(NaN)` caería en la banda más alarmante. Una celda marcada comparable cuyo
+  // valor no es finito es una CONTRADICCIÓN del barrido, no un dato (adversarial V1.9).
+  const noFinitas = comparables.filter(c => !Number.isFinite(valorDe(c)));
+  if (noFinitas.length > 0) {
+    throw new TypeError(`resumen: ${noFinitas.length} celda(s) COMPARABLES con valor no finito `
+      + `(${[...new Set(noFinitas.map(c => String(valorDe(c))))].join(', ')}): una celda comparable `
+      + 'debe tener un número; si el valor no existe, la celda no es comparable');
+  }
   const firmados = comparables.map(valorDe).sort((a, b) => a - b);
   const abs = firmados.map(Math.abs).sort((a, b) => a - b);
   const bandas = Object.fromEntries(BANDAS_D.map(b => [b, 0]));
@@ -154,13 +173,23 @@ export function controlledPhysicsSweep({ paraxialEngine, raytraceEngine, grid, b
           ...baseCase,
           al_mm, k1_d: k_d, k2_d: k_d,
           k1_axis_deg: 180, k2_axis_deg: 90,
-          pupil_mm, pupil_source: grid.pupil_source,
+          pupil_mm, pupil_source: procedenciaDePupila(grid, pupil_mm),
         };
         const celda = { al_mm, k_d, pupil_mm };
         try {
           const cmp = controlledPhysicsComparison({ paraxialEngine, raytraceEngine, benchCase });
           const ivR = cmp.resultados.raytrace.intermediate_values;
           const ivP = cmp.resultados.paraxial.intermediate_values;
+          // un motor que devuelva NaN/Infinity/null/undefined produciría una celda
+          // "comparable" con una divergencia FABRICADA (p. ej. 20 − null = 20): se
+          // clasifica como rechazo, no se publica (adversarial V1.9)
+          for (const [v, nombre] of [[cmp.divergencia.exact_power_d, 'ΔP'],
+            [ivR.exact_power_d, 'P_raytrace'], [ivP.exact_power_d, 'P_paraxial']]) {
+            if (!Number.isFinite(v)) {
+              throw new RangeError(`valor no finito en la comparación (${nombre} = ${String(v)}): `
+                + 'una celda solo es comparable si ambos motores devuelven números');
+            }
+          }
           celdas.push({
             ...celda,
             estado: 'comparable',
@@ -197,7 +226,15 @@ export function controlledPhysicsSweep({ paraxialEngine, raytraceEngine, grid, b
  * SATURACIÓN de catálogo se separa: si el óptimo continuo del trazado no está en el
  * catálogo, la diferencia no es cuantización sino falta de escalón.
  */
-export function fullEngineSweep({ raytraceEngine, evoEngine, grid, baseCase, discretizacion_comparable = false }) {
+export function fullEngineSweep({ raytraceEngine, evoEngine, grid, baseCase, discretizacion_comparable }) {
+  // sin decisión EXPLÍCITA sobre la comparabilidad de la discretización, el barrido
+  // marcaba todas las celdas comparables con divergencia null — y `resumen` publicaba
+  // "0.0000 D, 100 % en la banda <0.05": el acuerdo perfecto fabricado a partir de un
+  // defecto de configuración (adversarial V1.9). Ahora hay que declararlo.
+  if (typeof discretizacion_comparable !== 'boolean') {
+    throw new TypeError('fullEngineSweep: `discretizacion_comparable` debe declararse '
+      + '(true/false): de ello depende si la potencia recomendada es comparable en absoluto');
+  }
   validarRejilla({ ...grid, pupil_mm: grid.pupil_mm ?? [null] });
   const celdas = [];
   for (const al_mm of grid.al_mm) {
@@ -207,7 +244,7 @@ export function fullEngineSweep({ raytraceEngine, evoEngine, grid, baseCase, dis
         al_mm, k1_d: k_d, k2_d: k_d,
         k1_axis_deg: 180, k2_axis_deg: 90,
         ...(grid.pupil_mm_fija !== undefined
-          ? { pupil_mm: grid.pupil_mm_fija, pupil_source: grid.pupil_source }
+          ? { pupil_mm: grid.pupil_mm_fija, pupil_source: procedenciaDePupila(grid, grid.pupil_mm_fija) }
           : {}),
       };
       const celda = { al_mm, k_d };
@@ -221,10 +258,25 @@ export function fullEngineSweep({ raytraceEngine, evoEngine, grid, baseCase, dis
         // paso ⇒ no es cuantización, es que el catálogo no llega
         const desvio = Math.abs(rt.recommended_power - iv.exact_power_d);
         const saturado = paso !== null && desvio > paso / 2 + 1e-9;
+        if (!discretizacion_comparable) {
+          // sin discretización comparable NO hay divergencia que publicar: la celda se
+          // ejecuta y se cuenta, pero como NO COMPARABLE con su motivo — jamás como un
+          // acuerdo perfecto
+          celdas.push({
+            ...celda,
+            estado: 'rechazado',
+            motivo: RejectionReason.UNSUPPORTED,
+            mensaje: 'discretización no comparable entre motores: la potencia recomendada no se resta',
+            divergencia_d: null,
+            p_raytrace_recomendada_d: rt.recommended_power,
+            p_evo_recomendada_d: evo.recommended_power,
+          });
+          continue;
+        }
         celdas.push({
           ...celda,
           estado: 'comparable',
-          divergencia_d: discretizacion_comparable ? rt.recommended_power - evo.recommended_power : null,
+          divergencia_d: rt.recommended_power - evo.recommended_power,
           // sobre cuántos escalones decidió realmente el trazado (los no evaluables se
           // registran: un catálogo amplio no está íntegramente considerado por defecto)
           catalog_evaluados: iv.catalog_evaluados,
@@ -297,6 +349,17 @@ export function analizarMonotoniaEnPupila(celdas) {
   };
 }
 
+/**
+ * Procedencia de la pupila POR VALOR (adversarial V1.9): una única cadena para toda la
+ * rejilla obligaba a mezclar procedencias distintas ("ancla … / escenario …"), y esa
+ * mezcla ANULABA la guarda de `assertBenchCase` que exige declarar explícitamente una
+ * apertura sub-fisiológica — con ella, una pupila de 1 µm habría pasado como celda
+ * válida en todo el barrido. Se acepta una función pupila→procedencia.
+ */
+function procedenciaDePupila(grid, pupil_mm) {
+  return typeof grid.pupil_source === 'function' ? grid.pupil_source(pupil_mm) : grid.pupil_source;
+}
+
 function validarRejilla(grid) {
   for (const eje of ['al_mm', 'k_d', 'pupil_mm']) {
     if (!Array.isArray(grid?.[eje]) || grid[eje].length === 0) {
@@ -306,7 +369,30 @@ function validarRejilla(grid) {
       if (v !== null && !Number.isFinite(v)) throw new TypeError(`divergence: valor no finito en ${eje}`);
     }
   }
-  if (grid.pupil_mm.some(v => v !== null) && typeof grid.pupil_source !== 'string') {
-    throw new TypeError('divergence: la rejilla de pupila exige `pupil_source` (procedencia declarada)');
+  // Una rejilla que mezcla aperturas sub-fisiológicas (anclas numéricas) con pupilas
+  // de escenario NO puede describirse con UNA sola cadena: la cadena mixta contendría
+  // la palabra "ancla" y con ella cualquier pupila absurda atravesaría la guarda de
+  // `assertBenchCase` (adversarial V1.9 — así pasaba una pupila de 1 µm). Con ejes
+  // mezclados, la procedencia debe ser FUNCIÓN de la pupila.
+  const pupilas = grid.pupil_mm.filter(p => p !== null);
+  const mezcla = pupilas.some(p => p < 1) && pupilas.some(p => p >= 1);
+  if (mezcla && typeof grid.pupil_source !== 'function') {
+    throw new TypeError('divergence: la rejilla mezcla aperturas sub-fisiológicas (ancla) con '
+      + 'pupilas de escenario: `pupil_source` debe ser una FUNCIÓN pupila→procedencia, no una '
+      + 'cadena única (una cadena mixta anularía la guarda de apertura sub-fisiológica)');
+  }
+  for (const p of pupilas) {
+    const src = procedenciaDePupila(grid, p);
+    // MISMO contrato que assertBenchCase: si la rejilla admitiera una procedencia que
+    // el caso luego rechaza, un typo de configuración se publicaría como "región no
+    // comparable" en vez de como el error de configuración que es
+    if (typeof src !== 'string' || src.trim().length < 3) {
+      throw new TypeError(`divergence: la pupila ${p} mm exige \`pupil_source\` con procedencia `
+        + '(string ≥ 3 caracteres, o función pupila→procedencia)');
+    }
+    if (p < 1 && !/ancla/i.test(src)) {
+      throw new TypeError(`divergence: la pupila ${p} mm es sub-fisiológica y su procedencia no la `
+        + `declara como ancla numérica ("${src}")`);
+    }
   }
 }

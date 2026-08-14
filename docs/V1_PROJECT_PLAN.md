@@ -1,6 +1,6 @@
 # V1_PROJECT_PLAN — Calculadora de LIO por trazado de rayos
 
-**Versión:** 1.2 · **Fecha:** 12/08/2026 · **Base:** `v0.5-hardening-complete`
+**Versión:** 1.3 · **Fecha:** 14/08/2026 · **Base:** `v0.5-hardening-complete`
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ---
@@ -308,6 +308,12 @@ y motivos CLASIFICADOS (search/catalog/grid boundary, EVO fuera de dominio,
 geometría, fidelity, control violado…). Una región con muchos rechazos es un
 resultado. Las bandas de |ΔP| (<0.05 / 0.05–0.10 / 0.10–0.25 / ≥0.25 D) son
 DESCRIPTIVAS: no son umbrales de relevancia clínica y de ellas no se deduce beneficio.
+
+El MUESTREO es un parámetro declarado y VERIFICADO (bloque de convergencia): con 5
+anillos la cuadratura sobreestimaba |ΔP| ~7 %, y el ancla apertura→0 NO detecta ese
+sesgo — el ancla solo excluye artefactos INDEPENDIENTES de la apertura. La atribución
+"paraxial vs trazado" queda ACOTADA, no aislada: al cambiar de modelo cambia también
+el criterio de foco, y el bloque de sensibilidad al criterio publica esa cota.
 
 Aceptación (ejecutada, tests/divergence.test.mjs + exp013): ningún mapa mezcla lente
 delgada/gruesa (se rechaza y se cuenta); ningún default de pupila reaparece; AL/K/pupila
