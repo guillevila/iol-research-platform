@@ -329,9 +329,50 @@ CANDIDATOS a estudio posterior, no como conclusiones.
 Solo los que tengan fuente citable. Aceptación: `LiteraturePositionPredictor` únicamente
 con la publicación delante (OPEN_QUESTIONS #2); **sin fuente, no se implementa**.
 
-### V1.11 · Pipeline de equivalente esférico
-Cierre de la cadena completa con el trazador. Aceptación: reproduce exp006 y explica las
-diferencias.
+### V1.11 · Pipeline EQ — cadena completa bajo H_EQ con el trazador (alcance EE-only)
+**CORRECCIÓN DE DEFINICIÓN (V1.11, antes de implementar).** El título anterior era
+«Pipeline de equivalente esférico», con aceptación «reproduce exp006». Contradicción:
+exp006 no estudia el equivalente esférico — estudia el **plano ecuatorial capsular**
+(EQ/LEP) bajo la hipótesis declarada H_EQ (posición de LIO = ACD + LT/2 + ε_bio). El
+título fue una expansión errónea de la sigla «EQ»: en TODO el resto del repositorio
+EQ = ecuador (exp006_capacidad_eq, lens_eq_plane_mm, PROJECT_PLAN Sprint 8 «EQ/OCT»,
+CURRENT_SPRINT «Pipeline EQ») y el equivalente esférico se abrevia EE. El V1.11
+histórico de `docs/V0_REVIEW.md` (H9) era explícito: «EQ/ATA/STS → V1.11». El criterio
+de aceptación (exp006) era el correcto; el título, no. Lo único defendible del título
+antiguo se conserva como ALCANCE: la cadena decide solo potencia de equivalente
+esférico (EE-only, tórico UNSUPPORTED — contrato V1.8).
+
+Qué cadena incompleta cierra: H_EQ existía solo como cálculo inline de un experimento
+(`run_exp006.mjs`, posGeom = ACD+LT/2 fuera de src/), su conversión posición→refracción
+era una linealización pura (err_mm × D/mm paraxial de lente DELGADA a potencia
+cuantizada, sin re-evaluar nunca la óptica en la posición desplazada), y su baseline no
+lo vigilaba nada (excluido de check_experiments con una justificación falsa — ningún
+test lo cubría). El sprint:
+- promueve H_EQ a **predictor geométrico de CAPA B** (`EquatorialPlanePredictor`:
+  ACD+LT/2, sin parámetros libres, hipótesis declarada en `source`, datum ápex-z0
+  coherente por construcción — acd_mm se mide de epitelio, eye.mjs); la dispersión
+  ε_bio NO vive en el predictor: viaja por el canal `position_prediction_mm` de V1.12
+  (descomposición anti-doble-conteo);
+- añade `lt_mm` al vocabulario perturbable de V1.12 (con la sonda de inercia
+  verificando el consumo por ejecución);
+- registra exp006 en `check_experiments` (era determinista y barato; su exclusión
+  «lo cubre la batería de tests» era falsa) SIN regenerarlo;
+- exp015: reproduce exp006 donde es reproducible y descompone las divergencias.
+NO se crea ningún wrapper de cadena: la composición predictor→postop→trazado ya existe
+(V1.12) y el experimento usa las primitivas existentes.
+`lens_eq_plane_mm` (EQ MEDIDO por OCT) sigue RESERVADO: el predictor calcula, no lee el
+campo; su desbloqueo sigue siendo externo (OQ #2 + #3). Del mapeo histórico H9
+(«EQ/ATA/STS → V1.11») este sprint entrega el predictor GEOMÉTRICO del ecuador;
+ata_mm/sts_mm siguen reservados — compromiso cerrado por registro, no por activación.
+
+Aceptación: (a) exp006 vigilado y reproduciendo; (b) exp015 reproduce el eje paraxial
+delgado de exp006 **bit a bit** (mismas semillas, misma vía, posición vía predictor —
+demuestra que promover H_EQ a CAPA B es numéricamente neutro); (c) la divergencia del
+pipeline físico se publica descompuesta por causa (lente delgada→gruesa con la MISMA
+factory, paraxial→trazado a criterio fijo, criterio A vs C, linealización→re-evaluación
+con curvatura publicada, potencia continua→catálogo), con aditividad MEDIDA; (d) ancla
+de refutación: beneficio ≈ 0 en la diagonal σ_m = σ_bio también re-evaluado; (e) toda
+diferencia se llama divergencia; H_EQ sigue siendo hipótesis declarada.
 
 ### V1.12 · Incertidumbre sobre trazado (EJECUTADO: src/uncertainty/raytrace_uncertainty.mjs, exp014)
 NO es un port del Monte Carlo paraxial: arquitectura nueva elegida por las invariantes.
