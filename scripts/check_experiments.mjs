@@ -24,11 +24,16 @@ const VERBOSE = process.argv.includes('--verbose');
 
 /**
  * Solo experimentos deterministas y de coste acotado. exp002/exp005 consultan el
- * benchmark congelado (caché completa, pero decenas de segundos) y exp004/exp006 son
- * Monte Carlo largos: se excluyen aquí y los cubre la batería de tests.
+ * benchmark congelado (caché completa, pero decenas de segundos) y exp004 es un
+ * Monte Carlo largo: se excluyen aquí y los cubre la batería de tests.
+ * CORRECCIÓN (V1.11): exp006 estaba excluido con la justificación «lo cubre la
+ * batería de tests», que era FALSA (ningún test lo referenciaba) — y es determinista
+ * (seed fija) y barato (gaussianas escalares + 3 searchBestPower). Entra en la lista;
+ * su results.json publicado NO se regenera: solo se vigila.
  */
 const EXPERIMENTOS = [
   { id: 'exp001_sensibilidad_elp', script: 'experiments/run_exp001.mjs' },
+  { id: 'exp006_capacidad_eq', script: 'experiments/run_exp006.mjs' },
   { id: 'exp003_paraxial_vs_raytrace', script: 'experiments/run_exp003.mjs' },
   { id: 'exp007_politica_corneal', script: 'experiments/run_exp007.mjs' },
   { id: 'exp008_objetivo_optico', script: 'experiments/run_exp008.mjs' },

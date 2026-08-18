@@ -1,6 +1,6 @@
 # exp006 — Valor refractivo de medir el plano ecuatorial (condicional a H_EQ)
 
-**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `629b5cb758` · 2026-08-10T09:11:12.346Z
+**SIMULACIÓN / NO GROUND TRUTH CLÍNICO** · commit `a5cec6591b` · 2026-08-18T11:46:24.789Z
 
 **Hipótesis declarada H_EQ:** H_EQ: posicion de LIO = ecuador capsular; ecuador = ACD + LT/2 + eps_bio. Nada de esto afirma que H_EQ sea
 biológicamente cierta: eso lo decidirán datos postoperatorios (VALIDATION_STRATEGY nivel 3).
