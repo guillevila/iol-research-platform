@@ -50,6 +50,48 @@ export class FractionOfALPredictor {
 }
 
 /**
+ * H_EQ como ciudadano de CAPA B (V1.11): la LIO se asienta en el ecuador capsular,
+ * aproximado geométricamente por ACD + LT/2. HIPÓTESIS DECLARADA, no hecho — su
+ * validación exige cohorte con posición postoperatoria medida (nivel 3).
+ *
+ * SIN parámetros libres: cero offsets ajustables (un offset lo convertiría en
+ * calibración encubierta). Determinista: la dispersión biológica ε_bio del ecuador
+ * NO vive aquí — viaja por el canal `position_prediction_mm` de V1.12 (residual del
+ * predictor con medidas idénticas, descomposición anti-doble-conteo).
+ *
+ * Datum coherente por construcción: acd_mm se mide de epitelio → cristalino anterior
+ * (eye.mjs) y el datum axial del modelo es el ápex corneal anterior z=0 (units.mjs),
+ * así que ACD + LT/2 ES directamente un iol_position_mm válido, sin corrección por
+ * CCT. Un ACD medido desde ENDOTELIO por otro dispositivo NO es válido aquí sin
+ * conversión explícita (OPEN_QUESTIONS #3).
+ *
+ * Este predictor CALCULA el ecuador; NO lee el campo reservado del ecuador MEDIDO
+ * por OCT, que sigue bloqueado por convenciones de datum entre dispositivos
+ * (registro de reservados, OQ #2 + #3). Un futuro predictor de ecuador medido es
+ * OTRA clase, condicionada a resolver ese bloqueo con fuente citable.
+ */
+export class EquatorialPlanePredictor {
+  constructor() {
+    this.id = 'equatorial_plane_geometric';
+  }
+  predict(preop) {
+    if (preop.acd_mm === null || preop.acd_mm === undefined) {
+      throw new RangeError(`${this.id}: requiere acd_mm medido (H_EQ aproxima el ecuador con ACD + LT/2)`);
+    }
+    if (preop.lt_mm === null || preop.lt_mm === undefined) {
+      throw new RangeError(`${this.id}: requiere lt_mm medido (H_EQ aproxima el ecuador con ACD + LT/2)`);
+    }
+    return {
+      iol_position_mm: preop.acd_mm + preop.lt_mm / 2,
+      source: `${this.id} (H_EQ DECLARADA: LIO en el ecuador capsular ≈ ACD + LT/2 — `
+        + 'hipótesis, no hecho; SIMULACION, validación exige datos postoperatorios nivel 3)',
+      inputs_used: ['acd_mm', 'lt_mm'],
+      hypothesis: 'H_EQ',
+    };
+  }
+}
+
+/**
  * Punto de extensión para regresiones ajustadas sobre DATOS REALES futuros.
  * Falla en construcción si no se aportan coeficientes con procedencia.
  */

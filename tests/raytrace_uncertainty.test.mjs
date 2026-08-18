@@ -53,9 +53,11 @@ test('incertidumbre · ninguna sigma sin procedencia: sd suelto, sin tipo o sin 
   assert.throws(() => raytraceOutcomeUncertainty(base({
     sigmas: { al_mm: sigma(0), position_prediction_mm: sigma(0) },
   })), /todas las sigmas son 0/);
+  // lt_mm dejó de ser desconocida en V1.11 (predictor H_EQ la consume): la clave
+  // fuera de vocabulario de este test pasa a ser wtw_mm
   assert.throws(() => raytraceOutcomeUncertainty(base({
-    sigmas: { lt_mm: sigma(0.1) },
-  })), /variables desconocidas: lt_mm/);
+    sigmas: { wtw_mm: sigma(0.1) },
+  })), /variables desconocidas: wtw_mm/);
 });
 
 test('incertidumbre · variable INERTE rechazada POR EJECUCIÓN (no por tabla)', () => {

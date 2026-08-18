@@ -115,7 +115,7 @@ function procedenciaDePupila(preop, escenario_mm) {
 
 /** Campos del ojo perturbables (más el canal especial position_prediction_mm). */
 export const PERTURBABLES = Object.freeze([
-  'al_mm', 'k_d', 'acd_mm', 'cct_um', 'r_anterior_mm', 'r_posterior_mm', 'pupil_mm',
+  'al_mm', 'k_d', 'acd_mm', 'lt_mm', 'cct_um', 'r_anterior_mm', 'r_posterior_mm', 'pupil_mm',
   'position_prediction_mm',
 ]);
 
@@ -235,6 +235,7 @@ function preopPerturbado(preop, delta) {
     k1_d: preop.k1_d + (delta.k_d ?? 0),
     k2_d: preop.k2_d + (delta.k_d ?? 0),
     acd_mm: mas(preop.acd_mm, delta.acd_mm),
+    lt_mm: mas(preop.lt_mm, delta.lt_mm),
     cct_um: mas(preop.cct_um, delta.cct_um),
     cornea: c,
     meta,
@@ -300,7 +301,7 @@ function sondearInercia({ claves, sigmas, ctx, nominal }) {
     // modelo) — se prueban pasos canónicos por variable, de mayor a menor, y se usa
     // el primero que el modelo acepte (adversarial V1.12, dos iteraciones).
     const CANONICOS = {
-      al_mm: 0.2, k_d: 0.5, acd_mm: 0.2, cct_um: 25,
+      al_mm: 0.2, k_d: 0.5, acd_mm: 0.2, lt_mm: 0.15, cct_um: 25,
       r_anterior_mm: 0.1, r_posterior_mm: 0.1, pupil_mm: 0.5, position_prediction_mm: 0.2,
     };
     const candidatos = [...new Set([CANONICOS[k] ?? 0.1, paso * 1e4, paso * 100, paso * 10])]
