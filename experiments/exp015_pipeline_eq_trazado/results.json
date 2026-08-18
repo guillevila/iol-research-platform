@@ -1,0 +1,1129 @@
+{
+ "config": {
+  "id": "exp015_pipeline_eq_trazado",
+  "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada",
+  "hipotesis": "H_EQ: posicion de LIO = ecuador capsular; ecuador = ACD + LT/2 + eps_bio (DECLARADA, no hecho)",
+  "ojos": [
+   {
+    "id": "corto",
+    "al_mm": 21,
+    "k_d": 44,
+    "acd_mm": 2.9,
+    "lt_mm": 4.9
+   },
+   {
+    "id": "normal",
+    "al_mm": 23.5,
+    "k_d": 43.5,
+    "acd_mm": 3.2,
+    "lt_mm": 4.5
+   },
+   {
+    "id": "largo",
+    "al_mm": 27,
+    "k_d": 42.5,
+    "acd_mm": 3.6,
+    "lt_mm": 4.1
+   }
+  ],
+  "fijos": {
+   "cct_um": 550
+  },
+  "sigma_bio_mm": [
+   0.2,
+   0.3,
+   0.4
+  ],
+  "sigma_medida_mm": [
+   0.05,
+   0.1,
+   0.2
+  ],
+  "procedencia_sigmas": "rejilla de ESCENARIO DECLARADO reutilizada de exp006 (OQ #6) — no es repetibilidad real",
+  "pupil_mm": 3,
+  "n_anillos": 40,
+  "lente": "GenericIOLFactory — SUSTITUTO DE SIMULACIÓN declarado (OQ #4); la MISMA factory en paraxial grueso y trazado (lección V1.8)",
+  "cuadratura": {
+   "intervalos_por_lado": 16,
+   "truncamiento_sigmas": 4,
+   "nota": "Simpson compuesto partido en δ=0 (|f| tiene vértice ahí), por lado [0, 4σ]; la cola >4σ aporta P ≈ 6.3e-5 y sesga E|f| a la baja ~0.034 % (declarado)"
+  },
+  "seeds": {
+   "mc_verificacion": 20260818,
+   "v112": 20260819
+  },
+  "sigmas_v112": {
+   "acd_mm": 0.1,
+   "lt_mm": 0.1,
+   "position_prediction_mm": 0.3,
+   "procedencia": {
+    "acd_mm": "ESCENARIO DECLARADO nuevo de V1.11 (repetibilidad de biometría plausible, NO medida; OQ #6)",
+    "lt_mm": "ESCENARIO DECLARADO nuevo de V1.11 (repetibilidad de biometría plausible, NO medida; OQ #6)",
+    "position_prediction_mm": "sigma_bio = 0.30 de la rejilla de exp006: residual del predictor H_EQ con medidas idénticas — NO estimado de datos que también varíen en medidas (anti-doble-conteo, NOTA_POSICION V1.12)"
+   }
+  }
+ },
+ "timestamp": "2026-08-18T11:59:53.518Z",
+ "commit": "7eeff4211b0559f895e300c7b4e8df4b6495a78c",
+ "procedencia_commit": "último commit AL GENERAR: la reproducibilidad la garantiza scripts/check_experiments.mjs, no este campo (hallazgo V1.3)",
+ "autotest_cuadratura": {
+  "funcion": "f(δ) = 1.7·δ, σ = 0.3",
+  "cuadratura": 0.406812,
+  "forma_cerrada": 0.406921,
+  "desviacion_relativa": 0.000269,
+  "nota": "incluye el truncamiento declarado a 4σ (~0.034 % a la baja)"
+ },
+ "bloque0_anclas_exp006": {
+  "commit_exp006": "a5cec6591b15ed41d01e27cd9d82bb0dd6c20c04",
+  "sensibilidades_publicadas_d_mm": {
+   "corto": 2.257,
+   "normal": 1.347,
+   "largo": 0.636
+  },
+  "err_pos_vs_forma_cerrada": [
+   {
+    "sigma_mm": 0.2,
+    "brazo": "base",
+    "publicado_mm": 0.16,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.0027
+   },
+   {
+    "sigma_mm": 0.3,
+    "brazo": "base",
+    "publicado_mm": 0.241,
+    "forma_cerrada_mm": 0.2394,
+    "desviacion_relativa": 0.0068
+   },
+   {
+    "sigma_mm": 0.4,
+    "brazo": "base",
+    "publicado_mm": 0.323,
+    "forma_cerrada_mm": 0.3192,
+    "desviacion_relativa": 0.0121
+   },
+   {
+    "sigma_mm": 0.05,
+    "brazo": "eq",
+    "publicado_mm": 0.04,
+    "forma_cerrada_mm": 0.0399,
+    "desviacion_relativa": 0.0027
+   },
+   {
+    "sigma_mm": 0.1,
+    "brazo": "eq",
+    "publicado_mm": 0.081,
+    "forma_cerrada_mm": 0.0798,
+    "desviacion_relativa": 0.0152
+   },
+   {
+    "sigma_mm": 0.2,
+    "brazo": "eq",
+    "publicado_mm": 0.162,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.0152
+   }
+  ],
+  "nota_desviaciones": "las desviaciones ~1-3 % son coherentes con el SE del MC de exp006 (n = 6000) MÁS el defecto medido del LCG de makeRng (infla la varianza de las normales 1.3-2.8 %, documentado en montecarlo.mjs en V1.12). Se registra; exp006 NO se regenera.",
+  "inconsistencia_prosa_exp006": {
+   "texto_publicado": "Lectura 2 del README: «evita ~0.39 D en el corto frente a ~0.11 D en el largo» (hardcodeado en run_exp006.mjs)",
+   "celdas_publicadas": "las celdas de esa misma tabla dan 0.363 D (corto) y 0.102 D (largo)",
+   "tratamiento": "DIVERGENCIA DE TEXTO registrada aquí; el ancla válida es results.json. Corregir la prosa exigiría regenerar exp006 y el encargo lo prohíbe salvo defecto de CIFRAS demostrado — que no lo hay."
+  }
+ },
+ "bloque1_reproduccion": {
+  "celdas_identicas": "27/27",
+  "primera_divergencia": null,
+  "position_source_nuevo": "equatorial_plane_geometric (H_EQ DECLARADA: LIO en el ecuador capsular ≈ ACD + LT/2 — hipótesis, no hecho; SIMULACION, validación exige datos postoperatorios nivel 3)",
+  "inputs_used": [
+   "acd_mm",
+   "lt_mm"
+  ],
+  "lectura": "la promoción de H_EQ a predictor de CAPA B es numéricamente NEUTRA: cambia la procedencia (position_source, inputs_used), no una sola cifra. Esto ES «reproduce exp006» en su única lectura ejecutable."
+ },
+ "bloque2_escalera": [
+  {
+   "ojo": "corto",
+   "posicion_heq_mm": 5.35,
+   "potencias_de_sonda": {
+    "delgada_escalon_d": 32,
+    "gruesa_escalon_d": 32.5,
+    "trazada_continua_d": 31.369498,
+    "nota": "cada peldaño sondea en el óptimo de SU propio motor (diseño autoconsistente, como exp006)"
+   },
+   "dominio_refraccion": {
+    "sens_delgada_d_mm": 2.257386,
+    "sens_gruesa_d_mm": 2.309326,
+    "curvatura": [
+     {
+      "delta_mm": -0.8,
+      "f_delgada_d": -1.861702,
+      "lineal_delgada_d": -1.805908,
+      "f_gruesa_d": -1.904919,
+      "lineal_gruesa_d": -1.847461
+     },
+     {
+      "delta_mm": -0.4,
+      "f_delgada_d": -0.916916,
+      "lineal_delgada_d": -0.902954,
+      "f_gruesa_d": -0.938108,
+      "lineal_gruesa_d": -0.923731
+     },
+     {
+      "delta_mm": -0.2,
+      "f_delgada_d": -0.454969,
+      "lineal_delgada_d": -0.451477,
+      "f_gruesa_d": -0.465461,
+      "lineal_gruesa_d": -0.461865
+     },
+     {
+      "delta_mm": -0.1,
+      "f_delgada_d": -0.226612,
+      "lineal_delgada_d": -0.225739,
+      "f_gruesa_d": -0.231832,
+      "lineal_gruesa_d": -0.230933
+     },
+     {
+      "delta_mm": -0.05,
+      "f_delgada_d": -0.113088,
+      "lineal_delgada_d": -0.112869,
+      "f_gruesa_d": -0.115691,
+      "lineal_gruesa_d": -0.115466
+     },
+     {
+      "delta_mm": 0.05,
+      "f_delgada_d": 0.112651,
+      "lineal_delgada_d": 0.112869,
+      "f_gruesa_d": 0.115242,
+      "lineal_gruesa_d": 0.115466
+     },
+     {
+      "delta_mm": 0.1,
+      "f_delgada_d": 0.224866,
+      "lineal_delgada_d": 0.225739,
+      "f_gruesa_d": 0.230034,
+      "lineal_gruesa_d": 0.230933
+     },
+     {
+      "delta_mm": 0.2,
+      "f_delgada_d": 0.447986,
+      "lineal_delgada_d": 0.451477,
+      "f_gruesa_d": 0.45827,
+      "lineal_gruesa_d": 0.461865
+     },
+     {
+      "delta_mm": 0.4,
+      "f_delgada_d": 0.888984,
+      "lineal_delgada_d": 0.902954,
+      "f_gruesa_d": 0.909345,
+      "lineal_gruesa_d": 0.923731
+     },
+     {
+      "delta_mm": 0.8,
+      "f_delgada_d": 1.750009,
+      "lineal_delgada_d": 1.805908,
+      "f_gruesa_d": 1.789901,
+      "lineal_gruesa_d": 1.847461
+     }
+    ]
+   },
+   "dominio_potencia": {
+    "sens_P_gruesa_d_mm": 3.354067,
+    "sens_P_trazada_d_mm": 3.241958,
+    "divergencia_motor_sens_d_mm": -0.11211,
+    "curvatura": [
+     {
+      "delta_mm": -0.8,
+      "f_P_gruesa_d": -2.521309,
+      "f_P_trazada_d": -2.438651
+     },
+     {
+      "delta_mm": -0.4,
+      "f_P_gruesa_d": -1.299775,
+      "f_P_trazada_d": -1.256779
+     },
+     {
+      "delta_mm": -0.2,
+      "f_P_gruesa_d": -0.660085,
+      "f_P_trazada_d": -0.638169
+     },
+     {
+      "delta_mm": -0.1,
+      "f_P_gruesa_d": -0.332646,
+      "f_P_trazada_d": -0.321571
+     },
+     {
+      "delta_mm": -0.05,
+      "f_P_gruesa_d": -0.166981,
+      "f_P_trazada_d": -0.16141
+     },
+     {
+      "delta_mm": 0.05,
+      "f_P_gruesa_d": 0.168311,
+      "f_P_trazada_d": 0.162662
+     },
+     {
+      "delta_mm": 0.1,
+      "f_P_gruesa_d": 0.337967,
+      "f_P_trazada_d": 0.326639
+     },
+     {
+      "delta_mm": 0.2,
+      "f_P_gruesa_d": 0.68137,
+      "f_P_trazada_d": 0.658463
+     },
+     {
+      "delta_mm": 0.4,
+      "f_P_gruesa_d": 1.384968,
+      "f_P_trazada_d": 1.338179
+     },
+     {
+      "delta_mm": 0.8,
+      "f_P_gruesa_d": 2.862882,
+      "f_P_trazada_d": 2.765153
+     }
+    ]
+   },
+   "puente_declarado": {
+    "dRef_dP_delgada": -0.679348,
+    "nota": "relación refracción↔potencia del propio modelo delgado, publicada SOLO para que el lector relacione magnitudes de los dos dominios; NO se usa para convertir resultados"
+   }
+  },
+  {
+   "ojo": "normal",
+   "posicion_heq_mm": 5.45,
+   "potencias_de_sonda": {
+    "delgada_escalon_d": 21,
+    "gruesa_escalon_d": 21.5,
+    "trazada_continua_d": 20.745598,
+    "nota": "cada peldaño sondea en el óptimo de SU propio motor (diseño autoconsistente, como exp006)"
+   },
+   "dominio_refraccion": {
+    "sens_delgada_d_mm": 1.346894,
+    "sens_gruesa_d_mm": 1.389483,
+    "curvatura": [
+     {
+      "delta_mm": -0.8,
+      "f_delgada_d": -1.103533,
+      "lineal_delgada_d": -1.077515,
+      "f_gruesa_d": -1.138564,
+      "lineal_gruesa_d": -1.111586
+     },
+     {
+      "delta_mm": -0.4,
+      "f_delgada_d": -0.545276,
+      "lineal_delgada_d": -0.538757,
+      "f_gruesa_d": -0.562552,
+      "lineal_gruesa_d": -0.555793
+     },
+     {
+      "delta_mm": -0.2,
+      "f_delgada_d": -0.271011,
+      "lineal_delgada_d": -0.269379,
+      "f_gruesa_d": -0.279589,
+      "lineal_gruesa_d": -0.277897
+     },
+     {
+      "delta_mm": -0.1,
+      "f_delgada_d": -0.135098,
+      "lineal_delgada_d": -0.134689,
+      "f_gruesa_d": -0.139372,
+      "lineal_gruesa_d": -0.138948
+     },
+     {
+      "delta_mm": -0.05,
+      "f_delgada_d": -0.067447,
+      "lineal_delgada_d": -0.067345,
+      "f_gruesa_d": -0.06958,
+      "lineal_gruesa_d": -0.069474
+     },
+     {
+      "delta_mm": 0.05,
+      "f_delgada_d": 0.067243,
+      "lineal_delgada_d": 0.067345,
+      "f_gruesa_d": 0.069369,
+      "lineal_gruesa_d": 0.069474
+     },
+     {
+      "delta_mm": 0.1,
+      "f_delgada_d": 0.134282,
+      "lineal_delgada_d": 0.134689,
+      "f_gruesa_d": 0.138526,
+      "lineal_gruesa_d": 0.138948
+     },
+     {
+      "delta_mm": 0.2,
+      "f_delgada_d": 0.267748,
+      "lineal_delgada_d": 0.269379,
+      "f_gruesa_d": 0.276206,
+      "lineal_gruesa_d": 0.277897
+     },
+     {
+      "delta_mm": 0.4,
+      "f_delgada_d": 0.532226,
+      "lineal_delgada_d": 0.538757,
+      "f_gruesa_d": 0.54902,
+      "lineal_gruesa_d": 0.555793
+     },
+     {
+      "delta_mm": 0.8,
+      "f_delgada_d": 1.051341,
+      "lineal_delgada_d": 1.077515,
+      "f_gruesa_d": 1.084445,
+      "lineal_gruesa_d": 1.111586
+     }
+    ]
+   },
+   "dominio_potencia": {
+    "sens_P_gruesa_d_mm": 2.032275,
+    "sens_P_trazada_d_mm": 1.970883,
+    "divergencia_motor_sens_d_mm": -0.061392,
+    "curvatura": [
+     {
+      "delta_mm": -0.8,
+      "f_P_gruesa_d": -1.536424,
+      "f_P_trazada_d": -1.490248
+     },
+     {
+      "delta_mm": -0.4,
+      "f_P_gruesa_d": -0.789882,
+      "f_P_trazada_d": -0.766079
+     },
+     {
+      "delta_mm": -0.2,
+      "f_P_gruesa_d": -0.400566,
+      "f_P_trazada_d": -0.3885
+     },
+     {
+      "delta_mm": -0.1,
+      "f_P_gruesa_d": -0.201717,
+      "f_P_trazada_d": -0.195659
+     },
+     {
+      "delta_mm": -0.05,
+      "f_P_gruesa_d": -0.10122,
+      "f_P_trazada_d": -0.098167
+     },
+     {
+      "delta_mm": 0.05,
+      "f_P_gruesa_d": 0.101951,
+      "f_P_trazada_d": 0.098868
+     },
+     {
+      "delta_mm": 0.1,
+      "f_P_gruesa_d": 0.204639,
+      "f_P_trazada_d": 0.198426
+     },
+     {
+      "delta_mm": 0.2,
+      "f_P_gruesa_d": 0.412259,
+      "f_P_trazada_d": 0.399784
+     },
+     {
+      "delta_mm": 0.4,
+      "f_P_gruesa_d": 0.836674,
+      "f_P_trazada_d": 0.811345
+     },
+     {
+      "delta_mm": 0.8,
+      "f_P_gruesa_d": 1.72395,
+      "f_P_trazada_d": 1.671609
+     }
+    ]
+   },
+   "puente_declarado": {
+    "dRef_dP_delgada": -0.67456,
+    "nota": "relación refracción↔potencia del propio modelo delgado, publicada SOLO para que el lector relacione magnitudes de los dos dominios; NO se usa para convertir resultados"
+   }
+  },
+  {
+   "ojo": "largo",
+   "posicion_heq_mm": 5.65,
+   "potencias_de_sonda": {
+    "delgada_escalon_d": 11,
+    "gruesa_escalon_d": 11,
+    "trazada_continua_d": 10.47581,
+    "nota": "cada peldaño sondea en el óptimo de SU propio motor (diseño autoconsistente, como exp006)"
+   },
+   "dominio_refraccion": {
+    "sens_delgada_d_mm": 0.635844,
+    "sens_gruesa_d_mm": 0.636223,
+    "curvatura": [
+     {
+      "delta_mm": -0.8,
+      "f_delgada_d": -0.518335,
+      "lineal_delgada_d": -0.508675,
+      "f_gruesa_d": -0.518664,
+      "lineal_gruesa_d": -0.508978
+     },
+     {
+      "delta_mm": -0.4,
+      "f_delgada_d": -0.256757,
+      "lineal_delgada_d": -0.254337,
+      "f_gruesa_d": -0.256915,
+      "lineal_gruesa_d": -0.254489
+     },
+     {
+      "delta_mm": -0.2,
+      "f_delgada_d": -0.127774,
+      "lineal_delgada_d": -0.127169,
+      "f_gruesa_d": -0.127852,
+      "lineal_gruesa_d": -0.127245
+     },
+     {
+      "delta_mm": -0.1,
+      "f_delgada_d": -0.063736,
+      "lineal_delgada_d": -0.063584,
+      "f_gruesa_d": -0.063774,
+      "lineal_gruesa_d": -0.063622
+     },
+     {
+      "delta_mm": -0.05,
+      "f_delgada_d": -0.03183,
+      "lineal_delgada_d": -0.031792,
+      "f_gruesa_d": -0.031849,
+      "lineal_gruesa_d": -0.031811
+     },
+     {
+      "delta_mm": 0.05,
+      "f_delgada_d": 0.031755,
+      "lineal_delgada_d": 0.031792,
+      "f_gruesa_d": 0.031773,
+      "lineal_gruesa_d": 0.031811
+     },
+     {
+      "delta_mm": 0.1,
+      "f_delgada_d": 0.063433,
+      "lineal_delgada_d": 0.063584,
+      "f_gruesa_d": 0.063471,
+      "lineal_gruesa_d": 0.063622
+     },
+     {
+      "delta_mm": 0.2,
+      "f_delgada_d": 0.126563,
+      "lineal_delgada_d": 0.127169,
+      "f_gruesa_d": 0.126638,
+      "lineal_gruesa_d": 0.127245
+     },
+     {
+      "delta_mm": 0.4,
+      "f_delgada_d": 0.251913,
+      "lineal_delgada_d": 0.254337,
+      "f_gruesa_d": 0.252059,
+      "lineal_gruesa_d": 0.254489
+     },
+     {
+      "delta_mm": 0.8,
+      "f_delgada_d": 0.49896,
+      "lineal_delgada_d": 0.508675,
+      "f_gruesa_d": 0.499239,
+      "lineal_gruesa_d": 0.508978
+     }
+    ]
+   },
+   "dominio_potencia": {
+    "sens_P_gruesa_d_mm": 0.93916,
+    "sens_P_trazada_d_mm": 0.899644,
+    "divergencia_motor_sens_d_mm": -0.039517,
+    "curvatura": [
+     {
+      "delta_mm": -0.8,
+      "f_P_gruesa_d": -0.714152,
+      "f_P_trazada_d": -0.68404
+     },
+     {
+      "delta_mm": -0.4,
+      "f_P_gruesa_d": -0.366118,
+      "f_P_trazada_d": -0.350698
+     },
+     {
+      "delta_mm": -0.2,
+      "f_P_gruesa_d": -0.185397,
+      "f_P_trazada_d": -0.177609
+     },
+     {
+      "delta_mm": -0.1,
+      "f_P_gruesa_d": -0.093293,
+      "f_P_trazada_d": -0.089375
+     },
+     {
+      "delta_mm": -0.05,
+      "f_P_gruesa_d": -0.046796,
+      "f_P_trazada_d": -0.044813
+     },
+     {
+      "delta_mm": 0.05,
+      "f_P_gruesa_d": 0.047099,
+      "f_P_trazada_d": 0.045134
+     },
+     {
+      "delta_mm": 0.1,
+      "f_P_gruesa_d": 0.094503,
+      "f_P_trazada_d": 0.090506
+     },
+     {
+      "delta_mm": 0.2,
+      "f_P_gruesa_d": 0.190236,
+      "f_P_trazada_d": 0.182243
+     },
+     {
+      "delta_mm": 0.4,
+      "f_P_gruesa_d": 0.385481,
+      "f_P_trazada_d": 0.369292
+     },
+     {
+      "delta_mm": 0.8,
+      "f_P_gruesa_d": 0.79172,
+      "f_P_trazada_d": 0.758495
+     }
+    ]
+   },
+   "puente_declarado": {
+    "dRef_dP_delgada": -0.676545,
+    "nota": "relación refracción↔potencia del propio modelo delgado, publicada SOLO para que el lector relacione magnitudes de los dos dominios; NO se usa para convertir resultados"
+   }
+  }
+ ],
+ "bloque3_beneficio": {
+  "dominio_refraccion_paraxial": [
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.05,
+    "beneficio_publicado_exp006_d": 0.271,
+    "beneficio_delgada_reevaluada_d": 0.270097,
+    "beneficio_gruesa_reevaluada_d": 0.276311,
+    "canal_linealizacion_d": -0.000903,
+    "canal_modelo_lente_d": 0.006215
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.1,
+    "beneficio_publicado_exp006_d": 0.178,
+    "beneficio_delgada_reevaluada_d": 0.180064,
+    "beneficio_gruesa_reevaluada_d": 0.184207,
+    "canal_linealizacion_d": 0.002064,
+    "canal_modelo_lente_d": 0.004143
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.2,
+    "beneficio_publicado_exp006_d": 0,
+    "beneficio_delgada_reevaluada_d": 0,
+    "beneficio_gruesa_reevaluada_d": 0,
+    "canal_linealizacion_d": 0,
+    "canal_modelo_lente_d": 0
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.05,
+    "beneficio_publicado_exp006_d": 0.456,
+    "beneficio_delgada_reevaluada_d": 0.450159,
+    "beneficio_gruesa_reevaluada_d": 0.460517,
+    "canal_linealizacion_d": -0.005841,
+    "canal_modelo_lente_d": 0.010358
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.1,
+    "beneficio_publicado_exp006_d": 0.363,
+    "beneficio_delgada_reevaluada_d": 0.360126,
+    "beneficio_gruesa_reevaluada_d": 0.368413,
+    "canal_linealizacion_d": -0.002874,
+    "canal_modelo_lente_d": 0.008286
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.2,
+    "beneficio_publicado_exp006_d": 0.18,
+    "beneficio_delgada_reevaluada_d": 0.180062,
+    "beneficio_gruesa_reevaluada_d": 0.184205,
+    "canal_linealizacion_d": 0.000062,
+    "canal_modelo_lente_d": 0.004143
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.05,
+    "beneficio_publicado_exp006_d": 0.644,
+    "beneficio_delgada_reevaluada_d": 0.630217,
+    "beneficio_gruesa_reevaluada_d": 0.644719,
+    "canal_linealizacion_d": -0.013783,
+    "canal_modelo_lente_d": 0.014501
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.1,
+    "beneficio_publicado_exp006_d": 0.546,
+    "beneficio_delgada_reevaluada_d": 0.540185,
+    "beneficio_gruesa_reevaluada_d": 0.552615,
+    "canal_linealizacion_d": -0.005815,
+    "canal_modelo_lente_d": 0.01243
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.2,
+    "beneficio_publicado_exp006_d": 0.366,
+    "beneficio_delgada_reevaluada_d": 0.360121,
+    "beneficio_gruesa_reevaluada_d": 0.368407,
+    "canal_linealizacion_d": -0.005879,
+    "canal_modelo_lente_d": 0.008287
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.05,
+    "beneficio_publicado_exp006_d": 0.162,
+    "beneficio_delgada_reevaluada_d": 0.161156,
+    "beneficio_gruesa_reevaluada_d": 0.166251,
+    "canal_linealizacion_d": -0.000844,
+    "canal_modelo_lente_d": 0.005096
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.1,
+    "beneficio_publicado_exp006_d": 0.106,
+    "beneficio_delgada_reevaluada_d": 0.107437,
+    "beneficio_gruesa_reevaluada_d": 0.110834,
+    "canal_linealizacion_d": 0.001437,
+    "canal_modelo_lente_d": 0.003397
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.2,
+    "beneficio_publicado_exp006_d": 0,
+    "beneficio_delgada_reevaluada_d": 0,
+    "beneficio_gruesa_reevaluada_d": 0,
+    "canal_linealizacion_d": 0,
+    "canal_modelo_lente_d": 0
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.05,
+    "beneficio_publicado_exp006_d": 0.272,
+    "beneficio_delgada_reevaluada_d": 0.268589,
+    "beneficio_gruesa_reevaluada_d": 0.277082,
+    "canal_linealizacion_d": -0.003411,
+    "canal_modelo_lente_d": 0.008493
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.1,
+    "beneficio_publicado_exp006_d": 0.217,
+    "beneficio_delgada_reevaluada_d": 0.21487,
+    "beneficio_gruesa_reevaluada_d": 0.221664,
+    "canal_linealizacion_d": -0.00213,
+    "canal_modelo_lente_d": 0.006794
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.2,
+    "beneficio_publicado_exp006_d": 0.107,
+    "beneficio_delgada_reevaluada_d": 0.107433,
+    "beneficio_gruesa_reevaluada_d": 0.11083,
+    "canal_linealizacion_d": 0.000433,
+    "canal_modelo_lente_d": 0.003397
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.05,
+    "beneficio_publicado_exp006_d": 0.384,
+    "beneficio_delgada_reevaluada_d": 0.376018,
+    "beneficio_gruesa_reevaluada_d": 0.387907,
+    "canal_linealizacion_d": -0.007982,
+    "canal_modelo_lente_d": 0.011889
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.1,
+    "beneficio_publicado_exp006_d": 0.326,
+    "beneficio_delgada_reevaluada_d": 0.322299,
+    "beneficio_gruesa_reevaluada_d": 0.332489,
+    "canal_linealizacion_d": -0.003701,
+    "canal_modelo_lente_d": 0.010191
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.2,
+    "beneficio_publicado_exp006_d": 0.219,
+    "beneficio_delgada_reevaluada_d": 0.214862,
+    "beneficio_gruesa_reevaluada_d": 0.221656,
+    "canal_linealizacion_d": -0.004138,
+    "canal_modelo_lente_d": 0.006794
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.05,
+    "beneficio_publicado_exp006_d": 0.076,
+    "beneficio_delgada_reevaluada_d": 0.076079,
+    "beneficio_gruesa_reevaluada_d": 0.076124,
+    "canal_linealizacion_d": 0.000079,
+    "canal_modelo_lente_d": 0.000045
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.1,
+    "beneficio_publicado_exp006_d": 0.05,
+    "beneficio_delgada_reevaluada_d": 0.050719,
+    "beneficio_gruesa_reevaluada_d": 0.050749,
+    "canal_linealizacion_d": 0.000719,
+    "canal_modelo_lente_d": 0.00003
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.2,
+    "beneficio_publicado_exp006_d": 0,
+    "beneficio_delgada_reevaluada_d": 0,
+    "beneficio_gruesa_reevaluada_d": 0,
+    "canal_linealizacion_d": 0,
+    "canal_modelo_lente_d": 0
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.05,
+    "beneficio_publicado_exp006_d": 0.128,
+    "beneficio_delgada_reevaluada_d": 0.126797,
+    "beneficio_gruesa_reevaluada_d": 0.126872,
+    "canal_linealizacion_d": -0.001203,
+    "canal_modelo_lente_d": 0.000076
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.1,
+    "beneficio_publicado_exp006_d": 0.102,
+    "beneficio_delgada_reevaluada_d": 0.101437,
+    "beneficio_gruesa_reevaluada_d": 0.101497,
+    "canal_linealizacion_d": -0.000563,
+    "canal_modelo_lente_d": 0.000061
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.2,
+    "beneficio_publicado_exp006_d": 0.051,
+    "beneficio_delgada_reevaluada_d": 0.050718,
+    "beneficio_gruesa_reevaluada_d": 0.050748,
+    "canal_linealizacion_d": -0.000282,
+    "canal_modelo_lente_d": 0.00003
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.05,
+    "beneficio_publicado_exp006_d": 0.181,
+    "beneficio_delgada_reevaluada_d": 0.177513,
+    "beneficio_gruesa_reevaluada_d": 0.177619,
+    "canal_linealizacion_d": -0.003487,
+    "canal_modelo_lente_d": 0.000106
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.1,
+    "beneficio_publicado_exp006_d": 0.154,
+    "beneficio_delgada_reevaluada_d": 0.152153,
+    "beneficio_gruesa_reevaluada_d": 0.152244,
+    "canal_linealizacion_d": -0.001847,
+    "canal_modelo_lente_d": 0.000091
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.2,
+    "beneficio_publicado_exp006_d": 0.103,
+    "beneficio_delgada_reevaluada_d": 0.101434,
+    "beneficio_gruesa_reevaluada_d": 0.101495,
+    "canal_linealizacion_d": -0.001566,
+    "canal_modelo_lente_d": 0.000061
+   }
+  ],
+  "dominio_potencia_cruzado": [
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.05,
+    "beneficio_P_gruesa_d": 0.401412,
+    "beneficio_P_trazada_d": 0.387992,
+    "canal_motor_optico_d": -0.01342
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.1,
+    "beneficio_P_gruesa_d": 0.267661,
+    "beneficio_P_trazada_d": 0.258707,
+    "canal_motor_optico_d": -0.008955
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.2,
+    "beneficio_P_gruesa_d": 0,
+    "beneficio_P_trazada_d": 0,
+    "canal_motor_optico_d": 0
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.05,
+    "beneficio_P_gruesa_d": 0.669439,
+    "beneficio_P_trazada_d": 0.647053,
+    "canal_motor_optico_d": -0.022386
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.1,
+    "beneficio_P_gruesa_d": 0.535688,
+    "beneficio_P_trazada_d": 0.517768,
+    "canal_motor_optico_d": -0.01792
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.2,
+    "beneficio_P_gruesa_d": 0.268027,
+    "beneficio_P_trazada_d": 0.259061,
+    "canal_motor_optico_d": -0.008966
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.05,
+    "beneficio_P_gruesa_d": 0.938015,
+    "beneficio_P_trazada_d": 0.906619,
+    "canal_motor_optico_d": -0.031396
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.1,
+    "beneficio_P_gruesa_d": 0.804264,
+    "beneficio_P_trazada_d": 0.777334,
+    "canal_motor_optico_d": -0.02693
+   },
+   {
+    "ojo": "corto",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.2,
+    "beneficio_P_gruesa_d": 0.536602,
+    "beneficio_P_trazada_d": 0.518627,
+    "canal_motor_optico_d": -0.017976
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.05,
+    "beneficio_P_gruesa_d": 0.24321,
+    "beneficio_P_trazada_d": 0.235861,
+    "canal_motor_optico_d": -0.007349
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.1,
+    "beneficio_P_gruesa_d": 0.162167,
+    "beneficio_P_trazada_d": 0.157273,
+    "canal_motor_optico_d": -0.004894
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.2,
+    "beneficio_P_gruesa_d": 0,
+    "beneficio_P_trazada_d": 0,
+    "canal_motor_optico_d": 0
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.05,
+    "beneficio_P_gruesa_d": 0.405557,
+    "beneficio_P_trazada_d": 0.3933,
+    "canal_motor_optico_d": -0.012257
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.1,
+    "beneficio_P_gruesa_d": 0.324513,
+    "beneficio_P_trazada_d": 0.314711,
+    "canal_motor_optico_d": -0.009802
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.2,
+    "beneficio_P_gruesa_d": 0.162347,
+    "beneficio_P_trazada_d": 0.157439,
+    "canal_motor_optico_d": -0.004908
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.05,
+    "beneficio_P_gruesa_d": 0.568175,
+    "beneficio_P_trazada_d": 0.551006,
+    "canal_motor_optico_d": -0.017169
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.1,
+    "beneficio_P_gruesa_d": 0.487131,
+    "beneficio_P_trazada_d": 0.472418,
+    "canal_motor_optico_d": -0.014714
+   },
+   {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.2,
+    "beneficio_P_gruesa_d": 0.324965,
+    "beneficio_P_trazada_d": 0.315145,
+    "canal_motor_optico_d": -0.00982
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.05,
+    "beneficio_P_gruesa_d": 0.112389,
+    "beneficio_P_trazada_d": 0.107665,
+    "canal_motor_optico_d": -0.004724
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.1,
+    "beneficio_P_gruesa_d": 0.074935,
+    "beneficio_P_trazada_d": 0.071782,
+    "canal_motor_optico_d": -0.003153
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.2,
+    "sigma_medida_mm": 0.2,
+    "beneficio_P_gruesa_d": 0,
+    "beneficio_P_trazada_d": 0,
+    "canal_motor_optico_d": 0
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.05,
+    "beneficio_P_gruesa_d": 0.18739,
+    "beneficio_P_trazada_d": 0.179516,
+    "canal_motor_optico_d": -0.007874
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.1,
+    "beneficio_P_gruesa_d": 0.149937,
+    "beneficio_P_trazada_d": 0.143633,
+    "canal_motor_optico_d": -0.006304
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.3,
+    "sigma_medida_mm": 0.2,
+    "beneficio_P_gruesa_d": 0.075002,
+    "beneficio_P_trazada_d": 0.071851,
+    "canal_motor_optico_d": -0.003151
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.05,
+    "beneficio_P_gruesa_d": 0.262492,
+    "beneficio_P_trazada_d": 0.251451,
+    "canal_motor_optico_d": -0.011041
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.1,
+    "beneficio_P_gruesa_d": 0.225039,
+    "beneficio_P_trazada_d": 0.215568,
+    "canal_motor_optico_d": -0.00947
+   },
+   {
+    "ojo": "largo",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.2,
+    "beneficio_P_gruesa_d": 0.150103,
+    "beneficio_P_trazada_d": 0.143786,
+    "canal_motor_optico_d": -0.006317
+   }
+  ],
+  "diagonal_cero_por_construccion": true,
+  "convergencia_cuadratura": {
+   "celda": "normal, potencia trazada, σ = 0.30 mm",
+   "intervalos_16": 0.471889,
+   "intervalos_8": 0.472438,
+   "delta_relativo": 0.001162
+  },
+  "verificacion_montecarlo": {
+   "celda": "normal, dominio refracción gruesa, σ = 0.30 mm",
+   "cuadratura_d": 0.3325,
+   "montecarlo_n20000_d": 0.335895,
+   "desviacion_relativa": 0.010213,
+   "nota": "tolerancia esperable ~3 %: SE del MC (~0.6 %) + defecto del LCG de makeRng (infla varianza 1.3-2.8 %, medido en V1.12) + truncamiento declarado de la cuadratura (0.034 %)"
+  }
+ },
+ "bloque4_v112": {
+  "outcome": {
+   "predictor": "equatorial_plane_geometric",
+   "predictor_inputs": [
+    "acd_mm",
+    "lt_mm"
+   ],
+   "sd_d": 0.668138,
+   "media_d": -0.223399,
+   "nominal_residual_d": -0.269181,
+   "ancla_nominal_exacta": true,
+   "ratio_mc_sobre_lineal": 1.000894,
+   "derivadas_d_por_unidad": {
+    "acd_mm": 2.08434,
+    "lt_mm": 1.042126,
+    "position_prediction_mm": 2.085151
+   },
+   "n": {
+    "intentados": 1000,
+    "validos": 1000,
+    "rechazados": 0
+   },
+   "descomposicion_posicion": "DESCOMPOSICIÓN DE LA POSICIÓN (contra el doble conteo): la varianza de posición tiene dos canales con procedencia distinta — (a) las MEDIDAS propagadas POR el predictor (al_mm/acd_mm/… según sus inputs_used) y (b) position_prediction_mm, el residual del PREDICTOR con medidas idénticas. (b) NO debe incluir efectos de medida: si su sigma se estimó de datos que también varían en medidas, se contaría dos veces."
+  },
+  "inercia_lt_publicada": {
+   "rechazada": true,
+   "mensaje": "sigma lt_mm: VARIABLE INERTE en esta configuración — ni ±0.1 ni un paso de contraste (1) la mueven (p. ej. K con radios medidos, CCT con córnea de lectura, ACD con un predictor que no la consume). Su dispersión desaparecería en silencio: se rechaza en lugar de fingirse propagada."
+  },
+  "lectura": "eps_bio de H_EQ viaja como residual del predictor (canal b, position_prediction_mm) y las medidas acd/lt como canal (a) POR el predictor — dos canales con procedencia distinta, sin doble conteo (descomposicion_posicion). La sonda de inercia demuestra POR EJECUCIÓN que lt_mm solo propaga si el predictor lo consume."
+ },
+ "supuestos_trazado": [
+  "cornea_policy: P = K: se usa la lectura del dispositivo COMO potencia física",
+  "cornea_policy: depende de la convención de conversión declarada (n_k=null); otra convención daría otra P",
+  "iol: geometría de SUSTITUTO DE SIMULACIÓN (DERIVED_GENERIC) — radios/índice/espesor declarados, no de la lente implantada",
+  "cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)"
+ ]
+}
