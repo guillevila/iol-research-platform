@@ -78,6 +78,12 @@ evidencia, nunca con suposición.
   DECLARADAS; con sigmas reales, sus intervalos serían informativos por paciente.
 - **Evidencia disponible:** ninguna propia; los valores usados en exp004 (0.2/0.4 mm
   de posición; 0.03 mm AL; 0.10 D K) son escenarios declarados, no medidas.
+- **Estado (V1.12):** la MAQUINARIA para consumir sigmas reales ya existe —
+  `raytrace_uncertainty.mjs` exige `{sd, tipo, provenance}` por variable
+  (`SigmaTipo.FICHA_TECNICA` / `MEDIDA` con cita sustancial obligatoria), admite
+  correlaciones declaradas con procedencia y separa resultado-con-LIO-fija de
+  inestabilidad-de-elección (exp014). Lo ÚNICO que falta es la fuente real; al
+  llegar, se declara con su cita y todo lo demás funciona sin cambios.
 - **Acción:** repetibilidad de dispositivo con fichas técnicas citables y, para la
   posición, datos postoperatorios reales (postop.schema.json).
 - **Datos requeridos:** especificaciones de biómetro y cohorte con posición medida.

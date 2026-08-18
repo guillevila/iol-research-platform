@@ -39,7 +39,15 @@ const DEFINICIONES = new Set(['eye.mjs', 'iol.mjs', 'reserved.mjs']);
  * fallo que dejó pasar la salida indebida de `pupil_mm` del registro (revisión
  * adversarial V1.8).
  */
-const ESPACIOS_AJENOS = ['src/bench/'];
+const ESPACIOS_AJENOS = [
+  'src/bench/',
+  // V1.12: la capa de incertidumbre tiene el mismo espacio de ESCENARIO — su
+  // `pupil_mm` es la apertura declarada del trazado (y `delta.pupil_mm` su
+  // perturbación), homónimos del dato MEDIDO del ojo que sigue reservado. Además
+  // REGISTRA en su salida (`pupila`) que la medida existe y no se consume —
+  // el dato medido no usado se declara, nunca se calla.
+  'src/uncertainty/',
+];
 
 /** ¿Algún módulo de src/ LEE `obj.campo` del MODELO, fuera de donde se define? */
 function consumidoresDe(campo) {

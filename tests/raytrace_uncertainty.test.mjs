@@ -233,3 +233,128 @@ test('elección · el borde de la ventana es CENSURA CONOCIDA: categoría visibl
   const bordes = [r.ventana_evaluada_d[0], r.ventana_evaluada_d.at(-1)];
   assert.ok(r.por_escalon.every(e => !bordes.includes(e.power_d)));
 });
+
+// ---------------------------------------------------------------------------------
+// Regresiones de la REVISIÓN ADVERSARIAL V1.12.
+// ---------------------------------------------------------------------------------
+
+test('incertidumbre · adversarial: el ojo perturbado conserva TODOS los campos medidos', () => {
+  // antes: preopPerturbado perdía 11 campos con delta CERO — un predictor legítimo
+  // que consumiera wtw_mm reventaba y los supuestos publicados omitían la nota de
+  // toricidad posterior medida (supuestos FALSOS del caso)
+  const rico = ojo({
+    wtw_mm: 11.8, pupil_mm: 4.0,
+    cornea: { posterior_k1_d: -6.2, posterior_k2_d: -6.0, posterior_axis_deg: 90 },
+  });
+  const espia = {
+    id: 'espia_wtw',
+    predict(pre) {
+      if (typeof pre.wtw_mm !== 'number') throw new RangeError('espia_wtw: falta wtw_mm');
+      return { iol_position_mm: 3.0 + pre.wtw_mm * 0.16, source: 'espía', inputs_used: ['wtw_mm'] };
+    },
+  };
+  const r = raytraceOutcomeUncertainty(base({ preop: rico, predictor: espia, n: 30, seed: 2 }));
+  assert.ok(r.n_validos >= 15, 'el predictor por wtw debía funcionar: el campo viaja');
+  // y los supuestos del nominal incluyen la nota de toricidad posterior medida
+  assert.ok(r.nominal.supuestos_trazado.some(a => /toricidad posterior MEDIDA/.test(a)),
+    `supuestos incompletos: ${JSON.stringify(r.nominal.supuestos_trazado)}`);
+});
+
+test('incertidumbre · adversarial: SUB-RESOLUCIÓN ≠ INERCIA, y la sonda nombra a la sonda', () => {
+  // una sd diminuta sobre una variable CONSUMIDA ya no se acusa de inerte
+  const dosSuperficies = ojo({ cornea: { r_anterior_mm: 7.7, r_posterior_mm: 6.4 } });
+  assert.throws(() => raytraceOutcomeUncertainty(base({
+    preop: dosSuperficies, sigmas: { cct_um: sigma(1e-6) },
+  })), /SUB-RESOLUCIÓN/);
+  // la variable genuinamente inerte sigue diciéndolo (K con radios medidos)
+  assert.throws(() => raytraceOutcomeUncertainty(base({
+    preop: dosSuperficies, sigmas: { k_d: sigma(0.1) },
+  })), /VARIABLE INERTE/);
+  // una sd que saca la SONDA de plausibilidad produce un error que NOMBRA la sonda y
+  // la sigma, no un RangeError crudo sobre un valor que el usuario nunca introdujo
+  assert.throws(() => raytraceOutcomeUncertainty(base({
+    sigmas: { acd_mm: sigma(5) },
+  })), /sonda de inercia de la sigma acd_mm/);
+});
+
+test('incertidumbre · adversarial: pupil_mm es perturbable DE VERDAD (ya no es un canal fantasma)', () => {
+  const r = raytraceOutcomeUncertainty(base({
+    sigmas: { pupil_mm: sigma(0.5) }, n: 200, seed: 13,
+  }));
+  assert.ok(r.distribucion.sd_d > 0, 'la variabilidad pupilar debía propagar dispersión');
+  assert.ok(Number.isFinite(r.ancla_lineal.derivadas_d_por_unidad.pupil_mm));
+});
+
+test('incertidumbre · adversarial: la censura por plausibilidad se ADVIERTE, no se calla', () => {
+  // sigma de AL enorme → algunos draws caen fuera del rango plausible del modelo
+  const r = raytraceOutcomeUncertainty(base({
+    sigmas: { al_mm: sigma(6) }, n: 400, seed: 3,
+  }));
+  assert.ok(r.n_rechazados > 0, 'esperaba rechazos por plausibilidad');
+  assert.match(r.advertencia_censura, /CONDICIONADA.*sesgada A LA BAJA/s);
+  assert.match(r.ancla_lineal.nota, /CENSURA/);
+  // sin rechazos, la advertencia es null (no ruido)
+  const limpio = raytraceOutcomeUncertainty(base({ n: 50, seed: 4 }));
+  assert.equal(limpio.n_rechazados, 0);
+  assert.equal(limpio.advertencia_censura, null);
+  assert.ok(!/CENSURA/.test(limpio.ancla_lineal.nota));
+});
+
+test('incertidumbre · adversarial: pareo por semilla estable ante el ORDEN de declaración', () => {
+  // las claves se ordenan canónicamente: declarar {al, pos} o {pos, al} da lo MISMO
+  const a = raytraceOutcomeUncertainty(base({
+    sigmas: { al_mm: sigma(0.03), position_prediction_mm: sigma(0.3) }, n: 80, seed: 6,
+  }));
+  const b = raytraceOutcomeUncertainty(base({
+    sigmas: { position_prediction_mm: sigma(0.3), al_mm: sigma(0.03) }, n: 80, seed: 6,
+  }));
+  assert.equal(a.distribucion.media_d, b.distribucion.media_d);
+  assert.equal(a.distribucion.sd_d, b.distribucion.sd_d);
+});
+
+test('incertidumbre · adversarial: el RNG local tiene varianza sana (el LCG del proyecto la inflaba 1-3%)', async () => {
+  // verificación estadística del generador que usa ESTE módulo, vía su salida pública:
+  // con una sola sigma y pipeline ~lineal, sd_MC/sd_lineal ≈ 1 con error ~1/sqrt(2n);
+  // el LCG habría añadido +1.3–2.8 % sistemático encima
+  const r = raytraceOutcomeUncertainty(base({
+    sigmas: { position_prediction_mm: sigma(0.2) }, n: 4000, seed: 12345,
+  }));
+  const ratio = r.ancla_lineal.ratio_mc_sobre_lineal;
+  assert.ok(Math.abs(ratio - 1) < 0.04, `ratio MC/lineal ${ratio}: fuera de lo esperable para un RNG sano`);
+});
+
+test('incertidumbre · adversarial: fuentes reales exigen cita sustancial, no etiqueta', () => {
+  assert.throws(() => raytraceOutcomeUncertainty(base({
+    sigmas: { al_mm: { sd: 0.03, tipo: SigmaTipo.FICHA_TECNICA, provenance: 'ficha IOLMaster' } },
+  })), /cita sustancial/);
+  // la convergencia declara su límite (cortes anidados, no réplicas)
+  const r = raytraceOutcomeUncertainty(base({ n: 60, seed: 8 }));
+  assert.match(r.convergencia.nota, /PREFIJOS ANIDADOS|no la\s+varianza entre réplicas/s);
+});
+
+test('incertidumbre · adversarial: la pupila MEDIDA del ojo se registra como no consumida', () => {
+  // el trazado usa la pupila del ESCENARIO; si el ojo trae pupil_mm medida, la salida
+  // lo dice (dato medido registrado, nunca callado — registro de reservados)
+  const conMedida = raytraceOutcomeUncertainty(base({ preop: ojo({ pupil_mm: 4.5 }), n: 30, seed: 9 }));
+  assert.equal(conMedida.pupila.escenario_mm, 3.0);
+  assert.equal(conMedida.pupila.medida_preop_mm, 4.5);
+  assert.match(conMedida.pupila.nota, /MEDIDA.*no.*consumid/s);
+  const sinMedida = raytraceOutcomeUncertainty(base({ n: 30, seed: 9 }));
+  assert.equal(sinMedida.pupila.medida_preop_mm, null);
+});
+
+test('incertidumbre · adversarial: sigma de pupila TAMBIÉN perturba el bucle de ELECCIÓN', () => {
+  // la sonda de inercia corre sobre el pipeline de residual (que consume delta.pupil_mm);
+  // si el bucle de elección la ignorase, la sigma pasaría la sonda y moriría en silencio
+  const r = raytraceChoiceStability({
+    preop: ojo(), factory: new GenericIOLFactory(), predictor: new ConstantOffsetPredictor(1.7),
+    sigmas: { pupil_mm: sigma(0.5), position_prediction_mm: sigma(0.3) },
+    n: 40, seed: 21, pupil_mm: 3.0,
+    sampling: { kind: SamplingKind.MERIDIONAL, n_anillos: 4 },
+    catalog_d: Array.from({ length: 21 }, (_, i) => 16 + i * 0.5),
+    window_d: 2.0, search_d: [1, 44],
+  });
+  assert.ok(r.n_decididos + r.fuera_de_ventana.n + r.n_rechazados === r.n_intentados);
+  assert.ok(r.n_decididos > 0);
+  assert.equal(r.pupila.medida_preop_mm, null);
+});

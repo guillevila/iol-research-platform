@@ -42,13 +42,43 @@
  * pipeline COMPLETO (predictor incluido). La desviación entre ambas es un dato
  * (no-linealidad), no un error.
  *
+ * LÍMITES DECLARADOS (adversarial V1.12):
+ *  - el NOMINAL, la MEDIA y los percentiles absolutos heredan el sesgo de cuadratura
+ *    del muestreo de rayos (~O(1/n_anillos), como la media en V1.9); la SD es robusta
+ *    a ese sesgo por ser de modo común (verificado: 0.16 % entre n_anillos 4 y 40).
+ *    Para valores absolutos convergidos, usa n_anillos alto.
+ *  - PAREO DE SEMILLAS: con el mismo seed y el MISMO CONJUNTO de sigmas, dos corridas
+ *    reutilizan exactamente los mismos z (comparaciones pareadas); las claves se
+ *    ordenan canónicamente, así que el orden de declaración no importa — pero añadir
+ *    o quitar una sigma SÍ rompe el pareo.
+ *  - con rechazos por plausibilidad, la distribución publicada está CONDICIONADA
+ *    (colas truncadas): la salida lo advierte en `advertencia_censura`.
+ *
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  * Mientras las distribuciones no procedan de fuentes reales (OQ #6), TODO resultado
  * es SIMULACIÓN de un escenario declarado.
  */
 import { assertFinite } from '../core/units.mjs';
-import { makeRng } from '../synth/generator.mjs';
 import { gaussianSampler } from './montecarlo.mjs';
+
+/**
+ * PRNG mulberry32 (LOCAL de este módulo, corrección adversarial V1.12): el LCG de
+ * makeRng (synth/generator) infla la varianza de las normales Box-Muller un 1.3–2.8 %
+ * según semilla (9–20σ con N=1e6) y tiene correlación serial lag-1 ≈ −0.012 — un sesgo
+ * SISTEMÁTICO que se disfrazaría de "no-linealidad" en ratio_mc_sobre_lineal.
+ * makeRng NO se toca (los experimentos publicados que lo usan deben seguir
+ * reproduciéndose); este módulo usa mulberry32, cuya varianza es sana (test).
+ */
+function mulberry32(seed0) {
+  let a = seed0 >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 import { createPreopEye, createPredictedPostopEye } from '../core/eye.mjs';
 import { buildRaytraceEye } from '../optics/eyebuilder.mjs';
 import { evaluateObjective, ObjectiveKind } from '../optics/objective.mjs';
@@ -64,6 +94,24 @@ export const SigmaTipo = Object.freeze({
   FICHA_TECNICA: 'ficha_tecnica',   // repetibilidad citada de un dispositivo
   MEDIDA: 'medida',                 // estimada de datos propios (exige dataset citable)
 });
+
+/**
+ * Procedencia de la pupila del ESCENARIO frente a la pupila MEDIDA del ojo (homónimos,
+ * no el mismo dato — registro de reservados, reincidencia V1.7/V1.8): si el ojo trae
+ * pupil_mm medida, se REGISTRA que el trazado no la usa; jamás se calla.
+ */
+function procedenciaDePupila(preop, escenario_mm) {
+  const medida = typeof preop.pupil_mm === 'number' ? preop.pupil_mm : null;
+  return {
+    escenario_mm,
+    medida_preop_mm: medida,
+    nota: medida !== null
+      ? 'el ojo trae pupil_mm MEDIDA, pero la apertura del trazado es la del ESCENARIO '
+        + 'declarado (parametros_declarados.pupil_mm) — dato medido REGISTRADO y no '
+        + 'consumido (la ruta preop.pupil_mm → apertura sigue sin decidirse; registro de reservados)'
+      : 'pupila de ESCENARIO declarado; el ojo no trae pupil_mm medida',
+  };
+}
 
 /** Campos del ojo perturbables (más el canal especial position_prediction_mm). */
 export const PERTURBABLES = Object.freeze([
@@ -115,6 +163,13 @@ function validarSigmas(sigmas) {
       throw new TypeError(`sigma ${k}: provenance obligatoria (≥ 10 caracteres): ninguna `
         + 'incertidumbre existe sin procedencia explícita');
     }
+    // una sigma que se declara de FICHA TÉCNICA o MEDIDA afirma algo sobre el MUNDO:
+    // exige una cita sustancial (dispositivo/documento/dataset identificable), no una
+    // etiqueta — endurecimiento estructural, no convención (adversarial V1.12)
+    if (v.tipo !== SigmaTipo.DECLARADA && v.provenance.trim().length < 30) {
+      throw new TypeError(`sigma ${k}: tipo '${v.tipo}' exige una cita sustancial (≥ 30 caracteres, `
+        + 'identificando dispositivo/documento/dataset), no una etiqueta');
+    }
     if (v.sd > 0) out[k] = { sd: v.sd, tipo: v.tipo, provenance: v.provenance };
   }
   if (Object.keys(out).length === 0) {
@@ -153,26 +208,36 @@ function choleskyDeCorrelacion(claves, correlacion) {
   return L;
 }
 
-/** Aplica un vector de perturbaciones a las MEDIDAS del preoperatorio. */
+/**
+ * Aplica un vector de perturbaciones a las MEDIDAS del preoperatorio.
+ *
+ * El ojo perturbado conserva TODOS los campos del original (corrección adversarial
+ * V1.12: la primera versión reconstruía solo un subconjunto y perdía 11 campos
+ * medidos con delta CERO — un predictor legítimo que consumiera wtw_mm reventaba
+ * aunque el ojo lo tuviera, y los supuestos publicados omitían la nota de toricidad
+ * posterior medida: supuestos FALSOS del caso, el patrón que este módulo prohíbe).
+ */
 function preopPerturbado(preop, delta) {
-  const c = preop.cornea ?? {};
+  // Copia GENÉRICA del ojo COMPLETO (adversarial V1.12, dos iteraciones): la versión
+  // enumerada perdía 11 campos medidos — un predictor legítimo que consumiera wtw_mm
+  // reventaba y los supuestos publicados afirmaban "no medido" sobre datos medidos.
+  // No se enumeran campos: lo que el modelo almacene, viaja; solo se SUMAN los deltas
+  // de las variables perturbadas. createPreopEye re-valida el resultado completo, así
+  // que un delta que saque un campo de plausibilidad falla explícito (rechazo contado).
+  const { kind, mean_k_d, cornea, meta, ...campos } = preop;
+  const c = Object.fromEntries(Object.entries(cornea ?? {}).filter(([, v]) => v !== null && v !== undefined));
+  if (typeof c.r_anterior_mm === 'number') c.r_anterior_mm += delta.r_anterior_mm ?? 0;
+  if (typeof c.r_posterior_mm === 'number') c.r_posterior_mm += delta.r_posterior_mm ?? 0;
+  const mas = (v, d) => (typeof v === 'number' ? v + (d ?? 0) : v);
   return createPreopEye({
+    ...campos,
     al_mm: preop.al_mm + (delta.al_mm ?? 0),
     k1_d: preop.k1_d + (delta.k_d ?? 0),
-    k1_axis_deg: preop.k1_axis_deg,
     k2_d: preop.k2_d + (delta.k_d ?? 0),
-    k2_axis_deg: preop.k2_axis_deg,
-    acd_mm: preop.acd_mm === null ? null : preop.acd_mm + (delta.acd_mm ?? 0),
-    lt_mm: preop.lt_mm,
-    cct_um: preop.cct_um === null ? null : preop.cct_um + (delta.cct_um ?? 0),
-    keratometric_index: preop.keratometric_index,
-    cornea: {
-      ...(typeof c.r_anterior_mm === 'number' ? { r_anterior_mm: c.r_anterior_mm + (delta.r_anterior_mm ?? 0) } : {}),
-      ...(typeof c.r_posterior_mm === 'number' ? { r_posterior_mm: c.r_posterior_mm + (delta.r_posterior_mm ?? 0) } : {}),
-      ...(typeof c.asphericity_q_anterior === 'number' ? { asphericity_q_anterior: c.asphericity_q_anterior } : {}),
-      ...(typeof c.asphericity_q_posterior === 'number' ? { asphericity_q_posterior: c.asphericity_q_posterior } : {}),
-    },
-    meta: { ...(preop.meta ?? {}), source: preop.meta?.source ?? 'synthetic' },
+    acd_mm: mas(preop.acd_mm, delta.acd_mm),
+    cct_um: mas(preop.cct_um, delta.cct_um),
+    cornea: c,
+    meta,
   });
 }
 
@@ -189,9 +254,14 @@ function residualConLenteFija({ preop, delta, predictor, iol, pupil_mm, sampling
     iol_position_mm: pos.iol_position_mm + (delta.position_prediction_mm ?? 0),
     position_source: pos.source,
   });
-  const eye = buildRaytraceEye(postop, iol, { cornea, fidelity, aperture_mm: pupil_mm / 2 + 0.5 });
+  // pupil_mm perturbable DE VERDAD (corrección adversarial V1.12: figuraba en
+  // PERTURBABLES pero su delta no se aplicaba en ningún sitio — canal fantasma que
+  // moría siempre en la sonda con un mensaje que desorientaba)
+  const pupilaDraw = pupil_mm + (delta.pupil_mm ?? 0);
+  if (!(pupilaDraw > 0)) throw new RangeError(`pupil_mm perturbada no positiva: ${pupilaDraw}`);
+  const eye = buildRaytraceEye(postop, iol, { cornea, fidelity, aperture_mm: pupilaDraw / 2 + 0.5 });
   const bundle = generateBundle({
-    radius_mm: pupil_mm / 2, kind: sampling.kind, n: sampling.n_anillos, perRing: sampling.perRing ?? 6,
+    radius_mm: pupilaDraw / 2, kind: sampling.kind, n: sampling.n_anillos, perRing: sampling.perRing ?? 6,
   });
   const ev = evaluateObjective(eye, bundle.rays, objective);
   return { residual_d: ev.residual_d, eye, iol_position_mm: postop.iol_position_mm };
@@ -204,16 +274,56 @@ function residualConLenteFija({ preop, delta, predictor, iol, pupil_mm, sampling
  * ninguna tabla de consumo que pueda quedarse rancia.
  */
 function sondearInercia({ claves, sigmas, ctx, nominal }) {
+  const evalua = (k, paso) => {
+    try {
+      return {
+        arriba: residualConLenteFija({ ...ctx, delta: { [k]: +paso } }).residual_d,
+        abajo: residualConLenteFija({ ...ctx, delta: { [k]: -paso } }).residual_d,
+      };
+    } catch (err) {
+      // el error viene de la SONDA, no del ojo del usuario: se nombra la sonda y la
+      // sigma (adversarial V1.12: antes escapaba un RangeError de plausibilidad crudo
+      // sobre un valor que el usuario nunca introdujo)
+      throw new RangeError(`sonda de inercia de la sigma ${k}: perturbar ±${paso} sacó el caso del `
+        + `rango plausible del modelo (${String(err.message).split('\n')[0]}). Una sd de ese tamaño `
+        + 'produciría mayoritariamente extracciones rechazadas: revisa unidades o magnitud.');
+    }
+  };
   for (const k of claves) {
     const paso = sigmas[k].sd;
-    const arriba = residualConLenteFija({ ...ctx, delta: { [k]: +paso } }).residual_d;
-    const abajo = residualConLenteFija({ ...ctx, delta: { [k]: -paso } }).residual_d;
-    if (arriba === nominal.residual_d && abajo === nominal.residual_d) {
-      throw new RangeError(`sigma ${k}: VARIABLE INERTE en esta configuración — perturbarla ±${paso} `
-        + 'no cambia el resultado en absoluto (p. ej. K con radios medidos, CCT con córnea de '
-        + 'lectura, ACD con un predictor que no la consume). Su dispersión desaparecería en '
-        + 'silencio: se rechaza en lugar de fingirse propagada.');
+    const r = evalua(k, paso);
+    if (r.arriba !== nominal.residual_d || r.abajo !== nominal.residual_d) continue;
+    // ±sd no movió ningún float: distinguir INERCIA (la configuración no consume la
+    // variable) de SUB-RESOLUCIÓN (la consume, pero la sd es demasiado pequeña para
+    // alterar el resultado). El paso de contraste debe ser GRANDE pero PLAUSIBLE:
+    // salir del rango del validador no prueba consumo óptico (el validador no es el
+    // modelo) — se prueban pasos canónicos por variable, de mayor a menor, y se usa
+    // el primero que el modelo acepte (adversarial V1.12, dos iteraciones).
+    const CANONICOS = {
+      al_mm: 0.2, k_d: 0.5, acd_mm: 0.2, cct_um: 25,
+      r_anterior_mm: 0.1, r_posterior_mm: 0.1, pupil_mm: 0.5, position_prediction_mm: 0.2,
+    };
+    const candidatos = [...new Set([CANONICOS[k] ?? 0.1, paso * 1e4, paso * 100, paso * 10])]
+      .sort((a, b) => b - a);
+    let respondeConPasoGrande = false, pasoProbado = null;
+    for (const pg of candidatos) {
+      try {
+        const g = evalua(k, pg);
+        pasoProbado = pg;
+        respondeConPasoGrande = g.arriba !== nominal.residual_d || g.abajo !== nominal.residual_d;
+        break;
+      } catch { /* paso fuera de plausibilidad o trazado imposible: probar uno menor */ }
     }
+    if (respondeConPasoGrande) {
+      throw new RangeError(`sigma ${k}: SUB-RESOLUCIÓN — la configuración SÍ consume la variable `
+        + `(un paso ${pasoProbado} la mueve), pero ±${paso} no altera ningún resultado en coma `
+        + 'flotante: su contribución al Monte Carlo sería exactamente cero. Se rechaza en lugar '
+        + 'de fingirse propagada; revisa las unidades de la sd.');
+    }
+    throw new RangeError(`sigma ${k}: VARIABLE INERTE en esta configuración — ni ±${paso} ni un paso `
+      + `de contraste${pasoProbado !== null ? ` (${pasoProbado})` : ''} la mueven (p. ej. K con radios `
+      + 'medidos, CCT con córnea de lectura, ACD con un predictor que no la consume). Su dispersión '
+      + 'desaparecería en silencio: se rechaza en lugar de fingirse propagada.');
   }
 }
 
@@ -254,7 +364,11 @@ function prepara({ preop, predictor, sigmas, correlacion = null, n, seed, pupil_
     throw new TypeError('sampling OBLIGATORIO ({ kind, n_anillos })');
   }
   const S = validarSigmas(sigmas);
-  const claves = Object.keys(S);
+  // claves en ORDEN CANÓNICO (adversarial V1.12): con el mismo seed y el MISMO
+  // CONJUNTO de sigmas, dos corridas reutilizan exactamente los mismos z — pareo
+  // deseable para comparaciones — y ese pareo no debe depender del orden de
+  // declaración del objeto. Añadir o quitar una clave SÍ rompe el pareo (documentado).
+  const claves = Object.keys(S).sort();
   let L = null, declaracionCorrelacion;
   if (correlacion !== null) {
     if (typeof correlacion.provenance !== 'string' || correlacion.provenance.trim().length < 10) {
@@ -267,7 +381,7 @@ function prepara({ preop, predictor, sigmas, correlacion = null, n, seed, pupil_
     declaracionCorrelacion = 'INDEPENDENCIA asumida entre todas las entradas perturbadas — '
       + 'supuesto DECLARADO del escenario, no una propiedad medida';
   }
-  const gauss = gaussianSampler(makeRng(seed));
+  const gauss = gaussianSampler(mulberry32(seed));
   const extrae = () => {
     const z = claves.map(() => gauss(0, 1));
     const delta = {};
@@ -373,6 +487,15 @@ export function raytraceOutcomeUncertainty({
     throw new RangeError(`Monte Carlo degenerado: ${residuales.length}/${n} extracciones válidas `
       + `(motivos: ${JSON.stringify(motivos)})`);
   }
+  // CENSURA (adversarial V1.12): con rechazos por plausibilidad, la distribución
+  // publicada está CONDICIONADA a la región plausible — las colas truncadas sesgan la
+  // sd a la baja y contaminan el ratio MC/lineal. No se calla: se advierte con nombre.
+  const advertenciaCensura = rechazadas > 0
+    ? `distribución CONDICIONADA: ${rechazadas} extracción(es) rechazada(s) `
+      + `(${JSON.stringify(motivos)}) quedan fuera del numerador — las colas están truncadas, `
+      + 'la sd publicada está sesgada A LA BAJA respecto del escenario declarado, y parte de la '
+      + 'desviación del ratio MC/lineal es censura, no no-linealidad'
+    : null;
   // CONVERGENCIA: la estimación en n/4, n/2 y n, con su error estándar
   const cortes = [Math.floor(residuales.length / 4), Math.floor(residuales.length / 2), residuales.length]
     .filter(m => m >= 10);
@@ -389,6 +512,7 @@ export function raytraceOutcomeUncertainty({
     n_validos: residuales.length,
     n_rechazados: rechazadas,
     motivos_rechazo: motivos,
+    advertencia_censura: advertenciaCensura,
     nominal: {
       residual_d: nominal.residual_d,
       iol_position_mm: nominal.iol_position_mm,
@@ -402,13 +526,19 @@ export function raytraceOutcomeUncertainty({
       delta_sd_ultimo_corte_d: convergencia.length >= 2
         ? Math.abs(convergencia[convergencia.length - 1].sd_d - convergencia[convergencia.length - 2].sd_d)
         : null,
+      nota: 'los cortes son PREFIJOS ANIDADOS de la misma secuencia: garantizan la estabilidad '
+        + 'del estimador acumulado a lo largo de UNA corrida (condición necesaria), no la '
+        + 'varianza entre réplicas — para eso, corre con semillas independientes (adversarial '
+        + 'V1.12: el delta entre prefijos subestima la varianza real del estimador ~√3)',
     },
     ancla_lineal: {
       sd_lineal_d: sdLineal,
       ratio_mc_sobre_lineal: sdLineal > 0 ? dist.sd_d / sdLineal : null,
       derivadas_d_por_unidad: derivadas,
       nota: 'derivadas por diferencias centradas (paso = sd) a través del pipeline COMPLETO, '
-        + 'predictor incluido. Un ratio ≉ 1 documenta no-linealidad del sistema, no un error.',
+        + 'predictor incluido. Un ratio ≉ 1 documenta no-linealidad del sistema'
+        + (rechazadas > 0 ? ' — Y aquí también CENSURA (hay extracciones rechazadas): ver advertencia_censura' : '')
+        + ', no un error.',
     },
     sigmas_declaradas: Object.entries(prep.S).map(([k, v]) => ({ variable: k, ...v })),
     correlaciones: prep.declaracionCorrelacion,
@@ -419,6 +549,7 @@ export function raytraceOutcomeUncertainty({
       iol: `${iol.manufacturer}/${iol.model} (${iol.geometry_status})`,
       fidelity,
     },
+    pupila: procedenciaDePupila(preop, pupil_mm),
     ...toric,
     etiqueta: ETIQUETA,
   };
@@ -485,11 +616,19 @@ export function raytraceChoiceStability({
   const motivos = {};
   let decididas = 0, fueraDeVentana = 0, rechazadas = 0;
   const lentes = new Map(ventana.map(p => [p, factory.create({ power_d: p })]));
-  const bundle = generateBundle({
+  const bundleNominal = generateBundle({
     radius_mm: pupil_mm / 2, kind: sampling.kind, n: sampling.n_anillos, perRing: sampling.perRing ?? 6,
   });
   for (let i = 0; i < n; i++) {
     const delta = prep.extrae();
+    // pupil_mm perturbada TAMBIÉN aquí (adversarial V1.12): la sonda de inercia corre
+    // sobre residualConLenteFija, que sí la consume — si este bucle la ignorase, la
+    // sigma pasaría la sonda y luego moriría en silencio (canal fantasma en la elección)
+    const pupilaDraw = pupil_mm + (delta.pupil_mm ?? 0);
+    if (!(pupilaDraw > 0)) { rechazadas++; motivos[DrawRejection.PLAUSIBILITY] = (motivos[DrawRejection.PLAUSIBILITY] ?? 0) + 1; continue; }
+    const bundle = delta.pupil_mm === undefined ? bundleNominal : generateBundle({
+      radius_mm: pupilaDraw / 2, kind: sampling.kind, n: sampling.n_anillos, perRing: sampling.perRing ?? 6,
+    });
     try {
       const pre = preopPerturbado(preop, delta);
       const pos = predictor.predict(pre);
@@ -499,7 +638,7 @@ export function raytraceChoiceStability({
       });
       let mejor = null;
       for (const p of ventana) {
-        const eye = buildRaytraceEye(postop, lentes.get(p), { cornea, fidelity, aperture_mm: pupil_mm / 2 + 0.5 });
+        const eye = buildRaytraceEye(postop, lentes.get(p), { cornea, fidelity, aperture_mm: pupilaDraw / 2 + 0.5 });
         const ev = evaluateObjective(eye, bundle.rays, ObjectiveKind.EQUIVALENT_DEFOCUS);
         if (mejor === null || ev.cost < mejor.cost) mejor = { power_d: p, cost: ev.cost };
       }
@@ -558,6 +697,7 @@ export function raytraceChoiceStability({
       pupil_mm, sampling: { ...sampling }, window_d, search_d, catalogo_escalones: catalog_d.length,
       predictor: predictor.id, factory: factory.id, fidelity,
     },
+    pupila: procedenciaDePupila(preop, pupil_mm),
     ...marcadorToric(preop, factory.create({ power_d: eleccionNominal })),
     etiqueta: ETIQUETA,
   };

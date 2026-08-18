@@ -45,8 +45,10 @@ export const RESERVED_PREOP = Object.freeze({
     // ESCENARIO declarado con procedencia — y ninguna ruta mapea `preop.pupil_mm` a la
     // apertura: la pupila del OJO sigue almacenada y sin consumir. Homónimos, no el
     // mismo dato. (Reincidencia: la misma afirmación se corrigió ya en V1.7.)
-    blocked_by: 'V1 — el trazador usa la pupila del ESCENARIO (benchCase.pupil_mm), no la '
-      + 'del ojo; falta decidir la ruta preop.pupil_mm → apertura y su procedencia',
+    blocked_by: 'V1 — el trazador usa la pupila del ESCENARIO (benchCase.pupil_mm; en V1.12 '
+      + 'también la capa de incertidumbre, que además REGISTRA en su salida `pupila` que la '
+      + 'medida existe y no se consume), no la del ojo; falta decidir la ruta '
+      + 'preop.pupil_mm → apertura y su procedencia',
   },
   lens_eq_plane_mm: {
     que_es: 'posición axial del plano ecuatorial del cristalino (mm)',

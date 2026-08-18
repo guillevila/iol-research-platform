@@ -15,6 +15,12 @@
  * un escenario declarado, útil para sensibilidad paraxial. La propagación con
  * CAUSALIDAD real (medidas → predictor → posición), sondas de variables inertes,
  * correlaciones declaradas y anclas nominal/lineal vive en raytrace_uncertainty.mjs.
+ *
+ * LÍMITES CONOCIDOS de este módulo (medidos en la revisión adversarial de V1.12, se
+ * conservan por reproducibilidad de exp004): el LCG de makeRng infla la varianza de
+ * las normales un 1.3–2.8 % según semilla (raytrace_uncertainty usa mulberry32); y
+ * `percentile` usa la convención por REDONDEO del estadístico de orden, distinta de
+ * la interpolación lineal declarada en bench/divergence y raytrace_uncertainty.
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 import { assertFinite } from '../core/units.mjs';
