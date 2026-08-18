@@ -1,6 +1,6 @@
 # V1_PROJECT_PLAN — Calculadora de LIO por trazado de rayos
 
-**Versión:** 1.3 · **Fecha:** 14/08/2026 · **Base:** `v0.5-hardening-complete`
+**Versión:** 1.4 · **Fecha:** 18/08/2026 · **Base:** `v0.5-hardening-complete`
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ---
@@ -333,9 +333,37 @@ con la publicación delante (OPEN_QUESTIONS #2); **sin fuente, no se implementa*
 Cierre de la cadena completa con el trazador. Aceptación: reproduce exp006 y explica las
 diferencias.
 
-### V1.12 · Incertidumbre sobre trazado
-Monte Carlo con sigmas **etiquetadas por procedencia** (declarada / ficha técnica / medida).
-Aceptación: ninguna sigma sin procedencia; el resultado indica de qué tipo son.
+### V1.12 · Incertidumbre sobre trazado (EJECUTADO: src/uncertainty/raytrace_uncertainty.mjs, exp014)
+NO es un port del Monte Carlo paraxial: arquitectura nueva elegida por las invariantes.
+- **Sigmas con procedencia y tipo obligatorios** ({ sd, tipo ∈ declarada/ficha_tecnica/
+  medida, provenance ≥ 10 }): un número suelto se rechaza. Sin fuentes reales (OQ #6),
+  todo es 'declarada' y el resultado lo dice.
+- **Causalidad real**: cada extracción perturba las MEDIDAS, re-ejecuta el PREDICTOR
+  de posición sobre el ojo perturbado y solo entonces añade el residual PROPIO del
+  predictor (position_prediction_mm). La descomposición de la posición viaja declarada
+  contra el doble conteo.
+- **Variables inertes prohibidas POR EJECUCIÓN**: sonda determinista antes de extraer —
+  una sigma que no cambia el resultado (K con radios medidos, CCT con córnea de
+  lectura, ACD con un predictor que no la usa) se rechaza nombrándola.
+- **Dos preguntas, dos salidas**: incertidumbre del RESULTADO con LIO fija
+  (distribución continua del desenfoque residual) e INESTABILIDAD DE LA ELECCIÓN
+  (distribución discreta sobre escalones, con la censura fuera-de-ventana VISIBLE en
+  el denominador — corrección conceptual del sprint: descartar el borde truncaría las
+  extracciones extremas y sesgaría las fracciones).
+- **Correlaciones**: independencia DECLARADA por defecto; matriz explícita con
+  procedencia vía Cholesky (no-PSD rechazada).
+- **Anclas y convergencia**: la extracción cero reproduce el nominal EXACTAMENTE; la
+  sd MC se compara con la propagación lineal gᵀΣg (derivadas por diferencias centradas
+  a través del pipeline completo, predictor incluido); cortes de convergencia con SE.
+- seed + intentados/válidos(decididos)/rechazados + motivos clasificados en la salida;
+  tórico jamás como cero físico (astigmático ⇒ unsupported declarado; LIO tórica ⇒
+  rechazo). El MC paraxial se conserva como escenario declarado de posición fija, con
+  puntero a esta arquitectura.
+Aceptación (ejecutada, tests/raytrace_uncertainty.test.mjs + exp014): anclas exactas y
+ratio MC/lineal ≈ 1; aditividad en cuadratura MEDIDA (ratio 0.978), no asumida;
+causalidad demostrada (la misma σ_AL con dos predictores produce derivadas distintas);
+inercia publicada como resultado; elección nominal conservada solo el 30.7 % del
+escenario mientras el resultado tiene sd 0.69 D — dos preguntas genuinamente distintas.
 
 ### V1.13 · Autoconsistencia pupila→0 sobre rejilla — *puerta de corrección*
 El control central del apartado 2, ejecutado sobre toda la rejilla de ojos sintéticos.

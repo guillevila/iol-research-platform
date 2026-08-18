@@ -10,6 +10,11 @@
  * (OPEN_QUESTIONS #6). Nada de esto es verdad clínica.
  *
  * Reproducibilidad: PRNG con semilla fija (mismo LCG del proyecto) + Box-Muller.
+ *
+ * NOTA (V1.12): este módulo trata la POSICIÓN como entrada fija perturbada a mano —
+ * un escenario declarado, útil para sensibilidad paraxial. La propagación con
+ * CAUSALIDAD real (medidas → predictor → posición), sondas de variables inertes,
+ * correlaciones declaradas y anclas nominal/lineal vive en raytrace_uncertainty.mjs.
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 import { assertFinite } from '../core/units.mjs';

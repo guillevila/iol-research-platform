@@ -37,6 +37,7 @@ const EXPERIMENTOS = [
   { id: 'exp011_torico_trazado', script: 'experiments/run_exp011.mjs' },
   { id: 'exp012_rotacion_torica', script: 'experiments/run_exp012.mjs' },
   { id: 'exp013_atlas_divergencia', script: 'experiments/run_exp013.mjs' },
+  { id: 'exp014_incertidumbre_trazado', script: 'experiments/run_exp014.mjs' },
 ];
 
 /** Campos que cambian por construcción en cada ejecución y no son parte del resultado. */

@@ -1,7 +1,7 @@
 # CURRENT_SPRINT
 
-**Fecha:** 14/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
-**Suite:** 297/297 tests verdes · CI verde (5 jobs) · 9 experimentos deterministas verificados en CI
+**Fecha:** 18/08/2026 · **Hito:** V0.5 completa (`v0.5-hardening-complete`) · **V1 en curso**
+**Suite:** 307/307 tests verdes · CI verde (5 jobs) · 10 experimentos deterministas verificados en CI
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ## Dónde estamos
@@ -10,7 +10,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 |---|---|
 | V0 (motor paraxial + benchmark congelado) | DONE — ver histórico al pie |
 | **V0.5 endurecimiento** (10 hallazgos de `docs/V0_REVIEW.md`) | **DONE** — `docs/V0_5_CLOSURE.md`, tag `v0.5-hardening-complete` |
-| **V1** (calculadora por trazado, plan en `docs/V1_PROJECT_PLAN.md`) | **EN CURSO** — 10/15 sprints + revisión pre-V1.2 |
+| **V1** (calculadora por trazado, plan en `docs/V1_PROJECT_PLAN.md`) | **EN CURSO** — 11/15 sprints + revisión pre-V1.2 |
 
 ## V1 — estado por sprint
 
@@ -27,7 +27,8 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 | V1.7 Rotación tórica | **DONE** | por FÍSICA (pose.rotation_z rota la bicónica y se re-traza; `toric_rotation_deg` NO reintroducido); error de rotación = DERIVADO (físico − planificado, mod 180, firmado; jamás entrada); anclas: 2C·\|sen θ\| solo módulos iguales (≤0.00123 D), resta vectorial completa en general (≤0.0009 D); divergencia a pupila finita REPORTADA; tres ejes distinguidos (geometría / minus-cyl / marcas → OQ #11); exp012 |
 | V1.8 `RaytraceEngine` en benchmark | **DONE** | contrato de COMPARABILIDAD: tórico UNSUPPORTED ≠ cero físico (PredictionResult validado); inyección explícita total; a_constant/iol_model = inputs EVO ignorados con nombre; pupil_mm de ESCENARIO de primer nivel con procedencia (el pupil_mm del OJO sigue reservado: homónimos); CONTROLLED_PHYSICS (controles verificados) / FULL_ENGINE (divergencia entre motores + diferencias listadas); convenciones de refracción NO se restan; caza adversarial aplicada: CONTROLLED_PHYSICS exige la MISMA lente gruesa (el paraxial evaluaba delgada y ese término era ~100% de la cifra), objetivo A rechazado por unidades, pupila sin precedencia tácita, opciones corneales con vocabulario cerrado, borde de catálogo guardado |
 | V1.9 Atlas de divergencia | **DONE** | experimento interpretable: A CONTROLLED_PHYSICS (ΔP CONTINUA, AL×K×pupila esférico, ancla apertura→0 verificada, monotonía OBSERVADA no impuesta) y B FULL_ENGINE descriptivo, separados; contabilidad anti-survivor-bias (todo intento con estado y motivo clasificado); bandas DESCRIPTIVAS, no umbrales clínicos; exp013 |
-| V1.11 Pipeline EQ · V1.12 Incertidumbre · V1.14 Rendimiento · V1.15 Docs | **SIGUIENTE** | |
+| V1.12 Incertidumbre sobre trazado | **DONE** | arquitectura nueva (no port): sigmas {sd, tipo, provenance} obligatorios; causalidad medidas→predictor→posición con descomposición anti-doble-conteo; variables INERTES rechazadas por sonda de ejecución; dos preguntas separadas (resultado con LIO fija vs inestabilidad de la elección, censura fuera-de-ventana VISIBLE); correlaciones declaradas (Cholesky); anclas nominal exacta + lineal gᵀΣg; exp014 (validación por refutación) |
+| V1.11 Pipeline EQ · V1.14 Rendimiento · V1.15 Docs | **SIGUIENTE** | |
 | V1.10 Predictores de literatura | **BLOCKED** | OPEN_QUESTIONS #2: sin publicación con coeficientes, no se implementa |
 
 ## Revisión pre-V1.2 (los tres puntos pedidos)
@@ -77,7 +78,7 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 - Legado EVO byte-idéntico (102 hashes, en Linux y Windows).
 - El motor físico no importa nada del legado (test de arquitectura).
-- Los experimentos deterministas (exp001/003/007/008/009/010/011/012/013) reproducen su `results.json` publicado.
+- Los experimentos deterministas (exp001/003/007/008/009/010/011/012/013/014) reproducen su `results.json` publicado.
 - Ningún parámetro del motor procede de ajustar contra EVO.
 
 ---
