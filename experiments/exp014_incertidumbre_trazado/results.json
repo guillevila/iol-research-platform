@@ -18,40 +18,50 @@
       "k_d": 0.1,
       "position_prediction_mm": 0.3
     },
-    "procedencia_sigmas": "ESCENARIO DECLARADO (valores de exp004; OQ #6) — no es repetibilidad real",
+    "procedencia_sigmas": {
+      "al_mm": "ESCENARIO DECLARADO reutilizado de exp004 (OQ #6) — no es repetibilidad real",
+      "k_d": "ESCENARIO DECLARADO reutilizado de exp004 (OQ #6) — no es repetibilidad real",
+      "acd_mm": "ESCENARIO DECLARADO nuevo de V1.12 (OQ #6) — exp004 no declaraba esta sigma; no es repetibilidad real",
+      "position_prediction_mm": "ESCENARIO DECLARADO nuevo de V1.12 (OQ #6) — exp004 no declaraba esta sigma; no es repetibilidad real"
+    },
     "pupil_mm": 3,
     "muestreo": {
       "kind": "MERIDIONAL",
-      "n_anillos": 5
+      "n_anillos": 40
     },
     "n_outcome": 2000,
     "n_choice": 600,
     "seeds": {
       "outcome": 20260818,
       "choice": 20260819,
-      "convergencia": 20260820
+      "convergencia": 20260820,
+      "replicas": [
+        101,
+        202,
+        303
+      ]
     }
   },
-  "timestamp": "2026-08-18T09:37:38.368Z",
-  "commit": "7fca60a4b5d2cc75e8ccc4f9d57424a838d44b4d",
+  "timestamp": "2026-08-18T10:06:19.739Z",
+  "commit": "f884ef28d1748dd31bab223ae7a1b95a1bcdce85",
   "procedencia_commit": "último commit AL GENERAR: la reproducibilidad la garantiza scripts/check_experiments.mjs, no este campo (hallazgo V1.3)",
   "resultado_completo": {
-    "nominal_residual_d": -1.427978,
+    "nominal_residual_d": -1.370737,
     "ancla_nominal_exacta": true,
     "distribucion": {
       "n": 2000,
-      "media_d": -1.405151,
-      "sd_d": 0.688664,
-      "se_media_d": 0.015399,
+      "media_d": -1.367989,
+      "sd_d": 0.664829,
+      "se_media_d": 0.014866,
       "percentiles_d": {
-        "p5": -2.503406,
-        "p25": -1.863394,
-        "p50": -1.441071,
-        "p75": -0.967293,
-        "p95": -0.200261
+        "p5": -2.444787,
+        "p25": -1.821978,
+        "p50": -1.390461,
+        "p75": -0.912803,
+        "p95": -0.267301
       },
-      "min_d": -3.398848,
-      "max_d": 0.940913
+      "min_d": -3.832528,
+      "max_d": 1.149372
     },
     "n": {
       "intentados": 2000,
@@ -59,14 +69,15 @@
       "rechazados": 0
     },
     "motivos_rechazo": {},
+    "advertencia_censura": null,
     "ancla_lineal": {
-      "sd_lineal_d": 0.673247,
-      "ratio_mc_sobre_lineal": 1.0229,
+      "sd_lineal_d": 0.673998,
+      "ratio_mc_sobre_lineal": 0.986396,
       "derivadas": {
-        "al_mm": -4.033346,
-        "acd_mm": 1.92189,
-        "k_d": -1.512503,
-        "position_prediction_mm": 1.922489
+        "acd_mm": 1.924483,
+        "al_mm": -4.033312,
+        "k_d": -1.508877,
+        "position_prediction_mm": 1.92508
       }
     },
     "sigmas": [
@@ -74,25 +85,25 @@
         "variable": "al_mm",
         "sd": 0.03,
         "tipo": "declarada",
-        "provenance": "ESCENARIO DECLARADO (valores de exp004; OQ #6) — no es repetibilidad real"
+        "provenance": "ESCENARIO DECLARADO reutilizado de exp004 (OQ #6) — no es repetibilidad real"
       },
       {
         "variable": "acd_mm",
         "sd": 0.15,
         "tipo": "declarada",
-        "provenance": "ESCENARIO DECLARADO (valores de exp004; OQ #6) — no es repetibilidad real"
+        "provenance": "ESCENARIO DECLARADO nuevo de V1.12 (OQ #6) — exp004 no declaraba esta sigma; no es repetibilidad real"
       },
       {
         "variable": "k_d",
         "sd": 0.1,
         "tipo": "declarada",
-        "provenance": "ESCENARIO DECLARADO (valores de exp004; OQ #6) — no es repetibilidad real"
+        "provenance": "ESCENARIO DECLARADO reutilizado de exp004 (OQ #6) — no es repetibilidad real"
       },
       {
         "variable": "position_prediction_mm",
         "sd": 0.3,
         "tipo": "declarada",
-        "provenance": "ESCENARIO DECLARADO (valores de exp004; OQ #6) — no es repetibilidad real"
+        "provenance": "ESCENARIO DECLARADO nuevo de V1.12 (OQ #6) — exp004 no declaraba esta sigma; no es repetibilidad real"
       }
     ],
     "correlaciones": "INDEPENDENCIA asumida entre todas las entradas perturbadas — supuesto DECLARADO del escenario, no una propiedad medida",
@@ -103,120 +114,145 @@
       "cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)"
     ]
   },
-  "convergencia": [
-    {
-      "n_intentados": 250,
-      "n_validos": 250,
-      "sd_d": 0.68808,
-      "media_d": -1.456002,
-      "se_media_d": 0.043518
-    },
-    {
-      "n_intentados": 500,
-      "n_validos": 500,
-      "sd_d": 0.687573,
-      "media_d": -1.419153,
-      "se_media_d": 0.030749
-    },
-    {
-      "n_intentados": 1000,
-      "n_validos": 1000,
-      "sd_d": 0.685688,
-      "media_d": -1.40538,
-      "se_media_d": 0.021683
-    },
-    {
-      "n_intentados": 2000,
-      "n_validos": 2000,
-      "sd_d": 0.682769,
-      "media_d": -1.384734,
-      "se_media_d": 0.015267
-    }
-  ],
+  "convergencia": {
+    "cortes_misma_semilla": [
+      {
+        "n_intentados": 250,
+        "n_validos": 250,
+        "sd_d": 0.679383,
+        "media_d": -1.318804,
+        "se_media_d": 0.042968
+      },
+      {
+        "n_intentados": 500,
+        "n_validos": 500,
+        "sd_d": 0.675266,
+        "media_d": -1.332662,
+        "se_media_d": 0.030199
+      },
+      {
+        "n_intentados": 1000,
+        "n_validos": 1000,
+        "sd_d": 0.679563,
+        "media_d": -1.332788,
+        "se_media_d": 0.02149
+      },
+      {
+        "n_intentados": 2000,
+        "n_validos": 2000,
+        "sd_d": 0.676433,
+        "media_d": -1.339413,
+        "se_media_d": 0.015125
+      }
+    ],
+    "nota_cortes": "n crecientes con la MISMA semilla son prefijos anidados: miden la estabilidad del estimador acumulado, no la varianza entre corridas",
+    "replicas_semillas_independientes": [
+      {
+        "seed": 101,
+        "n_validos": 1000,
+        "sd_d": 0.656312,
+        "media_d": -1.349004
+      },
+      {
+        "seed": 202,
+        "n_validos": 1000,
+        "sd_d": 0.676219,
+        "media_d": -1.308704
+      },
+      {
+        "seed": 303,
+        "n_validos": 1000,
+        "sd_d": 0.681647,
+        "media_d": -1.352027
+      }
+    ],
+    "rango_sd_entre_replicas_d": 0.025335
+  },
   "aditividad": {
+    "n_por_sigma": 1000,
     "por_sigma_sola": {
       "al_mm": {
-        "sd_d": 0.126562,
-        "derivada": -4.033346
+        "sd_d": 0.119607,
+        "derivada": -4.033312
       },
       "acd_mm": {
-        "sd_d": 0.301391,
-        "derivada": 1.92189
+        "sd_d": 0.285308,
+        "derivada": 1.924483
       },
       "k_d": {
-        "sd_d": 0.158178,
-        "derivada": -1.512503
+        "sd_d": 0.149138,
+        "derivada": -1.508877
       },
       "position_prediction_mm": {
-        "sd_d": 0.603198,
-        "derivada": 1.922489
+        "sd_d": 0.571093,
+        "derivada": 1.92508
       }
     },
-    "sd_cuadratura_d": 0.704076,
-    "sd_conjunta_d": 0.688664,
-    "ratio_conjunta_sobre_cuadratura": 0.978111,
+    "sd_cuadratura_d": 0.666405,
+    "sd_conjunta_d": 0.664829,
+    "n_conjunta": {
+      "intentados": 2000,
+      "validos": 2000
+    },
+    "ratio_conjunta_sobre_cuadratura": 0.997636,
     "lectura": "ratio ≈ 1 ⇒ las contribuciones se combinan en cuadratura (interacciones despreciables en este escenario); un ratio ≠ 1 documentaría interacción, no un error"
   },
   "causalidad": {
-    "al_solo_optica_sd_d": 0.126562,
-    "al_dos_caminos_sd_d": 0.113981,
-    "derivada_solo_optica": -4.033346,
-    "derivada_dos_caminos": -3.632528,
+    "n_por_escenario": 1000,
+    "al_solo_optica_sd_d": 0.119607,
+    "al_dos_caminos_sd_d": 0.107703,
+    "derivada_solo_optica": -4.033312,
+    "derivada_dos_caminos": -3.631999,
     "lectura": "la MISMA sigma de AL produce dispersión distinta según el predictor: con FractionOfAL la AL mueve TAMBIÉN la posición predicha (dos caminos causales). La diferencia es la causalidad medida→predictor→posición funcionando, no un artefacto."
   },
   "inercia_publicada": {
     "rechazada": true,
-    "mensaje": "sigma acd_mm: VARIABLE INERTE en esta configuración — perturbarla ±0.15 no cambia el resultado en absoluto (p. ej. K con radios medidos, CCT con córnea de lectura, ACD con un predictor que no la consume). Su dispersión d"
+    "mensaje": "sigma acd_mm: VARIABLE INERTE en esta configuración — ni ±0.15 ni un paso de contraste (1.5) la mueven (p. ej. K con radios medidos, CCT con córnea de lectura, ACD con un predictor que no la consume). Su dispersión desaparecería en silencio: se rechaza en lugar de fingirse propagada."
   },
   "eleccion": {
     "nominal_d": 19.5,
-    "fraccion_eleccion_nominal": 0.306667,
+    "fraccion_eleccion_nominal": 0.301667,
     "escalon_modal_d": 19.5,
     "por_escalon": [
       {
         "power_d": 19.5,
-        "veces": 184,
-        "fraccion": 0.306667
+        "veces": 181,
+        "fraccion": 0.301667
       },
       {
         "power_d": 20,
-        "veces": 166,
-        "fraccion": 0.276667
+        "veces": 156,
+        "fraccion": 0.26
       },
       {
         "power_d": 19,
-        "veces": 99,
-        "fraccion": 0.165
+        "veces": 106,
+        "fraccion": 0.176667
       },
       {
         "power_d": 20.5,
-        "veces": 74,
-        "fraccion": 0.123333
-      },
-      {
-        "power_d": 18.5,
-        "veces": 36,
-        "fraccion": 0.06
+        "veces": 80,
+        "fraccion": 0.133333
       },
       {
         "power_d": 21,
-        "veces": 28,
-        "fraccion": 0.046667
+        "veces": 38,
+        "fraccion": 0.063333
       },
       {
-        "power_d": 18,
-        "veces": 6,
-        "fraccion": 0.01
+        "power_d": 18.5,
+        "veces": 29,
+        "fraccion": 0.048333
       },
       {
         "power_d": 21.5,
-        "veces": 3,
-        "fraccion": 0.005
+        "veces": 4,
+        "fraccion": 0.006667
       },
       {
-        "power_d": 17.5,
-        "veces": 1,
-        "fraccion": 0.001667
+        "power_d": 18,
+        "veces": 3,
+        "fraccion": 0.005
       }
     ],
     "fuera_de_ventana": {
@@ -245,12 +281,17 @@
     "nota": "la elección es DISCRETA: su inestabilidad (con qué frecuencia cambia el escalón elegido) es una pregunta distinta de la incertidumbre del resultado con una lente fija — no se resumen una en la otra"
   },
   "correlacion_declarada": {
-    "sd_independencia_d": 0.32592,
-    "sd_con_rho_05_d": 0.263688,
+    "n_por_escenario": 1000,
+    "sd_independencia_d": 0.310409,
+    "sd_con_rho_05_d": 0.249011,
     "derivadas": {
-      "al_mm": -4.033346,
-      "acd_mm": 1.92189
+      "acd_mm": 1.924483,
+      "al_mm": -4.033312
     },
-    "lectura": "con derivadas del mismo signo, rho > 0 amplifica la dispersión; el efecto observado debe seguir ese signo — y la correlación es un ESCENARIO DECLARADO, no un dato"
+    "signos_derivadas": "signos OPUESTOS",
+    "efecto_previsto_por_derivadas": "REDUCE",
+    "efecto_observado": "REDUCE",
+    "coherente": true,
+    "lectura": "en ESTE escenario dR/dAL y dR/dACD tienen signos opuestos, así que rho > 0 debe reducir la dispersión (2·rho·g_i·g_j·sigma_i·sigma_j < 0); el efecto observado la reduce, coherente con las derivadas — y la correlación es un ESCENARIO DECLARADO, no un dato"
   }
 }

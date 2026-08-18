@@ -1,6 +1,6 @@
 # V1_PROJECT_PLAN — Calculadora de LIO por trazado de rayos
 
-**Versión:** 1.4 · **Fecha:** 18/08/2026 · **Base:** `v0.5-hardening-complete`
+**Versión:** 1.5 · **Fecha:** 18/08/2026 · **Base:** `v0.5-hardening-complete`
 RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
 ---
@@ -360,10 +360,19 @@ NO es un port del Monte Carlo paraxial: arquitectura nueva elegida por las invar
   rechazo). El MC paraxial se conserva como escenario declarado de posición fija, con
   puntero a esta arquitectura.
 Aceptación (ejecutada, tests/raytrace_uncertainty.test.mjs + exp014): anclas exactas y
-ratio MC/lineal ≈ 1; aditividad en cuadratura MEDIDA (ratio 0.978), no asumida;
+ratio MC/lineal ≈ 1; aditividad en cuadratura MEDIDA (ratio 0.998), no asumida;
 causalidad demostrada (la misma σ_AL con dos predictores produce derivadas distintas);
-inercia publicada como resultado; elección nominal conservada solo el 30.7 % del
-escenario mientras el resultado tiene sd 0.69 D — dos preguntas genuinamente distintas.
+inercia publicada como resultado; elección nominal conservada solo el 30.2 % del
+escenario mientras el resultado tiene sd 0.66 D — dos preguntas genuinamente distintas.
+Caza adversarial aplicada (multirrevisor): copia COMPLETA del ojo perturbado (la
+enumerada perdía 11 campos medidos), pupil_mm perturbable de verdad en las DOS salidas,
+censura advertida (`advertencia_censura`), RNG local mulberry32 (LCG del proyecto infla
+varianza 1.3–2.8 %, medido), pareo de semillas por clave ordenada, SUB-RESOLUCIÓN ≠
+INERCIA con pasos de contraste dentro de plausibilidad, procedencia exacta por sigma en
+exp014 (dos eran nuevas de V1.12, no de exp004), réplicas de semilla independiente
+junto a los prefijos anidados, lectura de correlación derivada de los SIGNOS reales
+(en el escenario publicado son opuestos: ρ > 0 REDUCE la sd), y pupila MEDIDA del ojo
+registrada como no consumida en la salida (`pupila`).
 
 ### V1.13 · Autoconsistencia pupila→0 sobre rejilla — *puerta de corrección*
 El control central del apartado 2, ejecutado sobre toda la rejilla de ojos sintéticos.
