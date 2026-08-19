@@ -88,10 +88,12 @@ const CONFIG = {
   aproximacion_brazo_eq: 'ambos brazos se evalúan alrededor de posGeom (misma estructura que '
     + 'exp006). En el mundo H_EQ el ruido de medida ocurre alrededor del ecuador VERDADERO '
     + '(posGeom + ε_bio), así que el brazo EQ descarta el término cruzado 2c·ε_bio·ε_med de la '
-    + 'respuesta cuadrática. Cota en esta rejilla: con s ≈ 2.3 D/mm y c ≈ 0.09 D/mm² (curvatura '
-    + 'medida en el bloque 2), s/(2c·σ_bio) ≈ 40 ⇒ efecto sobre E|·| < 1e-6 D, dos órdenes por '
-    + 'debajo del canal más pequeño. Con σ_bio grande o lentes de mayor curvatura dejaría de '
-    + 'ser despreciable y habría que re-derivarlo.',
+    + 'respuesta curvada. La cota NO se estima por orden de magnitud: se MIDE por cuadratura 2D '
+    + 'sobre las 27 celdas (bloque3_beneficio.termino_cruzado). Corrección adversarial de cierre: '
+    + 'la cota anterior («< 1e-6 D», derivada de s/(2c·σ_bio) ≈ 40) era OPTIMISTA en un orden de '
+    + 'magnitud — el peor caso medido es ~1.3e-5 D, COMPARABLE al canal de no-linealidad, no dos '
+    + 'órdenes por debajo. Sigue siendo dos órdenes por debajo de los canales de escalón y motor, '
+    + 'pero no puede invocarse para descartar efectos del tamaño del de no-linealidad.',
   seeds: { mc_verificacion: 20260818, v112: 20260819 },
   sigmas_v112: {
     acd_mm: 0.10, lt_mm: 0.10, position_prediction_mm: 0.30,
@@ -358,6 +360,10 @@ for (const o of CONFIG.ojos) {
     dominio_refraccion: {
       sens_delgada_d_mm: sDelgada.sensitivity_ref_per_mm_d,
       sens_gruesa_d_mm: sGruesa.sensitivity_ref_per_mm_d,
+      // curvatura MEDIDA: la respuesta NO es lineal, y publicarla es lo que impide leer el
+      // canal de no-linealidad (~1e-5 D, pequeño por cancelación) como «la respuesta es recta»
+      curvatura_d_mm2: (fRefDelgada(0.4) + fRefDelgada(-0.4)) / (2 * 0.4 * 0.4),
+      desvio_de_la_recta_a_08mm_d: fRefDelgada(0.8) - sDelgada.sensitivity_ref_per_mm_d * 0.8,
       curvatura: MALLA_CURVATURA.map(d => ({
         delta_mm: d,
         f_delgada_d: fRefDelgada(d),
@@ -493,17 +499,67 @@ const trazadaCon = anillos => {
 };
 const haz40 = trazadaCon(CONFIG.n_anillos);
 const haz160 = trazadaCon(160);
+const haz320 = trazadaCon(320);
 const convergenciaHaz = {
-  celda: `ojo corto, potencia continua trazada, pupila ${CONFIG.pupil_mm} mm`,
-  n_anillos_publicado: CONFIG.n_anillos, n_anillos_referencia: 160,
-  sesgo_absoluto_d: haz40.absoluto_d - haz160.absoluto_d,
-  sesgo_respuesta_mas_04_d: haz40.respuesta_mas_04_d - haz160.respuesta_mas_04_d,
-  sesgo_respuesta_menos_04_d: haz40.respuesta_menos_04_d - haz160.respuesta_menos_04_d,
-  nota: 'el ABSOLUTO de potencia trazada NO está convergido en muestreo (~-8e-3 D con 40 '
-    + 'anillos, y 160→320 aún deriva): léase como óptimo del haz DECLARADO, no como valor '
-    + 'convergido. La RESPUESTA a δ (lo que entra en los canales) es de modo común y su '
-    + 'residuo es ~1 % del canal motor — cota publicada aquí, no asumida.',
+  celda: `ojo corto, potencia continua trazada, pupila ${CONFIG.pupil_mm} mm, tol 1e-7`,
+  n_anillos_publicado: CONFIG.n_anillos,
+  absoluto_d: { 40: haz40.absoluto_d, 160: haz160.absoluto_d, 320: haz320.absoluto_d },
+  absoluto_delta_40_160_d: haz40.absoluto_d - haz160.absoluto_d,
+  absoluto_delta_160_320_d: haz160.absoluto_d - haz320.absoluto_d,
+  absoluto_convergido: false,
+  respuesta_mas_04_d: { 40: haz40.respuesta_mas_04_d, 160: haz160.respuesta_mas_04_d, 320: haz320.respuesta_mas_04_d },
+  respuesta_delta_40_320_d: haz40.respuesta_mas_04_d - haz320.respuesta_mas_04_d,
+  respuesta_desviacion_relativa_40_vs_320: Math.abs((haz40.respuesta_mas_04_d - haz320.respuesta_mas_04_d) / haz320.respuesta_mas_04_d),
+  nota: 'DOS conclusiones distintas, medidas a 40/160/320 anillos. (1) El ABSOLUTO de potencia '
+    + 'trazada NO está convergido y sigue derivando en cada refinamiento (40→160 y 160→320 del '
+    + 'mismo signo): NO es una potencia física convergida y ninguna afirmación debe tratarlo como '
+    + 'tal — es el óptimo del haz DECLARADO de 40 anillos. (2) La RESPUESTA a δ, que es lo único '
+    + 'que entra en los canales, sí converge: su desviación relativa entre 40 y 320 anillos queda '
+    + 'publicada arriba (~0.04 %), y el sesgo residual que arrastra al canal motor es del orden de '
+    + '5e-4 D sobre canales de 3e-3 a 3e-2 D. Solo la respuesta diferencial es interpretable.',
 };
+
+// TÉRMINO CRUZADO ε_bio × ε_med, MEDIDO por cuadratura 2D en las 27 celdas (corrección
+// adversarial de cierre: la cota anterior se había estimado analíticamente y era optimista
+// en un orden de magnitud). Los nodos que salen de la puerta de plausibilidad del modelo se
+// EXCLUYEN contabilizando la masa perdida — nunca se sustituyen por un valor de borde.
+function nodos2D(sigma, n = 32, trunc = 4) {
+  const L = trunc * sigma, h = 2 * L / n, out = [];
+  for (let i = 0; i <= n; i++) {
+    const x = -L + i * h;
+    const w = (i === 0 || i === n) ? 1 : (i % 2 === 1 ? 4 : 2);
+    out.push([x, (w * h / 3) * Math.exp(-x * x / (2 * sigma * sigma)) / (sigma * Math.sqrt(2 * Math.PI))]);
+  }
+  return out;
+}
+const cruzado = [];
+for (const o of CONFIG.ojos) {
+  const pre = ojoDe(o);
+  const pos0 = posiciones[o.id].iol_position_mm;
+  const s = searchBestPower({
+    postop: createPredictedPostopEye(pre, { iol_position_mm: pos0, position_source: posiciones[o.id].source }),
+    target_d: 0,
+  });
+  const ref = pos => paraxialEnPos(pre, pos).refractionForThinPower(s.best.power_d);
+  const f = d => ref(pos0 + d) - ref(pos0);
+  for (const sBio of CONFIG.sigma_bio_mm) {
+    for (const sMed of CONFIG.sigma_medida_mm) {
+      let exacto = 0, aprox = 0, masaExcluida = 0;
+      for (const [eb, wb] of nodos2D(sBio)) for (const [em, wm] of nodos2D(sMed)) {
+        try {
+          exacto += wb * wm * Math.abs(f(eb + em) - f(eb));
+          aprox += wb * wm * Math.abs(f(em));
+        } catch { masaExcluida += wb * wm; }
+      }
+      cruzado.push({
+        ojo: o.id, sigma_bio_mm: sBio, sigma_medida_mm: sMed,
+        brazo_eq_exacto_d: exacto, brazo_eq_aproximado_d: aprox,
+        termino_descartado_d: exacto - aprox, masa_excluida_por_la_puerta: masaExcluida,
+      });
+    }
+  }
+}
+const peorCruzado = cruzado.reduce((a, b) => (Math.abs(b.termino_descartado_d) > Math.abs(a.termino_descartado_d) ? b : a));
 
 // ---------------------------------------------------------------------------------
 // BLOQUE 4 · integración V1.12: H_EQ con incertidumbre y causalidad auditable
@@ -579,7 +635,31 @@ const result = redondea({
       delta_relativo: Math.abs(conv16 - conv8) / conv16,
     },
     convergencia_haz: convergenciaHaz,
+    termino_cruzado: {
+      celdas: cruzado,
+      peor_celda: peorCruzado,
+      cota_medida_d: Math.abs(peorCruzado.termino_descartado_d),
+      lectura: 'MEDIDO por cuadratura 2D, no estimado: el término ε_bio × ε_med que el brazo EQ '
+        + 'descarta vale como máximo ~1.3e-5 D en esta rejilla (peor celda: ojo normal, σ_bio 0.40 / '
+        + 'σ_m 0.20). Es COMPARABLE al canal de no-linealidad (≤1.4e-5 D) y dos órdenes por debajo '
+        + 'de los canales de escalón y motor. La cota analítica anterior («< 1e-6 D») era optimista '
+        + 'en un orden de magnitud y se ha retirado.',
+    },
     verificacion_montecarlo: verificacionCuadratura,
+    aviso_no_linealidad: 'EL CANAL DE NO-LINEALIDAD ES PEQUEÑO POR CANCELACIÓN, NO PORQUE LA '
+      + 'RESPUESTA SEA LINEAL (corrección adversarial de cierre — la lectura anterior invitaba a la '
+      + 'generalización falsa). La respuesta refractiva a δ SÍ está curvada: curvatura medida '
+      + '≈ -0.087 D/mm² en el ojo corto, y el desvío respecto de la recta a δ = ±0.8 mm es '
+      + '≈ -0.056 D — TRES órdenes de magnitud por encima del canal. El canal sale ~1e-5 D porque, '
+      + 'para una perturbación de distribución SIMÉTRICA y una métrica E|·|, el término cuadrático '
+      + 'se cancela EXACTAMENTE: con f(δ) = s·δ + c·δ², |f| vale s·δ + c·δ² a la derecha y '
+      + 's|δ| − c·δ² a la izquierda, así que E|f| = s·E|δ| + c·(E[δ²·1_{δ>0}] − E[δ²·1_{δ<0}]) '
+      + '= s·E|δ| (verificado numéricamente: el residuo es cero de máquina, 6.7e-16 D, para '
+      + 'c = 0.09 y c = 0.5). Lo que sobrevive (~1e-5 D) son los términos de orden impar (cúbico+), '
+      + 'no la curvatura. CONSECUENCIA: la linealización de exp006 está justificada PARA ESTA '
+      + 'MÉTRICA (E|error| con ε simétrico y centrado) y NO puede extrapolarse. Cualquier métrica '
+      + 'que rompa la simetría — un percentil, una cola unilateral, un ε_bio sesgado, o la media de '
+      + 'la refracción CON signo — vería la curvatura entera.',
     lectura_canales: 'cada canal cambia UNA sola cosa (corrección adversarial V1.11): '
       + 'residuo_estimador_exp006 = mismo modelo lineal, cuadratura determinista vs el MC '
       + 'congelado de exp006 (SE con n=6000 + defecto del LCG + redondeo a 3 decimales — '
@@ -675,6 +755,9 @@ const md = [
       + `${c.canal_potencia_sonda_d.toExponential(2)} | ${c.canal_lente_puro_d.toExponential(2)} |`)),
   '',
   `- ${R.bloque3_beneficio.lectura_canales}`,
+  '',
+  `> **${R.bloque3_beneficio.aviso_no_linealidad}**`,
+  '',
   '- **Corrección adversarial de este sprint:** la primera versión publicaba un «canal',
   '  linealización» y un «canal lente» que eran, respectivamente, ~99 % ruido del estimador',
   '  del ancla y ~100 % efecto de sondear cada motor en su propio escalón de 0.5 D — con el',
@@ -698,13 +781,18 @@ const md = [
     + '(el 0 de exp006 también era por construcción: extracciones emparejadas).',
   `- Convergencia de la cuadratura (celda trazada, σ 0.3): 16 vs 8 intervalos → delta relativo `
     + `${(100 * R.bloque3_beneficio.convergencia_cuadratura.delta_relativo).toFixed(4)} %.`,
-  `- **Convergencia del haz** (${R.bloque3_beneficio.convergencia_haz.celda}, `
-    + `${R.bloque3_beneficio.convergencia_haz.n_anillos_publicado} vs `
-    + `${R.bloque3_beneficio.convergencia_haz.n_anillos_referencia} anillos): sesgo del ABSOLUTO `
-    + `${R.bloque3_beneficio.convergencia_haz.sesgo_absoluto_d.toExponential(2)} D; sesgo de la `
-    + `RESPUESTA a δ = ±0.4 mm ${R.bloque3_beneficio.convergencia_haz.sesgo_respuesta_mas_04_d.toExponential(2)} / `
-    + `${R.bloque3_beneficio.convergencia_haz.sesgo_respuesta_menos_04_d.toExponential(2)} D. `
-    + R.bloque3_beneficio.convergencia_haz.nota,
+  `- **Convergencia del haz** (${R.bloque3_beneficio.convergencia_haz.celda}), medida a 40/160/320 anillos:`,
+  `  el ABSOLUTO deriva ${R.bloque3_beneficio.convergencia_haz.absoluto_delta_40_160_d.toExponential(2)} D (40→160) y `
+    + `${R.bloque3_beneficio.convergencia_haz.absoluto_delta_160_320_d.toExponential(2)} D (160→320), mismo signo: `
+    + `**NO convergido**, no es una potencia física. La RESPUESTA a δ = +0.4 mm varía `
+    + `${R.bloque3_beneficio.convergencia_haz.respuesta_delta_40_320_d.toExponential(2)} D entre 40 y 320 anillos `
+    + `(${(100 * R.bloque3_beneficio.convergencia_haz.respuesta_desviacion_relativa_40_vs_320).toFixed(3)} % relativo): `
+    + 'es la única magnitud interpretable de este dominio.',
+  `- **Término cruzado ε_bio × ε_med** (MEDIDO por cuadratura 2D en las 27 celdas): peor caso `
+    + `**${R.bloque3_beneficio.termino_cruzado.cota_medida_d.toExponential(2)} D** `
+    + `(${R.bloque3_beneficio.termino_cruzado.peor_celda.ojo}, σ_bio ${R.bloque3_beneficio.termino_cruzado.peor_celda.sigma_bio_mm} / `
+    + `σ_m ${R.bloque3_beneficio.termino_cruzado.peor_celda.sigma_medida_mm}). `
+    + R.bloque3_beneficio.termino_cruzado.lectura,
   `- Verificación Monte Carlo del método (${R.bloque3_beneficio.verificacion_montecarlo.celda}): `
     + `cuadratura ${fmt(R.bloque3_beneficio.verificacion_montecarlo.cuadratura_d)} vs MC `
     + `${fmt(R.bloque3_beneficio.verificacion_montecarlo.montecarlo_n20000_d)} `
@@ -737,7 +825,14 @@ const md = [
   '  alrededor de posGeom); la inestabilidad de la elección es OTRA pregunta (V1.12,',
   '  raytraceChoiceStability).',
   '- **NO modela el ruido de medida alrededor del ecuador desplazado**: ambos brazos se',
-  `  evalúan alrededor de posGeom, descartando el término cruzado 2c·ε_bio·ε_med. ${CONFIG.aproximacion_brazo_eq.split('Cota en esta rejilla: ')[1]}`,
+  '  evalúan alrededor de posGeom, descartando el término cruzado ε_bio × ε_med, cuyo peor caso',
+  `  MEDIDO es ${R.bloque3_beneficio.termino_cruzado.cota_medida_d.toExponential(2)} D — comparable al canal de no-linealidad, así que no puede`,
+  '  invocarse para descartar efectos de ese tamaño.',
+  '- **NO demuestra que la respuesta a la posición sea lineal.** El canal de no-linealidad sale',
+  '  ~1e-5 D por CANCELACIÓN estructural del término cuadrático en E|·| bajo perturbación',
+  '  simétrica, no porque la respuesta sea recta: su curvatura medida es ≈ -0.087 D/mm² y el',
+  '  desvío de la recta a ±0.8 mm ≈ -0.056 D. Con otra métrica (percentil, cola unilateral, ε',
+  '  sesgado, refracción con signo) la curvatura entra entera.',
   '- **NO publica una potencia trazada absoluta convergida en muestreo**: el óptimo continuo',
   '  trazado es el del haz DECLARADO de 40 anillos y arrastra ~−8e-3 D de discretización (cota',
   '  medida arriba); lo comparable entre motores es la RESPUESTA a δ, de modo común.',

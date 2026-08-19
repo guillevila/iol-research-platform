@@ -48,7 +48,7 @@
    "truncamiento_sigmas": 4,
    "nota": "Simpson compuesto partido en δ=0 (|f| tiene vértice ahí), por lado [0, 4σ]; la cola >4σ aporta P ≈ 6.3e-5 y sesga E|f| a la baja ~0.034 % (declarado)"
   },
-  "aproximacion_brazo_eq": "ambos brazos se evalúan alrededor de posGeom (misma estructura que exp006). En el mundo H_EQ el ruido de medida ocurre alrededor del ecuador VERDADERO (posGeom + ε_bio), así que el brazo EQ descarta el término cruzado 2c·ε_bio·ε_med de la respuesta cuadrática. Cota en esta rejilla: con s ≈ 2.3 D/mm y c ≈ 0.09 D/mm² (curvatura medida en el bloque 2), s/(2c·σ_bio) ≈ 40 ⇒ efecto sobre E|·| < 1e-6 D, dos órdenes por debajo del canal más pequeño. Con σ_bio grande o lentes de mayor curvatura dejaría de ser despreciable y habría que re-derivarlo.",
+  "aproximacion_brazo_eq": "ambos brazos se evalúan alrededor de posGeom (misma estructura que exp006). En el mundo H_EQ el ruido de medida ocurre alrededor del ecuador VERDADERO (posGeom + ε_bio), así que el brazo EQ descarta el término cruzado 2c·ε_bio·ε_med de la respuesta curvada. La cota NO se estima por orden de magnitud: se MIDE por cuadratura 2D sobre las 27 celdas (bloque3_beneficio.termino_cruzado). Corrección adversarial de cierre: la cota anterior («< 1e-6 D», derivada de s/(2c·σ_bio) ≈ 40) era OPTIMISTA en un orden de magnitud — el peor caso medido es ~1.3e-5 D, COMPARABLE al canal de no-linealidad, no dos órdenes por debajo. Sigue siendo dos órdenes por debajo de los canales de escalón y motor, pero no puede invocarse para descartar efectos del tamaño del de no-linealidad.",
   "seeds": {
    "mc_verificacion": 20260818,
    "v112": 20260819
@@ -64,8 +64,8 @@
    }
   }
  },
- "timestamp": "2026-08-19T13:45:04.419Z",
- "commit": "a5cbc9cb00d8c2042a4c4440a4085f6e539db027",
+ "timestamp": "2026-08-19T14:02:11.350Z",
+ "commit": "0bf5f689c7d58a3d8a21bb131c69a14a9ac5ef44",
  "procedencia_commit": "último commit AL GENERAR: la reproducibilidad la garantiza scripts/check_experiments.mjs, no este campo (hallazgo V1.3)",
  "autotest_cuadratura": {
   "funcion": "f(δ) = 1.7·δ, σ = 0.3",
@@ -155,6 +155,8 @@
    "dominio_refraccion": {
     "sens_delgada_d_mm": 2.257386,
     "sens_gruesa_d_mm": 2.309326,
+    "curvatura_d_mm2": -0.087286,
+    "desvio_de_la_recta_a_08mm_d": -0.055899,
     "curvatura": [
      {
       "delta_mm": -0.8,
@@ -302,6 +304,8 @@
    "dominio_refraccion": {
     "sens_delgada_d_mm": 1.346894,
     "sens_gruesa_d_mm": 1.389483,
+    "curvatura_d_mm2": -0.040782,
+    "desvio_de_la_recta_a_08mm_d": -0.026174,
     "curvatura": [
      {
       "delta_mm": -0.8,
@@ -449,6 +453,8 @@
    "dominio_refraccion": {
     "sens_delgada_d_mm": 0.635844,
     "sens_gruesa_d_mm": 0.636223,
+    "curvatura_d_mm2": -0.015138,
+    "desvio_de_la_recta_a_08mm_d": -0.009714,
     "curvatura": [
      {
       "delta_mm": -0.8,
@@ -1327,13 +1333,282 @@
    "delta_relativo": 0.001162
   },
   "convergencia_haz": {
-   "celda": "ojo corto, potencia continua trazada, pupila 3 mm",
+   "celda": "ojo corto, potencia continua trazada, pupila 3 mm, tol 1e-7",
    "n_anillos_publicado": 40,
-   "n_anillos_referencia": 160,
-   "sesgo_absoluto_d": -0.008205,
-   "sesgo_respuesta_mas_04_d": -0.000425,
-   "sesgo_respuesta_menos_04_d": 0.000392,
-   "nota": "el ABSOLUTO de potencia trazada NO está convergido en muestreo (~-8e-3 D con 40 anillos, y 160→320 aún deriva): léase como óptimo del haz DECLARADO, no como valor convergido. La RESPUESTA a δ (lo que entra en los canales) es de modo común y su residuo es ~1 % del canal motor — cota publicada aquí, no asumida."
+   "absoluto_d": {
+    "40": 31.369485,
+    "160": 31.37769,
+    "320": 31.379058
+   },
+   "absoluto_delta_40_160_d": -0.008205,
+   "absoluto_delta_160_320_d": -0.001368,
+   "absoluto_convergido": false,
+   "respuesta_mas_04_d": {
+    "40": 1.338213,
+    "160": 1.338638,
+    "320": 1.338709
+   },
+   "respuesta_delta_40_320_d": -0.000496,
+   "respuesta_desviacion_relativa_40_vs_320": 0.000371,
+   "nota": "DOS conclusiones distintas, medidas a 40/160/320 anillos. (1) El ABSOLUTO de potencia trazada NO está convergido y sigue derivando en cada refinamiento (40→160 y 160→320 del mismo signo): NO es una potencia física convergida y ninguna afirmación debe tratarlo como tal — es el óptimo del haz DECLARADO de 40 anillos. (2) La RESPUESTA a δ, que es lo único que entra en los canales, sí converge: su desviación relativa entre 40 y 320 anillos queda publicada arriba (~0.04 %), y el sesgo residual que arrastra al canal motor es del orden de 5e-4 D sobre canales de 3e-3 a 3e-2 D. Solo la respuesta diferencial es interpretable."
+  },
+  "termino_cruzado": {
+   "celdas": [
+    {
+     "ojo": "corto",
+     "sigma_bio_mm": 0.2,
+     "sigma_medida_mm": 0.05,
+     "brazo_eq_exacto_d": 0.090026,
+     "brazo_eq_aproximado_d": 0.090027,
+     "termino_descartado_d": -0.000001,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "corto",
+     "sigma_bio_mm": 0.2,
+     "sigma_medida_mm": 0.1,
+     "brazo_eq_exacto_d": 0.180053,
+     "brazo_eq_aproximado_d": 0.180054,
+     "termino_descartado_d": -0.000001,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "corto",
+     "sigma_bio_mm": 0.2,
+     "sigma_medida_mm": 0.2,
+     "brazo_eq_exacto_d": 0.360104,
+     "brazo_eq_aproximado_d": 0.360107,
+     "termino_descartado_d": -0.000002,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "corto",
+     "sigma_bio_mm": 0.3,
+     "sigma_medida_mm": 0.05,
+     "brazo_eq_exacto_d": 0.090026,
+     "brazo_eq_aproximado_d": 0.090027,
+     "termino_descartado_d": -0.000001,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "corto",
+     "sigma_bio_mm": 0.3,
+     "sigma_medida_mm": 0.1,
+     "brazo_eq_exacto_d": 0.180051,
+     "brazo_eq_aproximado_d": 0.180054,
+     "termino_descartado_d": -0.000002,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "corto",
+     "sigma_bio_mm": 0.3,
+     "sigma_medida_mm": 0.2,
+     "brazo_eq_exacto_d": 0.360102,
+     "brazo_eq_aproximado_d": 0.360107,
+     "termino_descartado_d": -0.000005,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "corto",
+     "sigma_bio_mm": 0.4,
+     "sigma_medida_mm": 0.05,
+     "brazo_eq_exacto_d": 0.090025,
+     "brazo_eq_aproximado_d": 0.090027,
+     "termino_descartado_d": -0.000002,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "corto",
+     "sigma_bio_mm": 0.4,
+     "sigma_medida_mm": 0.1,
+     "brazo_eq_exacto_d": 0.180049,
+     "brazo_eq_aproximado_d": 0.180054,
+     "termino_descartado_d": -0.000004,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "corto",
+     "sigma_bio_mm": 0.4,
+     "sigma_medida_mm": 0.2,
+     "brazo_eq_exacto_d": 0.360098,
+     "brazo_eq_aproximado_d": 0.360107,
+     "termino_descartado_d": -0.000009,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "normal",
+     "sigma_bio_mm": 0.2,
+     "sigma_medida_mm": 0.05,
+     "brazo_eq_exacto_d": 0.053715,
+     "brazo_eq_aproximado_d": 0.053716,
+     "termino_descartado_d": -0.000001,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "normal",
+     "sigma_bio_mm": 0.2,
+     "sigma_medida_mm": 0.1,
+     "brazo_eq_exacto_d": 0.10743,
+     "brazo_eq_aproximado_d": 0.107431,
+     "termino_descartado_d": -0.000002,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "normal",
+     "sigma_bio_mm": 0.2,
+     "sigma_medida_mm": 0.2,
+     "brazo_eq_exacto_d": 0.214858,
+     "brazo_eq_aproximado_d": 0.214861,
+     "termino_descartado_d": -0.000003,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "normal",
+     "sigma_bio_mm": 0.3,
+     "sigma_medida_mm": 0.05,
+     "brazo_eq_exacto_d": 0.053714,
+     "brazo_eq_aproximado_d": 0.053716,
+     "termino_descartado_d": -0.000002,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "normal",
+     "sigma_bio_mm": 0.3,
+     "sigma_medida_mm": 0.1,
+     "brazo_eq_exacto_d": 0.107428,
+     "brazo_eq_aproximado_d": 0.107431,
+     "termino_descartado_d": -0.000004,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "normal",
+     "sigma_bio_mm": 0.3,
+     "sigma_medida_mm": 0.2,
+     "brazo_eq_exacto_d": 0.214854,
+     "brazo_eq_aproximado_d": 0.214861,
+     "termino_descartado_d": -0.000007,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "normal",
+     "sigma_bio_mm": 0.4,
+     "sigma_medida_mm": 0.05,
+     "brazo_eq_exacto_d": 0.053713,
+     "brazo_eq_aproximado_d": 0.053716,
+     "termino_descartado_d": -0.000003,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "normal",
+     "sigma_bio_mm": 0.4,
+     "sigma_medida_mm": 0.1,
+     "brazo_eq_exacto_d": 0.107425,
+     "brazo_eq_aproximado_d": 0.107431,
+     "termino_descartado_d": -0.000006,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "normal",
+     "sigma_bio_mm": 0.4,
+     "sigma_medida_mm": 0.2,
+     "brazo_eq_exacto_d": 0.214848,
+     "brazo_eq_aproximado_d": 0.214861,
+     "termino_descartado_d": -0.000013,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "largo",
+     "sigma_bio_mm": 0.2,
+     "sigma_medida_mm": 0.05,
+     "brazo_eq_exacto_d": 0.025358,
+     "brazo_eq_aproximado_d": 0.025358,
+     "termino_descartado_d": 0,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "largo",
+     "sigma_bio_mm": 0.2,
+     "sigma_medida_mm": 0.1,
+     "brazo_eq_exacto_d": 0.050716,
+     "brazo_eq_aproximado_d": 0.050716,
+     "termino_descartado_d": -0.000001,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "largo",
+     "sigma_bio_mm": 0.2,
+     "sigma_medida_mm": 0.2,
+     "brazo_eq_exacto_d": 0.101431,
+     "brazo_eq_aproximado_d": 0.101432,
+     "termino_descartado_d": -0.000001,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "largo",
+     "sigma_bio_mm": 0.3,
+     "sigma_medida_mm": 0.05,
+     "brazo_eq_exacto_d": 0.025358,
+     "brazo_eq_aproximado_d": 0.025358,
+     "termino_descartado_d": -0.000001,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "largo",
+     "sigma_bio_mm": 0.3,
+     "sigma_medida_mm": 0.1,
+     "brazo_eq_exacto_d": 0.050715,
+     "brazo_eq_aproximado_d": 0.050716,
+     "termino_descartado_d": -0.000001,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "largo",
+     "sigma_bio_mm": 0.3,
+     "sigma_medida_mm": 0.2,
+     "brazo_eq_exacto_d": 0.10143,
+     "brazo_eq_aproximado_d": 0.101432,
+     "termino_descartado_d": -0.000003,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "largo",
+     "sigma_bio_mm": 0.4,
+     "sigma_medida_mm": 0.05,
+     "brazo_eq_exacto_d": 0.025357,
+     "brazo_eq_aproximado_d": 0.025358,
+     "termino_descartado_d": -0.000001,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "largo",
+     "sigma_bio_mm": 0.4,
+     "sigma_medida_mm": 0.1,
+     "brazo_eq_exacto_d": 0.050714,
+     "brazo_eq_aproximado_d": 0.050716,
+     "termino_descartado_d": -0.000002,
+     "masa_excluida_por_la_puerta": 0
+    },
+    {
+     "ojo": "largo",
+     "sigma_bio_mm": 0.4,
+     "sigma_medida_mm": 0.2,
+     "brazo_eq_exacto_d": 0.101428,
+     "brazo_eq_aproximado_d": 0.101432,
+     "termino_descartado_d": -0.000004,
+     "masa_excluida_por_la_puerta": 0
+    }
+   ],
+   "peor_celda": {
+    "ojo": "normal",
+    "sigma_bio_mm": 0.4,
+    "sigma_medida_mm": 0.2,
+    "brazo_eq_exacto_d": 0.214848,
+    "brazo_eq_aproximado_d": 0.214861,
+    "termino_descartado_d": -0.000013,
+    "masa_excluida_por_la_puerta": 0
+   },
+   "cota_medida_d": 0.000013,
+   "lectura": "MEDIDO por cuadratura 2D, no estimado: el término ε_bio × ε_med que el brazo EQ descarta vale como máximo ~1.3e-5 D en esta rejilla (peor celda: ojo normal, σ_bio 0.40 / σ_m 0.20). Es COMPARABLE al canal de no-linealidad (≤1.4e-5 D) y dos órdenes por debajo de los canales de escalón y motor. La cota analítica anterior («< 1e-6 D») era optimista en un orden de magnitud y se ha retirado."
   },
   "verificacion_montecarlo": {
    "celda": "normal, dominio refracción gruesa, σ = 0.30 mm",
@@ -1342,6 +1617,7 @@
    "desviacion_relativa": 0.010213,
    "nota": "tolerancia esperable ~3 %: SE del MC (~0.6 %) + defecto del LCG de makeRng (infla varianza 1.3-2.8 %, medido en V1.12) + truncamiento declarado de la cuadratura (0.034 %)"
   },
+  "aviso_no_linealidad": "EL CANAL DE NO-LINEALIDAD ES PEQUEÑO POR CANCELACIÓN, NO PORQUE LA RESPUESTA SEA LINEAL (corrección adversarial de cierre — la lectura anterior invitaba a la generalización falsa). La respuesta refractiva a δ SÍ está curvada: curvatura medida ≈ -0.087 D/mm² en el ojo corto, y el desvío respecto de la recta a δ = ±0.8 mm es ≈ -0.056 D — TRES órdenes de magnitud por encima del canal. El canal sale ~1e-5 D porque, para una perturbación de distribución SIMÉTRICA y una métrica E|·|, el término cuadrático se cancela EXACTAMENTE: con f(δ) = s·δ + c·δ², |f| vale s·δ + c·δ² a la derecha y s|δ| − c·δ² a la izquierda, así que E|f| = s·E|δ| + c·(E[δ²·1_{δ>0}] − E[δ²·1_{δ<0}]) = s·E|δ| (verificado numéricamente: el residuo es cero de máquina, 6.7e-16 D, para c = 0.09 y c = 0.5). Lo que sobrevive (~1e-5 D) son los términos de orden impar (cúbico+), no la curvatura. CONSECUENCIA: la linealización de exp006 está justificada PARA ESTA MÉTRICA (E|error| con ε simétrico y centrado) y NO puede extrapolarse. Cualquier métrica que rompa la simetría — un percentil, una cola unilateral, un ε_bio sesgado, o la media de la refracción CON signo — vería la curvatura entera.",
   "lectura_canales": "cada canal cambia UNA sola cosa (corrección adversarial V1.11): residuo_estimador_exp006 = mismo modelo lineal, cuadratura determinista vs el MC congelado de exp006 (SE con n=6000 + defecto del LCG + redondeo a 3 decimales — NO es física); canal_fisica_linealizacion = misma potencia y mismo estimador, respuesta lineal vs re-evaluada; canal_potencia_sonda = misma respuesta delgada, sondeada en la potencia del escalón del otro motor (cuantización de 0.5 D); canal_lente_puro = MISMA potencia, lente delgada vs gruesa. La suma de los cuatro telescopa exactamente a (beneficio_gruesa_reevaluada − beneficio_publicado_exp006)."
  },
  "bloque4_v112": {

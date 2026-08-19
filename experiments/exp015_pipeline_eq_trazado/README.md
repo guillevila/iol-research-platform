@@ -1,6 +1,6 @@
 # exp015 — Pipeline EQ (V1.11): H_EQ a través del pipeline físico real
 
-**SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada** · commit `a5cbc9cb00`
+**SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada** · commit `0bf5f689c7`
 
 **Hipótesis declarada:** H_EQ: posicion de LIO = ecuador capsular; ecuador = ACD + LT/2 + eps_bio (DECLARADA, no hecho). Nada de esto la valida biológicamente.
 La conversión posición→resultado de exp006 (linealización paraxial de lente delgada) se
@@ -77,6 +77,9 @@ medido en V1.12, más su redondeo a 3 decimales).
 | largo | 0.4 | 0.1540 | 0.1522 | -1.84e-3 | -5.00e-6 | 0.00e+0 | 9.10e-5 |
 
 - cada canal cambia UNA sola cosa (corrección adversarial V1.11): residuo_estimador_exp006 = mismo modelo lineal, cuadratura determinista vs el MC congelado de exp006 (SE con n=6000 + defecto del LCG + redondeo a 3 decimales — NO es física); canal_fisica_linealizacion = misma potencia y mismo estimador, respuesta lineal vs re-evaluada; canal_potencia_sonda = misma respuesta delgada, sondeada en la potencia del escalón del otro motor (cuantización de 0.5 D); canal_lente_puro = MISMA potencia, lente delgada vs gruesa. La suma de los cuatro telescopa exactamente a (beneficio_gruesa_reevaluada − beneficio_publicado_exp006).
+
+> **EL CANAL DE NO-LINEALIDAD ES PEQUEÑO POR CANCELACIÓN, NO PORQUE LA RESPUESTA SEA LINEAL (corrección adversarial de cierre — la lectura anterior invitaba a la generalización falsa). La respuesta refractiva a δ SÍ está curvada: curvatura medida ≈ -0.087 D/mm² en el ojo corto, y el desvío respecto de la recta a δ = ±0.8 mm es ≈ -0.056 D — TRES órdenes de magnitud por encima del canal. El canal sale ~1e-5 D porque, para una perturbación de distribución SIMÉTRICA y una métrica E|·|, el término cuadrático se cancela EXACTAMENTE: con f(δ) = s·δ + c·δ², |f| vale s·δ + c·δ² a la derecha y s|δ| − c·δ² a la izquierda, así que E|f| = s·E|δ| + c·(E[δ²·1_{δ>0}] − E[δ²·1_{δ<0}]) = s·E|δ| (verificado numéricamente: el residuo es cero de máquina, 6.7e-16 D, para c = 0.09 y c = 0.5). Lo que sobrevive (~1e-5 D) son los términos de orden impar (cúbico+), no la curvatura. CONSECUENCIA: la linealización de exp006 está justificada PARA ESTA MÉTRICA (E|error| con ε simétrico y centrado) y NO puede extrapolarse. Cualquier métrica que rompa la simetría — un percentil, una cola unilateral, un ε_bio sesgado, o la media de la refracción CON signo — vería la curvatura entera.**
+
 - **Corrección adversarial de este sprint:** la primera versión publicaba un «canal
   linealización» y un «canal lente» que eran, respectivamente, ~99 % ruido del estimador
   del ancla y ~100 % efecto de sondear cada motor en su propio escalón de 0.5 D — con el
@@ -103,7 +106,9 @@ tabla anterior ni se restan de ellas: son dos dominios distintos que comparten e
 
 - **Ancla de refutación** — diagonal σ_m = σ_bio = 0.2: beneficio ≡ 0 por construcción (misma integral en ambos brazos): **VERIFICADO** (el 0 de exp006 también era por construcción: extracciones emparejadas).
 - Convergencia de la cuadratura (celda trazada, σ 0.3): 16 vs 8 intervalos → delta relativo 0.1162 %.
-- **Convergencia del haz** (ojo corto, potencia continua trazada, pupila 3 mm, 40 vs 160 anillos): sesgo del ABSOLUTO -8.21e-3 D; sesgo de la RESPUESTA a δ = ±0.4 mm -4.25e-4 / 3.92e-4 D. el ABSOLUTO de potencia trazada NO está convergido en muestreo (~-8e-3 D con 40 anillos, y 160→320 aún deriva): léase como óptimo del haz DECLARADO, no como valor convergido. La RESPUESTA a δ (lo que entra en los canales) es de modo común y su residuo es ~1 % del canal motor — cota publicada aquí, no asumida.
+- **Convergencia del haz** (ojo corto, potencia continua trazada, pupila 3 mm, tol 1e-7), medida a 40/160/320 anillos:
+  el ABSOLUTO deriva -8.21e-3 D (40→160) y -1.37e-3 D (160→320), mismo signo: **NO convergido**, no es una potencia física. La RESPUESTA a δ = +0.4 mm varía -4.96e-4 D entre 40 y 320 anillos (0.037 % relativo): es la única magnitud interpretable de este dominio.
+- **Término cruzado ε_bio × ε_med** (MEDIDO por cuadratura 2D en las 27 celdas): peor caso **1.30e-5 D** (normal, σ_bio 0.4 / σ_m 0.2). MEDIDO por cuadratura 2D, no estimado: el término ε_bio × ε_med que el brazo EQ descarta vale como máximo ~1.3e-5 D en esta rejilla (peor celda: ojo normal, σ_bio 0.40 / σ_m 0.20). Es COMPARABLE al canal de no-linealidad (≤1.4e-5 D) y dos órdenes por debajo de los canales de escalón y motor. La cota analítica anterior («< 1e-6 D») era optimista en un orden de magnitud y se ha retirado.
 - Verificación Monte Carlo del método (normal, dominio refracción gruesa, σ = 0.30 mm): cuadratura 0.3325 vs MC 0.3359 (desviación 1.02 %). tolerancia esperable ~3 %: SE del MC (~0.6 %) + defecto del LCG de makeRng (infla varianza 1.3-2.8 %, medido en V1.12) + truncamiento declarado de la cuadratura (0.034 %)
 
 ## 4 · Integración V1.12: la hipótesis con incertidumbre auditable
@@ -126,7 +131,14 @@ tabla anterior ni se restan de ellas: son dos dominios distintos que comparten e
   alrededor de posGeom); la inestabilidad de la elección es OTRA pregunta (V1.12,
   raytraceChoiceStability).
 - **NO modela el ruido de medida alrededor del ecuador desplazado**: ambos brazos se
-  evalúan alrededor de posGeom, descartando el término cruzado 2c·ε_bio·ε_med. con s ≈ 2.3 D/mm y c ≈ 0.09 D/mm² (curvatura medida en el bloque 2), s/(2c·σ_bio) ≈ 40 ⇒ efecto sobre E|·| < 1e-6 D, dos órdenes por debajo del canal más pequeño. Con σ_bio grande o lentes de mayor curvatura dejaría de ser despreciable y habría que re-derivarlo.
+  evalúan alrededor de posGeom, descartando el término cruzado ε_bio × ε_med, cuyo peor caso
+  MEDIDO es 1.30e-5 D — comparable al canal de no-linealidad, así que no puede
+  invocarse para descartar efectos de ese tamaño.
+- **NO demuestra que la respuesta a la posición sea lineal.** El canal de no-linealidad sale
+  ~1e-5 D por CANCELACIÓN estructural del término cuadrático en E|·| bajo perturbación
+  simétrica, no porque la respuesta sea recta: su curvatura medida es ≈ -0.087 D/mm² y el
+  desvío de la recta a ±0.8 mm ≈ -0.056 D. Con otra métrica (percentil, cola unilateral, ε
+  sesgado, refracción con signo) la curvatura entra entera.
 - **NO publica una potencia trazada absoluta convergida en muestreo**: el óptimo continuo
   trazado es el del haz DECLARADO de 40 anillos y arrastra ~−8e-3 D de discretización (cota
   medida arriba); lo comparable entre motores es la RESPUESTA a δ, de modo común.
