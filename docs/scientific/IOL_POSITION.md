@@ -19,6 +19,14 @@ principal/central de la LIO**, en mm, sobre el eje óptico (+z hacia retina). No
 "ELP" de una fórmula concreta ni la ACD postoperatoria medida a superficie anterior de
 la lente; las conversiones entre convenciones deben ser explícitas (OPEN_QUESTIONS #3).
 
+> **El motor no honra hoy este contrato al pie de la letra, y conviene saberlo**
+> (auditoría V1.15). Los constructores de ojo posicionan la lente gruesa por su **CENTRO
+> geométrico**, que solo coincide con el plano principal en lentes simétricas; para una
+> asimétrica plausible el sesgo medido es ~0.3 mm ≈ 0.4 D. El supuesto **se registra** en
+> `assumptions` y **bloquea en STRICT**, así que no pasa inadvertido — pero el contrato
+> completo exige implementar el posicionamiento por planos principales calculados de la
+> geometría, que sigue pendiente (parte interna de OQ #3).
+
 ## Interfaz
 
 ```js
@@ -47,9 +55,12 @@ y su salida lo refleja — la posición sigue siendo PREDICHA, nunca medida.
 ## Programa experimental (con la plataforma actual, sin datos clínicos)
 
 1. **Sensibilidad** (exp001): cuantificar Δrefracción por Δposición en ojos cortos /
-   normales / largos y potencias altas/bajas → fija qué precisión de predicción hace
-   falta para ser clínicamente irrelevante (<0.25 D).
-2. **Capacidad informativa** (Sprint 8 — ejecutado en `experiments/exp006_capacidad_eq`):
+   normales / largos y potencias altas/bajas → fija qué precisión de posición mantendría la
+   divergencia por debajo de un criterio DECLARADO. Ese criterio (0.25 D, el escalón habitual
+   de redondeo en refracción escrita) es una elección de este proyecto, **no** un umbral
+   clínico con respaldo aportado aquí; ver `experiments/exp001_sensibilidad_elp/ERRATA.md`.
+2. **Capacidad informativa** (Sprint 8 del plan de **V0** — no confundir con V1.8 —,
+   ejecutado en `experiments/exp006_capacidad_eq`):
    bajo la hipótesis declarada H_EQ (LIO en el ecuador capsular; ecuador = ACD+LT/2 +
    desvío biológico σ_bio) y con σ_bio/σ_m **DECLARADAS sin procedencia medida** (OQ #6),
    un estimador del ecuador con σ_m solo tiene menor divergencia de posición esperada que

@@ -1,6 +1,8 @@
 # OPTICAL_MODEL — Motor paraxial propio
 
-**Versión:** 1.0 · **Fecha:** 10/08/2026 · RESEARCH USE ONLY
+**Versión:** 1.1 · **Fecha:** 19/08/2026 · RESEARCH USE ONLY
+*(v1.1, auditoría de cierre de V1: el documento no se había tocado desde el Sprint 2 de V0.
+Describe el motor PARAXIAL; el de trazado y el pipeline completo están en `RAY_TRACING.md`.)*
 
 ## Naturaleza del modelo
 
@@ -16,7 +18,11 @@ Con ellas se compone cualquier sistema (`propagate`). El signo de las distancias
 
 ## Córnea
 
-Dos representaciones, elegidas por la capa superior según los datos disponibles:
+El motor paraxial admite **cuatro políticas corneales declaradas** (`CorneaPolicy` en
+`src/optics/cornea.mjs`): `KERATOMETRIC_READING`, `SINGLE_SURFACE_FROM_RADIUS`,
+`TWO_SURFACE_MEASURED` y `TWO_SURFACE_RATIO`. La política **viaja en toda salida**
+(`cornea_policy`) y su elección es una decisión de modelado declarada, no un valor por
+defecto heredado (OQ #7). Las dos representaciones de fondo son:
 
 1. **Física (preferida cuando hay radios):** lente gruesa de dos superficies
    `P = P1 + P2 − (t/n_c)·P1·P2` con `P1=(n_c−1)/r_ant`, `P2=(n_aq−n_c)/r_post`,
@@ -59,5 +65,8 @@ detectadas (foco en plano destino, LIO fuera del ojo).
 ## Límites conocidos del paraxial
 
 Primer orden: sin aberración esférica ni asfericidades; los efectos de apertura se
-estudian con el ray tracer (`RAY_TRACING.md`) y la comparación sistemática
-paraxial↔trazado es objeto del Sprint 4/11.
+estudian con el ray tracer (`RAY_TRACING.md`). La comparación sistemática paraxial↔trazado
+**ya está entregada**: `experiments/exp003_paraxial_vs_raytrace` (convergencia con apertura→0),
+`experiments/exp013_atlas_divergencia` (atlas AL×K×pupila) y el contrato de comparabilidad de
+`src/bench/` (V1.8), que exige la MISMA geometría de lente en ambos motores para que la
+comparación no mezcle modelo óptico con modelo de lente.

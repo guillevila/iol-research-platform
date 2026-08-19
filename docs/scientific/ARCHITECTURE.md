@@ -49,8 +49,15 @@ BANCO   Rendimiento               bench/                  workloads, equivalenci
 - `src/` **no importa nada** de `legacy/` (el benchmark se consume solo vía la API en
   la capa de experimentos/bench, nunca dentro de la física).
 - Los coeficientes del legacy son ajustes a EVO: prohibida su migración a `src/`.
-- `core` no depende de `optics`; `optics` no depende de `predictors`; los experimentos
-  dependen de todo (capa superior).
+- `optics` no depende de `predictors` (verificado: cero imports). Los experimentos dependen
+  de todo (capa superior).
+- **Excepción declarada** (auditoría V1.15): `core` **sí** depende de `optics` en un punto —
+  `src/core/iol_factory.mjs` importa `N_AQUEOUS` de `optics/constants.mjs`, porque derivar
+  la geometría de una lente a partir de su potencia exige el índice del medio que la rodea.
+  Hasta V1.15 este documento afirmaba lo contrario como contrato duro, y era falso. Se
+  declara la excepción en vez de fingir la regla: **una regla que el código incumple no es un
+  contrato, es una aspiración**. No la vigila ningún test (a diferencia de la independencia
+  `src/` ↛ `legacy/`, que sí tiene `tests/architecture.test.mjs`).
 
 ## Convenciones (contratos duros)
 
@@ -67,19 +74,18 @@ BANCO   Rendimiento               bench/                  workloads, equivalenci
 
 ## Flujo de una predicción física
 
-```
-preoperative_eye ──▶ IOLPositionPredictor ──▶ predicted_postoperative_eye
-                                                      │
-                    IOLModel (o genérica) ────────────┤
-                                                      ▼
-                              eyebuilder → sistema óptico (superficies + índices)
-                                                      │
-                          paraxial ◀── comparables ──▶ ray tracing
-                                                      ▼
-                        optimizador (potencia/cilindro/eje) + incertidumbre
-                                                      ▼
-                                            PredictionResult
-```
+El pipeline completo y vigente, con sus dos caminos (esférico y tórico), vive en
+**[`RAY_TRACING.md` §1](RAY_TRACING.md)** y no se duplica aquí: mantener dos diagramas del
+mismo pipeline garantiza que uno de los dos quede desincronizado — que es exactamente lo que
+pasó hasta V1.15, cuando este esquema afirmaba un «optimizador (potencia/cilindro/eje)» que
+**no existe**.
+
+> **Precisión importante.** `optimizePowerByRaytrace` busca **solo POTENCIA**, con objetivos
+> escalares. La dimensión tórica **no se optimiza por trazado**: el motor la *analiza* (métrica
+> 2D de `astigmatism.mjs`) y los objetivos escalares se **rechazan** sobre sistemas tóricos,
+> porque destruyen el astigmatismo y su eje. El motor tórico PARAXIAL de V0
+> (`src/toric/toric_engine.mjs`, `recommendToric`) sí recomienda cilindro y eje, pero es otra
+> vía y no usa trazado.
 
 ## Qué NO es esta plataforma (fase actual)
 

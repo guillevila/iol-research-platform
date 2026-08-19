@@ -1,6 +1,9 @@
 # LIMITATIONS — Limitaciones vigentes de la plataforma
 
-**Versión:** 1.1 · **Fecha:** 11/08/2026 · RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
+**Versión:** 1.2 · **Fecha:** 19/08/2026 · RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
+*(v1.2, auditoría de cierre de V1: el documento se había quedado en V1.6 — no registraba el
+predictor H_EQ, ni una sola limitación del sistema de incertidumbre, ni los límites numéricos
+que V1.9/V1.11/V1.12/V1.14 midieron. Ver también [`../V1_CLOSURE.md` §5](../V1_CLOSURE.md).)*
 
 ## Limitaciones de fondo (fase actual)
 
@@ -8,10 +11,19 @@
    predicción clínica validada; toda refracción simulada está etiquetada como
    SIMULACIÓN. Prohibido: tratarla como ground truth, entrenar ML contra ella o
    declarar superioridad sobre ninguna fórmula.
-2. **Predictores de posición no calibrados.** Los disponibles usan parámetros
-   declarados (offset constante, fracción de AL) y sirven solo para sensibilidad y
-   estructura; los de literatura están BLOCKED hasta tener fuente con coeficientes
-   (OPEN_QUESTIONS #2) y el ML hasta tener datos reales.
+2. **Predictores de posición no calibrados.** Los disponibles usan parámetros declarados
+   (offset constante, fracción de AL) o una hipótesis geométrica declarada
+   (`EquatorialPlanePredictor`, desde V1.11), y sirven solo para sensibilidad y estructura;
+   los de literatura están BLOCKED hasta tener fuente con coeficientes (OPEN_QUESTIONS #2) y
+   el ML hasta tener datos reales.
+2 bis. **H_EQ es una hipótesis, no un hecho.** `EquatorialPlanePredictor` implementa una
+   hipótesis de DOS cláusulas separables —(i) la LIO se asienta en el ecuador capsular;
+   (ii) ese ecuador se aproxima preoperatoriamente por ACD + LT/2, con residual biológico
+   ε_bio— y **ninguna de las dos está validada**. No tiene parámetros libres ni calibración.
+   Escribirla como «H_EQ = ACD + LT/2» la convertiría en una definición irrefutable: el proxy
+   no es la hipótesis. Validarla exige posición de LIO **medida** en cohorte postoperatoria.
+   Nota adicional: el predictor **calcula** el ecuador; el ecuador **medido** por OCT
+   (`lens_eq_plane_mm`) sigue siendo un campo reservado y sin consumir (OQ #3, #10).
 3. **Geometría de LIO comercial desconocida.** El ray tracing solo puede trazar
    geometría numérica completa. Sin ficha de fabricante, una LIO comercial queda con
    `geometry_status = UNKNOWN` y el trazado FALLA explícitamente en vez de sustituirla
@@ -97,6 +109,43 @@
 11. Rangos uniformes declarados, no distribuciones poblacionales: los agregados de
    experimentos aleatorios se leen condicionalmente (OPEN_QUESTIONS #5,
    SYNTHETIC_DATA.md).
+
+## Limitaciones del sistema de incertidumbre (V1.12)
+
+12. **Toda sigma es un ESCENARIO DECLARADO, no una distribución medida** (OQ #6). Ningún
+    percentil ni intervalo publicado por la capa de incertidumbre es un intervalo de
+    paciente: describe un mundo declarado, no una población observada.
+13. **La correlación entre variables, si se declara, también es un escenario.** Por defecto
+    se asume INDEPENDENCIA, y esa asunción viaja explícita en la salida.
+14. **La distribución publicada puede estar CENSURADA.** Si alguna extracción cae fuera de
+    los rangos de plausibilidad del modelo, se rechaza y se cuenta: las colas quedan
+    truncadas y la desviación típica publicada está sesgada a la baja. La salida lo advierte
+    (`advertencia_censura`) en lugar de callarlo.
+15. **Dos preguntas distintas que no se resumen una en la otra:** la incertidumbre del
+    RESULTADO con una lente fija (continua) y la INESTABILIDAD DE LA ELECCIÓN de escalón
+    (discreta). Publicar solo la primera oculta con qué frecuencia cambiaría la lente elegida.
+16. **El Monte Carlo paraxial heredado (`montecarlo.mjs`) tiene defectos medidos** que se
+    conservan por reproducibilidad de exp004: su PRNG (LCG) infla la varianza de las normales
+    un 1.3–2.8 % según semilla, y su convención de percentil (redondeo) difiere de la
+    interpolación lineal que usan los módulos nuevos.
+
+## Límites numéricos medidos del motor (V1.9 · V1.11 · V1.12 · V1.14)
+
+17. **El muestreo del haz introduce un sesgo de cuadratura ~O(1/n_anillos)** que afecta a
+    valores absolutos (nominal, media, percentiles) pero no a magnitudes de modo común como
+    la desviación típica. Con `n_anillos = 5` llegó a sobreestimar |ΔP| ~7 %, y el ancla
+    apertura→0 **no lo detectaba**.
+18. **La potencia trazada absoluta no está convergida en muestreo** (deriva ~−8e−3 D entre 40
+    y 160 anillos, y sigue derivando a 320). Entre motores solo es interpretable la
+    **respuesta diferencial**.
+19. **El ancla apertura→0 valida el límite, no la pupila finita.** Que el trazado converja al
+    paraxial cuando la apertura tiende a cero no demuestra que toda divergencia a pupila
+    finita sea «la apertura».
+20. **Bicónica, incidencias rasantes:** un doble cruce a distancia sub-muestra (tangencia casi
+    exacta) se pierde CONTABILIZADO; nunca se devuelve la rama lejana.
+21. **`SQUARE_GRID` es no convergente** (limitación medida, no defecto oculto).
+22. **Rendimiento:** los buffers reutilizables de la métrica de spot crecen y no encogen
+    (≈1.25 MiB en el peor haz que el motor puede generar). Ver `bench/REPORT_V1_14.md`.
 
 ## Regulatorio
 

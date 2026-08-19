@@ -29,8 +29,9 @@ Cada pregunta se revisó **contra el código**, no contra su propia redacción. 
 | #11 | Marcas de LIO tórica ↔ eje de la geometría | **ABIERTA · EXTERNA** | ficha de fabricante con esa relación |
 
 **Ninguna** de las once se resolvió escribiendo código, y eso es coherente con lo que son:
-la mayoría son dependencias del mundo exterior. Las dos PARCIALES lo son porque V1 construyó
-la maquinaria que las consumirá, no porque haya respondido la pregunta científica.
+la mayoría son dependencias del mundo exterior: **8 ABIERTAS · EXTERNAS y 3 PARCIALES**
+(#3, #6, #8). Las tres PARCIALES lo son porque V1 construyó la maquinaria que las consumirá
+—o cerró una sub-pregunta concreta—, no porque haya respondido la pregunta científica.
 
 ---
 
@@ -169,7 +170,8 @@ la maquinaria que las consumirá, no porque haya respondido la pregunta científ
   optimización** — mismo argmin, misma computación, distinta unidad (demostración en
   `objective.mjs`, tests en `objective_equivalence.test.mjs`). B pasó a métrica
   reportada. La única salvedad: al desempatar entre dos escalones de catálogo a lados
-  OPUESTOS del óptimo, la asimetría de la escala dióptrica (~2 % por semiescalón) podría
+  OPUESTOS del óptimo, la asimetría de la escala dióptrica (~0.7 % por semiescalón con la
+  pendiente del ojo de referencia; ver el cálculo en `objective.mjs`) podría
   en teoría hacer elegir distinto; solo afecta a empates al filo.
 - **Por qué importa lo que queda:** A y C sí son criterios distintos y, con geometría
   suficientemente asimétrica, darán potencias distintas. Elegir uno sin declararlo
@@ -204,7 +206,8 @@ la maquinaria que las consumirá, no porque haya respondido la pregunta científ
   0.0157 D con tilt ≤7.5° + descentración ≤0.75 mm (0.0025 sin pose): ~32 veces bajo el
   escalón de 0.5 D. Nota metodológica: la primera ejecución de exp010 dio "9.7 D" de
   separación — era la métrica de spot sobre el EJE mezclando prisma con desenfoque
-  (corregida a centroide en V1.3), no física. Siguiente candidato: el tórico (V1.6).
+  (corregida a centroide en V1.3), no física. El siguiente candidato del plan era el tórico
+  (V1.6) — y resultó no ser evaluable: ver el cierre del compromiso más arriba.
 - **Lo que exige zanjarlo:** cohorte postoperatoria. Ningún criterio se declara preferible
   mientras no exista; `compareObjectives()` existe precisamente para no tener que elegir.
 - **PROHIBIDO:** elegir criterio por proximidad a EVO o a cualquier otra calculadora.

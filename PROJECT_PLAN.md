@@ -3,6 +3,21 @@
 **Versión:** 1.0 · **Fecha:** 10/08/2026 · **Autor:** G. Vila (elaboración asistida por IA)
 **Estado regulatorio:** RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 
+> ## ⚠ DOCUMENTO HISTÓRICO — plan de **V0**, superado
+>
+> Este es el plan de **V0**, que se cerró el 10/08/2026 (Sprint 12). **No contiene ninguno de
+> los quince sprints de V1** y no describe el estado actual de la plataforma. Se conserva
+> intacto como registro de cómo se construyó V0.
+>
+> - Plan vigente de V1: [`docs/V1_PROJECT_PLAN.md`](docs/V1_PROJECT_PLAN.md)
+> - Qué es y qué NO demuestra la plataforma hoy: [`docs/V1_CLOSURE.md`](docs/V1_CLOSURE.md)
+> - Estado por sprint: [`CURRENT_SPRINT.md`](CURRENT_SPRINT.md)
+>
+> **Aviso de numeración:** los «Sprint N» de este documento son los de V0 y **no** se
+> corresponden con los «V1.N» del plan vigente. En particular, el Sprint 10 de V0 era el
+> Monte Carlo paraxial, mientras que V1.10 son los predictores de literatura, que siguen
+> BLOCKED.
+
 ## Objetivo científico
 
 Construir una plataforma capaz de predecir el resultado óptico postoperatorio mediante
