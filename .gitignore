@@ -8,3 +8,6 @@ Thumbs.db
 
 # Artefactos de la herramienta de asistencia (no son parte del proyecto)
 .claude/scheduled_tasks.lock
+# Scripts de verificación efímeros de revisiones adversariales (nunca se versionan)
+_verif_*.mjs
+_tmp_*.mjs
