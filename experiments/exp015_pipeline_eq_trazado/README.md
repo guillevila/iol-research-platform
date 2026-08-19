@@ -1,6 +1,6 @@
 # exp015 — Pipeline EQ (V1.11): H_EQ a través del pipeline físico real
 
-**SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada** · commit `8a1e44b5c3`
+**SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada** · commit `a5cbc9cb00`
 
 **Hipótesis declarada:** H_EQ: posicion de LIO = ecuador capsular; ecuador = ACD + LT/2 + eps_bio (DECLARADA, no hecho). Nada de esto la valida biológicamente.
 La conversión posición→resultado de exp006 (linealización paraxial de lente delgada) se
@@ -47,6 +47,16 @@ refracción SOLO intra-paraxial; entre motores, POTENCIA CONTINUA con la misma f
 
 ## 3 · Matriz de beneficio re-evaluada (columna σ_medida = 0.10 mm)
 
+> **CONDICIONAL, léase antes que cualquier número de esta sección.** «Beneficio» aquí
+> NO es un efecto clínico: es una consecuencia aritmética del mundo generativo declarado.
+> Toda cifra es condicional a **H_EQ** —hipótesis de dos cláusulas separables y NO
+> validada: (i) la LIO se asienta en el ecuador capsular; (ii) ese ecuador se aproxima
+> por ACD + LT/2 con residual ε_bio— **y** a σ_bio/σ_medida, que son ESCENARIOS
+> DECLARADOS sin procedencia medida: «rejilla de ESCENARIO DECLARADO reutilizada de exp006 (OQ #6) — no es repetibilidad real» (OQ #6).
+> La lente es `GenericIOLFactory`, un SUSTITUTO de simulación (OQ #4), no una lente
+> comercial. Si H_EQ es falsa, la tabla entera pierde su referente. Lectura inadmisible:
+> «medir el ecuador evita X dioptrías en pacientes».
+
 ### Dominio refracción (paraxial): un cambio por canal
 
 Cada columna de canal cambia **una sola cosa**. Los cuatro telescopan exactamente a
@@ -76,7 +86,10 @@ medido en V1.12, más su redondeo a 3 decimales).
 
 ### Dominio potencia continua (cruce de motores, misma factory)
 
-| Ojo | σ_bio | beneficio P gruesa (D) | beneficio P trazada (D) | canal motor óptico (D) |
+**Unidades: D de POTENCIA DE LIO, no de refracción.** No son comparables con las de la
+tabla anterior ni se restan de ellas: son dos dominios distintos que comparten el símbolo D.
+
+| Ojo | σ_bio | beneficio P gruesa (D_LIO) | beneficio P trazada (D_LIO) | canal motor óptico (D_LIO) |
 |---|---|---|---|---|
 | corto | 0.2 | 0.2677 | 0.2587 | -0.0090 |
 | corto | 0.3 | 0.5357 | 0.5178 | -0.0179 |
@@ -95,6 +108,7 @@ medido en V1.12, más su redondeo a 3 decimales).
 
 ## 4 · Integración V1.12: la hipótesis con incertidumbre auditable
 
+- **procedencia transportada**: hipótesis `H_EQ`, condicional_a_hipotesis = true — la marca viaja en la salida de la capa de incertidumbre, legible por máquina, para que ningún consumidor aguas abajo pueda tomar estas cifras por una posición medida.
 - outcome con equatorial_plane_geometric (inputs acd_mm, lt_mm): sd 0.6681 D · ratio MC/lineal 1.0009 · ancla nominal exacta: true
 - derivadas (D/unidad): acd_mm 2.0843 · lt_mm 1.0421 · position_prediction_mm 2.0852
 - σ_LT con un predictor que NO consume lt_mm: **RECHAZADA por inercia (correcto)** — `sigma lt_mm: VARIABLE INERTE en esta configuración — ni ±0.1 ni un paso de contraste (1) la mueven (p. ej. K con radios medidos, CCT con córnea de lectura, ACD con un predictor que no la consume). Su dispersión desaparecería en silencio: se rechaza en lugar de fingirse propagada.`

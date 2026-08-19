@@ -15,14 +15,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  EquatorialPlanePredictor, FractionOfALPredictor,
+  EquatorialPlanePredictor, FractionOfALPredictor, ConstantOffsetPredictor,
 } from '../src/predictors/iol_position.mjs';
 import { createPreopEye, createPredictedPostopEye } from '../src/core/eye.mjs';
 import { RESERVED_NAMES } from '../src/core/reserved.mjs';
 import { GenericIOLFactory } from '../src/core/iol_factory.mjs';
 import { SamplingKind } from '../src/optics/raytrace/bundle.mjs';
 import {
-  raytraceOutcomeUncertainty, SigmaTipo, PERTURBABLES,
+  raytraceOutcomeUncertainty, raytraceChoiceStability, SigmaTipo, PERTURBABLES,
 } from '../src/uncertainty/raytrace_uncertainty.mjs';
 
 const ojo = (extra = {}) => createPreopEye({
@@ -124,4 +124,47 @@ test('H_EQ · V1.12: causalidad — la MISMA σ_ACD produce derivada distinta co
   const heq = raytraceOutcomeUncertainty({ ...base, predictor: new EquatorialPlanePredictor() });
   assert.ok(heq.distribucion.sd_d > 0.05);
   assert.match(heq.parametros_declarados.predictor, /equatorial_plane_geometric/);
+});
+
+test('H_EQ · la procedencia de la HIPÓTESIS atraviesa la capa de incertidumbre', () => {
+  // hallazgo adversarial V1.11: antes solo viajaba predictor.id, así que un resultado
+  // condicional a una hipótesis no validada era indistinguible de uno que no lo era —
+  // y la puerta de fidelidad deja la posición fuera de STRICT precisamente porque
+  // «su procedencia viaja aparte». Ahora viaja, y es legible por máquina.
+  const r = raytraceOutcomeUncertainty({
+    preop: ojo(), iol: new GenericIOLFactory().create({ power_d: 21 }),
+    predictor: new EquatorialPlanePredictor(),
+    sigmas: { position_prediction_mm: sigma(0.3) },
+    n: 30, seed: 41, pupil_mm: 3.0,
+    sampling: { kind: SamplingKind.MERIDIONAL, n_anillos: 4 },
+  });
+  assert.equal(r.procedencia_posicion.hypothesis, 'H_EQ');
+  assert.equal(r.procedencia_posicion.condicional_a_hipotesis, true);
+  assert.match(r.procedencia_posicion.position_source, /H_EQ DECLARADA/);
+  assert.match(r.procedencia_posicion.nota, /NO está validada/);
+  assert.match(r.procedencia_posicion.nota, /PREDICHA/);
+  // y un predictor SIN hipótesis declarada no finge tenerla
+  const sinHip = raytraceOutcomeUncertainty({
+    preop: ojo(), iol: new GenericIOLFactory().create({ power_d: 21 }),
+    predictor: new ConstantOffsetPredictor(1.7),
+    sigmas: { position_prediction_mm: sigma(0.3) },
+    n: 30, seed: 41, pupil_mm: 3.0,
+    sampling: { kind: SamplingKind.MERIDIONAL, n_anillos: 4 },
+  });
+  assert.equal(sinHip.procedencia_posicion.hypothesis, null);
+  assert.equal(sinHip.procedencia_posicion.condicional_a_hipotesis, false);
+  assert.match(sinHip.procedencia_posicion.nota, /PREDICHA, nunca medida/);
+});
+
+test('H_EQ · la elección de potencia también transporta la procedencia', () => {
+  const r = raytraceChoiceStability({
+    preop: ojo(), factory: new GenericIOLFactory(), predictor: new EquatorialPlanePredictor(),
+    sigmas: { position_prediction_mm: sigma(0.3) },
+    n: 40, seed: 42, pupil_mm: 3.0,
+    sampling: { kind: SamplingKind.MERIDIONAL, n_anillos: 4 },
+    catalog_d: Array.from({ length: 21 }, (_, i) => 16 + i * 0.5),
+    window_d: 2.0, search_d: [1, 44],
+  });
+  assert.equal(r.procedencia_posicion.hypothesis, 'H_EQ');
+  assert.equal(r.procedencia_posicion.condicional_a_hipotesis, true);
 });

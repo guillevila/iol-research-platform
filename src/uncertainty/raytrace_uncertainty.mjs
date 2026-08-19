@@ -113,6 +113,31 @@ function procedenciaDePupila(preop, escenario_mm) {
   };
 }
 
+/**
+ * Procedencia de la POSICIÓN, transportada hasta la salida (V1.11, hallazgo adversarial):
+ * antes solo viajaba `predictor.id`, así que un resultado que dependía de una HIPÓTESIS no
+ * validada (p. ej. H_EQ) era indistinguible de uno que no — y la puerta de fidelidad deja
+ * la posición fuera de STRICT justamente porque «su procedencia viaja aparte». Si viaja
+ * aparte, tiene que viajar de verdad: `hypothesis` no nulo es una marca LEGIBLE POR MÁQUINA
+ * de que el número publicado es condicional a una hipótesis biológica sin validar.
+ */
+function procedenciaDePosicion(prediccion, predictor) {
+  const hipotesis = prediccion.hypothesis ?? null;
+  return {
+    predictor: predictor.id,
+    position_source: prediccion.source,
+    inputs_used: prediccion.inputs_used,
+    hypothesis: hipotesis,
+    condicional_a_hipotesis: hipotesis !== null,
+    nota: hipotesis !== null
+      ? `TODO resultado de esta salida es CONDICIONAL a la hipótesis ${hipotesis}, que NO está `
+        + 'validada: la posición postoperatoria no está medida, es PREDICHA bajo esa hipótesis. '
+        + 'Validarla exige posición de LIO medida en cohorte postoperatoria (nivel 3).'
+      : 'el predictor no declara hipótesis biológica (su procedencia está en position_source); '
+        + 'la posición sigue siendo PREDICHA, nunca medida',
+  };
+}
+
 /** Campos del ojo perturbables (más el canal especial position_prediction_mm). */
 export const PERTURBABLES = Object.freeze([
   'al_mm', 'k_d', 'acd_mm', 'lt_mm', 'cct_um', 'r_anterior_mm', 'r_posterior_mm', 'pupil_mm',
@@ -443,6 +468,7 @@ export function raytraceOutcomeUncertainty({
   }
   const prep = prepara({ preop, predictor, sigmas, correlacion, n, seed, pupil_mm, sampling, cornea, fidelity });
   const ctx = { preop, predictor, iol, pupil_mm, sampling, cornea, fidelity, objective };
+  const prediccionNominal = predictor.predict(preop);
 
   // NOMINAL (perturbación cero): fija los supuestos y aplica la puerta de fidelidad
   const nominal = residualConLenteFija({ ...ctx, delta: {} });
@@ -514,6 +540,7 @@ export function raytraceOutcomeUncertainty({
     n_rechazados: rechazadas,
     motivos_rechazo: motivos,
     advertencia_censura: advertenciaCensura,
+    procedencia_posicion: procedenciaDePosicion(prediccionNominal, predictor),
     nominal: {
       residual_d: nominal.residual_d,
       iol_position_mm: nominal.iol_position_mm,
@@ -546,7 +573,7 @@ export function raytraceOutcomeUncertainty({
     descomposicion_posicion: NOTA_POSICION,
     parametros_declarados: {
       pupil_mm, sampling: { ...sampling }, objective,
-      predictor: predictor.id, predictor_inputs: predictor.predict(preop).inputs_used,
+      predictor: predictor.id, predictor_inputs: prediccionNominal.inputs_used,
       iol: `${iol.manufacturer}/${iol.model} (${iol.geometry_status})`,
       fidelity,
     },
@@ -668,6 +695,7 @@ export function raytraceChoiceStability({
 
   return {
     pregunta: 'inestabilidad de la ELECCIÓN de potencia (distribución discreta sobre escalones)',
+    procedencia_posicion: procedenciaDePosicion(posNominal, predictor),
     seed,
     n_intentados: n,
     n_decididos: decididas,

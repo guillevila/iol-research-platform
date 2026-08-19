@@ -405,6 +405,10 @@ for (const o of CONFIG.ojos) {
       const benGruesa = EabsRefGruesa[sBio] - EabsRefGruesa[sMed];
       bloque3Refraccion.push({
         ojo: o.id, sigma_bio_mm: sBio, sigma_medida_mm: sMed,
+        // dominio y unidad EN LA FILA (adversarial V1.11): un consumidor que extraiga
+        // filas sueltas de los dos bloques no puede mezclar D de refracción con D de
+        // potencia de LIO sin darse cuenta — el sufijo _d es idéntico en ambos
+        dominio: 'refraccion_paraxial', unidad: 'D_refraccion',
         beneficio_publicado_exp006_d: pub.beneficio_d,
         beneficio_lineal_cuadratura_d: benLineal,
         beneficio_delgada_reevaluada_d: benDelgada,
@@ -423,6 +427,7 @@ for (const o of CONFIG.ojos) {
       const benPT = EabsPTrazada[sBio] - EabsPTrazada[sMed];
       bloque3Potencia.push({
         ojo: o.id, sigma_bio_mm: sBio, sigma_medida_mm: sMed,
+        dominio: 'potencia_continua_lio', unidad: 'D_potencia_lio',
         beneficio_P_gruesa_d: benPG,
         beneficio_P_trazada_d: benPT,
         canal_motor_optico_d: benPT - benPG,
@@ -531,6 +536,7 @@ try {
 }
 const bloque4 = {
   outcome: {
+    procedencia_posicion: v112.procedencia_posicion,
     predictor: v112.parametros_declarados.predictor,
     predictor_inputs: v112.parametros_declarados.predictor_inputs,
     sd_d: v112.distribucion.sd_d,
@@ -643,6 +649,16 @@ const md = [
   '',
   '## 3 · Matriz de beneficio re-evaluada (columna σ_medida = 0.10 mm)',
   '',
+  '> **CONDICIONAL, léase antes que cualquier número de esta sección.** «Beneficio» aquí',
+  `> NO es un efecto clínico: es una consecuencia aritmética del mundo generativo declarado.`,
+  `> Toda cifra es condicional a **H_EQ** —hipótesis de dos cláusulas separables y NO`,
+  `> validada: (i) la LIO se asienta en el ecuador capsular; (ii) ese ecuador se aproxima`,
+  `> por ACD + LT/2 con residual ε_bio— **y** a σ_bio/σ_medida, que son ESCENARIOS`,
+  `> DECLARADOS sin procedencia medida: «${CONFIG.procedencia_sigmas}» (OQ #6).`,
+  '> La lente es `GenericIOLFactory`, un SUSTITUTO de simulación (OQ #4), no una lente',
+  '> comercial. Si H_EQ es falsa, la tabla entera pierde su referente. Lectura inadmisible:',
+  '> «medir el ecuador evita X dioptrías en pacientes».',
+  '',
   '### Dominio refracción (paraxial): un cambio por canal',
   '',
   'Cada columna de canal cambia **una sola cosa**. Los cuatro telescopan exactamente a',
@@ -668,7 +684,10 @@ const md = [
   '',
   '### Dominio potencia continua (cruce de motores, misma factory)',
   '',
-  '| Ojo | σ_bio | beneficio P gruesa (D) | beneficio P trazada (D) | canal motor óptico (D) |',
+  '**Unidades: D de POTENCIA DE LIO, no de refracción.** No son comparables con las de la',
+  'tabla anterior ni se restan de ellas: son dos dominios distintos que comparten el símbolo D.',
+  '',
+  '| Ojo | σ_bio | beneficio P gruesa (D_LIO) | beneficio P trazada (D_LIO) | canal motor óptico (D_LIO) |',
   '|---|---|---|---|---|',
   ...['corto', 'normal', 'largo'].flatMap(ojo =>
     col(R.bloque3_beneficio.dominio_potencia_cruzado, ojo, () => true).map(c =>
@@ -694,6 +713,10 @@ const md = [
   '',
   '## 4 · Integración V1.12: la hipótesis con incertidumbre auditable',
   '',
+  `- **procedencia transportada**: hipótesis \`${R.bloque4_v112.outcome.procedencia_posicion.hypothesis}\`, `
+    + `condicional_a_hipotesis = ${R.bloque4_v112.outcome.procedencia_posicion.condicional_a_hipotesis} — `
+    + 'la marca viaja en la salida de la capa de incertidumbre, legible por máquina, para que ningún '
+    + 'consumidor aguas abajo pueda tomar estas cifras por una posición medida.',
   `- outcome con ${R.bloque4_v112.outcome.predictor} (inputs ${R.bloque4_v112.outcome.predictor_inputs.join(', ')}): `
     + `sd ${fmt(R.bloque4_v112.outcome.sd_d)} D · ratio MC/lineal ${fmt(R.bloque4_v112.outcome.ratio_mc_sobre_lineal)} · `
     + `ancla nominal exacta: ${R.bloque4_v112.outcome.ancla_nominal_exacta}`,
