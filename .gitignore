@@ -5,3 +5,6 @@
 node_modules/
 *.log
 Thumbs.db
+
+# Artefactos de la herramienta de asistencia (no son parte del proyecto)
+.claude/scheduled_tasks.lock
