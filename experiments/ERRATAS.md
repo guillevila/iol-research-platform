@@ -26,7 +26,7 @@ saber que hay una corrección. **Antes de citar cualquier experimento, mira si t
 | exp012 rotación tórica | — | |
 | exp013 atlas de divergencia | [ERRATA](exp013_atlas_divergencia/ERRATA.md) | el sello de commit del README no es el de las cifras vigentes; «CONVERGIDO» es literal fijo, no conclusión derivada |
 | exp014 incertidumbre sobre trazado | [ERRATA](exp014_incertidumbre_trazado/ERRATA.md) | sus cifras son una regeneración posterior a la caza adversarial; el sello de commit no lo dice |
-| exp015 pipeline EQ | — | (sus correcciones adversariales están **dentro** de su propio README y results.json, publicadas como tales) |
+| exp015 pipeline EQ | [ERRATA](exp015_pipeline_eq_trazado/ERRATA.md) | el sello de commit precede a su última corrección (sus correcciones de contenido sí están dentro de su propio README) |
 
 ## Por qué las erratas viven fuera del artefacto
 

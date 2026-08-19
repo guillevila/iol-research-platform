@@ -46,8 +46,12 @@ BANCO   Rendimiento               bench/                  workloads, equivalenci
 
 ## Reglas de dependencia
 
-- `src/` **no importa nada** de `legacy/` (el benchmark se consume solo vía la API en
-  la capa de experimentos/bench, nunca dentro de la física).
+- La FÍSICA de `src/` no importa nada de `legacy/`. Un **único puente autorizado**,
+  `src/bench/engines/evo_engine.mjs`, sí lo importa, y solo por su API pública
+  (`run_evo_replica.mjs`). `tests/architecture.test.mjs` verifica ambas cosas: que sea ese
+  módulo y ningún otro, y que no se entre por una puerta interna. *(Precisión V1.15: este
+  punto decía «`src/` no importa nada de `legacy/`», que es literalmente falso y describía
+  mal lo que el test demuestra.)*
 - Los coeficientes del legacy son ajustes a EVO: prohibida su migración a `src/`.
 - `optics` no depende de `predictors` (verificado: cero imports). Los experimentos dependen
   de todo (capa superior).

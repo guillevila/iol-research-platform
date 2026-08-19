@@ -23,9 +23,14 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const VERBOSE = process.argv.includes('--verbose');
 
 /**
- * Solo experimentos deterministas y de coste acotado. exp002/exp005 consultan el
- * benchmark congelado (caché completa, pero decenas de segundos) y exp004 es un
- * Monte Carlo largo: se excluyen aquí y los cubre la batería de tests.
+ * Solo experimentos deterministas y de coste acotado.
+ *
+ * EXCLUIDOS: exp002 y exp005 (consultan el benchmark congelado) y exp004 (Monte Carlo).
+ * CORRECCIÓN V1.15: la justificación anterior —«coste» y «los cubre la batería de tests»—
+ * era FALSA en sus dos mitades, y medible: esos tres cuestan menos que varios de los que sí
+ * están en la lista, y ningún test los referencia. El motivo REAL de la exclusión es que
+ * nadie los ha incorporado, no que no puedan estarlo. Queda registrado como deuda conocida
+ * en lugar de justificarse con un motivo inventado.
  * CORRECCIÓN (V1.11): exp006 estaba excluido con la justificación «lo cubre la
  * batería de tests», que era FALSA (ningún test lo referenciaba) — y es determinista
  * (seed fija) y barato (gaussianas escalares + 3 searchBestPower). Entra en la lista;

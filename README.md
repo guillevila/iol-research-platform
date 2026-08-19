@@ -48,7 +48,10 @@ posición). No se escribe «15/15»: sería falso.
    102 hashes verificados en cada push, en Linux y en Windows.
 2. **`src/`** — el motor científico independiente: modelo de datos anatómico, óptica paraxial
    propia, trazado de rayos, optimizador de potencia, sistema de incertidumbre y benchmark.
-   **No importa nada del legado**, y un test de arquitectura lo comprueba.
+   La **física no toca el legado**: un único adaptador declarado
+   (`src/bench/engines/evo_engine.mjs`), en la capa de benchmark, puede importarlo — y solo
+   por su API pública. Un test de arquitectura vigila exactamente eso: que sea ese módulo y
+   ningún otro, y que no entre por una puerta interna.
 
 ## Cómo leer cualquier cifra de este repositorio
 
@@ -69,7 +72,11 @@ node bench/run_bench.mjs            # caracterización de rendimiento (depende d
 
 ## Producto de usuario preexistente
 
-Se conserva en la raíz, intacto y **fuera** del alcance científico de `src/`:
+Vive en la raíz, **fuera** del alcance científico de `src/`. Se conserva en su función y sus
+cifras, pero **no está intacto**: la auditoría de cierre de V1 corrigió en él
+sobreafirmaciones clínicas y una cifra —ver el §8 bis de
+[`docs/V1_CLOSURE.md`](docs/V1_CLOSURE.md), que además declara la tensión pendiente con sus
+generadores congelados.
 `calculadora-torica.html`, `engine.js`, `dashboard.html`, `informe-cientifico.html`,
 [`INFORME.md`](INFORME.md), [`COMPARATIVA-CALCULADORAS.md`](COMPARATIVA-CALCULADORAS.md).
 [`PROJECT_PLAN.md`](PROJECT_PLAN.md) es el plan **histórico de V0**; el vigente es

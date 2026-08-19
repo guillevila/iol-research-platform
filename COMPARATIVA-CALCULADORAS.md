@@ -131,8 +131,10 @@ Desviación media de la refracción prevista a igual potencia, tomando EVO como 
 Como contexto: sobre 548 casos aleatorios (no solo este), la réplica coincide con EVO en
 la potencia esférica entre el **92.2 %** (escenario combinado) y el **99.5 %** (configuración
 estándar), con divergencia mediana de la tabla de refracciones de **0.01–0.02 D** según el
-escenario (cifras de `legacy/evo_replica/baseline/baseline_metrics.json`, verificado en CI;
-metodología y tablas completas en INFORME.md). La comparación con Barrett de este
+escenario (cifras de `perMode` en `legacy/evo_replica/baseline/baseline_metrics.json`. La CI reproduce
+el replay determinista completo y verifica sus métricas GLOBALES; los desgloses por escenario
+salen del mismo replay verificado, aunque el test no los asevera celda a celda. Metodología y
+tablas completas en INFORME.md). La comparación con Barrett de este
 informe se basa en un único caso —el disponible con datos reales—, por lo que sus cifras
 ilustran el orden de magnitud, no una estadística.
 
@@ -169,12 +171,22 @@ las tablas de §3–§4 quedan completas y puede recalcularse §6.
 
 > **Registro de correcciones (V1.15).** Este documento es un artefacto de trabajo previo al
 > desarrollo científico del repositorio. En la auditoría documental de cierre de V1 se
-> corrigieron: (a) la ausencia del sello regulatorio; (b) dos cifras contradichas por el
-> baseline congelado —el extremo inferior de coincidencia era **92.2 %**, no 96 %, y la
-> divergencia mediana **0.01–0.02 D**, no 0.00—; (c) el título y dos puntos de §8, que
+> corrigieron: (a) la ausencia del sello regulatorio; (b) el extremo inferior de coincidencia,
+> que era **92.2 %** y no 96 % —esa sí estaba contradicha por `perMode.full` del baseline
+> congelado—; (c) el título y dos puntos de §8, que
 > orientaban una decisión clínica sin cohorte que lo sostuviera. Las cifras de §3–§7 y el
 > caso descrito **no se han tocado**: el texto anterior de los puntos corregidos queda
 > resumido en la propia corrección para que la traza sea legible.
+>
+> **Rectificación de la rectificación (misma auditoría, revisión adversarial posterior).** La
+> primera versión de esta nota decía que «0.00 D» era una cifra *falsa contradicha por el
+> baseline*. **No lo era**: eran dos estimadores distintos con nombre parecido. El baseline
+> publica `median_table_err_d`, que es la mediana de los **máximos por caso** sobre las cinco
+> filas de la tabla de refracciones (0.01–0.02 D). El «0,00 D» original se refería a la
+> divergencia de la **refracción recomendada**, magnitud que el arnés calcula (`dRef`) pero
+> que **el baseline no publica**. Se conserva la cifra nueva porque es la trazable a un
+> artefacto verificado, no porque la anterior fuera falsa — y esta nota existe porque acusar
+> de falso a un dato correcto es el mismo defecto que la auditoría persigue.
 
 ## 9. Limitaciones
 
