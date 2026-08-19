@@ -51,9 +51,15 @@ export const RESERVED_PREOP = Object.freeze({
       + 'preop.pupil_mm → apertura y su procedencia',
   },
   lens_eq_plane_mm: {
-    que_es: 'posición axial del plano ecuatorial del cristalino (mm)',
-    consumidor_previsto: 'predictores de posición de tipo geométrico',
-    blocked_by: 'OPEN_QUESTIONS #2 + #3 (convenciones de datum entre dispositivos)',
+    que_es: 'posición axial del plano ecuatorial del cristalino MEDIDA (mm, típicamente por OCT). '
+      + 'NO confundir con el ecuador CALCULADO: desde V1.11 existe EquatorialPlanePredictor, que '
+      + 'aproxima el ecuador por ACD + LT/2 bajo la hipótesis declarada H_EQ y NO lee este campo.',
+    consumidor_previsto: 'un predictor futuro de ecuador MEDIDO (distinto del geométrico de V1.11, '
+      + 'que calcula el ecuador en vez de leerlo)',
+    blocked_by: 'OPEN_QUESTIONS #2 + #3 (convenciones de datum entre dispositivos): un EQ medido por '
+      + 'un OCT llega en la convención de ESE aparato y no es comparable sin declararla y transformarla '
+      + 'al datum ápex-z0 del modelo. Que exista ya un predictor geométrico del ecuador NO desbloquea '
+      + 'este campo: son dos predictores distintos (calcular ≠ medir).',
   },
   lens_eq_diameter_mm: {
     que_es: 'diámetro ecuatorial del cristalino (mm)',

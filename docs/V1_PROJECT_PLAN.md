@@ -329,18 +329,34 @@ CANDIDATOS a estudio posterior, no como conclusiones.
 Solo los que tengan fuente citable. Aceptación: `LiteraturePositionPredictor` únicamente
 con la publicación delante (OPEN_QUESTIONS #2); **sin fuente, no se implementa**.
 
-### V1.11 · Pipeline EQ — cadena completa bajo H_EQ con el trazador (alcance EE-only)
+### V1.11 · Pipeline EQ — el plano ecuatorial (H_EQ) a través del trazado
 **CORRECCIÓN DE DEFINICIÓN (V1.11, antes de implementar).** El título anterior era
 «Pipeline de equivalente esférico», con aceptación «reproduce exp006». Contradicción:
 exp006 no estudia el equivalente esférico — estudia el **plano ecuatorial capsular**
-(EQ/LEP) bajo la hipótesis declarada H_EQ (posición de LIO = ACD + LT/2 + ε_bio). El
-título fue una expansión errónea de la sigla «EQ»: en TODO el resto del repositorio
+(EQ/LEP) bajo la hipótesis declarada H_EQ. **Enunciado completo de H_EQ, en sus dos
+cláusulas separables** (importa, porque son refutables por separado): (i) la LIO se
+asienta en el **ecuador capsular**; (ii) ese ecuador se aproxima geométricamente por
+**ACD + LT/2**, con desvío biológico ε_bio ~ N(0, σ_bio). El proxy ACD+LT/2 **no es**
+la hipótesis: es la aproximación de su objeto, y ε_bio es precisamente lo que mide la
+distancia entre ambos. Escribir «H_EQ = ACD+LT/2» a secas convertiría la hipótesis en
+una definición irrefutable — y dejaría a exp006, que estudia el valor de MEDIR el
+ecuador frente a inferirlo, sin objeto que medir.
+
+El título fue una expansión errónea de la sigla «EQ»: en TODO el resto del repositorio
 EQ = ecuador (exp006_capacidad_eq, lens_eq_plane_mm, PROJECT_PLAN Sprint 8 «EQ/OCT»,
 CURRENT_SPRINT «Pipeline EQ») y el equivalente esférico se abrevia EE. El V1.11
 histórico de `docs/V0_REVIEW.md` (H9) era explícito: «EQ/ATA/STS → V1.11». El criterio
-de aceptación (exp006) era el correcto; el título, no. Lo único defendible del título
-antiguo se conserva como ALCANCE: la cadena decide solo potencia de equivalente
-esférico (EE-only, tórico UNSUPPORTED — contrato V1.8).
+de aceptación (exp006) era el correcto; el título, no.
+
+**Por qué el «alcance EE-only» tampoco se conserva en el nombre** (segunda corrección,
+de la revisión adversarial de cierre): el entregable de V1.11 es un predictor de
+POSICIÓN, y H_EQ vale igual en un ojo astigmático que en uno esférico — la posición del
+ecuador no depende del cilindro. Colgar del sprint una restricción sobre la MAGNITUD
+refractiva era repetir en pequeño la misma confusión objeto/magnitud que el sprint
+corrige. La restricción EE existe, pero pertenece a otras piezas y allí se declara: al
+OPTIMIZADOR (contrato V1.8: los objetivos escalares deciden potencia de equivalente
+esférico; tórico ⇒ `unsupported_dimensions`, jamás cero físico) y a la REJILLA de
+exp015 (ojos con k1 = k2, heredados de exp006, donde no se colapsa cilindro alguno).
 
 Qué cadena incompleta cierra: H_EQ existía solo como cálculo inline de un experimento
 (`run_exp006.mjs`, posGeom = ACD+LT/2 fuera de src/), su conversión posición→refracción

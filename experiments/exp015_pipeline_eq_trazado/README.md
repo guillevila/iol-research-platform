@@ -1,6 +1,6 @@
 # exp015 — Pipeline EQ (V1.11): H_EQ a través del pipeline físico real
 
-**SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada** · commit `12b434e8bc`
+**SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada** · commit `8a1e44b5c3`
 
 **Hipótesis declarada:** H_EQ: posicion de LIO = ecuador capsular; ecuador = ACD + LT/2 + eps_bio (DECLARADA, no hecho). Nada de esto la valida biológicamente.
 La conversión posición→resultado de exp006 (linealización paraxial de lente delgada) se
@@ -22,7 +22,7 @@ refracción SOLO intra-paraxial; entre motores, POTENCIA CONTINUA con la misma f
 | 0.1 | eq | 0.081 | 0.0798 | 1.5 % |
 | 0.2 | eq | 0.162 | 0.1596 | 1.5 % |
 
-- las desviaciones ~1-3 % son coherentes con el SE del MC de exp006 (n = 6000) MÁS el defecto medido del LCG de makeRng (infla la varianza de las normales 1.3-2.8 %, documentado en montecarlo.mjs en V1.12). Se registra; exp006 NO se regenera.
+- las desviaciones observadas (0.27-1.52 %, TODAS positivas) quedan explicadas, sin que sobre nada, por tres contribuciones medidas: (1) sesgo SISTEMÁTICO al alza del LCG de makeRng, +0.84 % sobre E|ε| en media (rango 0.40-1.50 % según semilla, medido a n = 4e5 × 5 semillas; nótese que montecarlo.mjs documenta 1.3-2.8 % de inflación de VARIANZA y E|ε| ∝ σ = √varianza, de ahí que sobre E|ε| sea ~la mitad) — es lo que explica que TODAS tengan el mismo signo; (2) SE del estimador con n = 6000: 0.98 % relativo; (3) granularidad del redondeo publicado a 3 decimales: 1.25 % en σ = 0.05 y 0.16 % en σ = 0.40. Son limitaciones CONOCIDAS del artefacto congelado, no defectos de sus cifras: exp006 NO se regenera.
 - **Divergencia de texto registrada:** Lectura 2 del README: «evita ~0.39 D en el corto frente a ~0.11 D en el largo» (hardcodeado en run_exp006.mjs) ↔ las celdas de esa misma tabla dan 0.363 D (corto) y 0.102 D (largo). DIVERGENCIA DE TEXTO registrada aquí; el ancla válida es results.json. Corregir la prosa exigiría regenerar exp006 y el encargo lo prohíbe salvo defecto de CIFRAS demostrado — que no lo hay.
 
 ## 1 · Reproducción bit a bit (posición vía predictor de CAPA B)
