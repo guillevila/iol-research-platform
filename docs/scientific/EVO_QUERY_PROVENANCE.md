@@ -122,7 +122,9 @@ dominado por `Posterior` y no es representativo del catálogo.
 3. **Nada fuera de los rangos de la tabla anterior.** Extrapolar es inventar.
 4. **Que la réplica local sea EVO.** Reproduce su comportamiento observado en el dominio
    muestreado y en las fechas de muestreo; la propia regla de recomendación de EVO solo se
-   auto-reproduce al 96.2 % (ver `EVO_BASELINE.md`).
+   auto-reproduce al 96.2 % (la cifra y su regla —cruce por cero del residual + 0.10 D, sobre
+   4.308 casos— están en `INFORME.md`; la referencia apuntaba a `EVO_BASELINE.md`, donde no
+   aparece: corregido en la auditoría de V1.15).
 5. **Ninguna superioridad de nada frente a nada.** Comparar divergencia no es medir acierto.
 
 ## 5. Verificación

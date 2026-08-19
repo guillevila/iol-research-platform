@@ -38,6 +38,18 @@ Replay de las 7 campañas con semilla fija (clean 200/999111 · long 150/2468135
 full 250/888222 · models 100/313131 · kidx 100/515151 · sia 100/616161 · permodel 406)
 contra la caché, sin red:
 
+> **Contabilidad de los casos, corregida en la auditoría de V1.15.** Los tamaños de arriba
+> son los **solicitados** (suman 1.306) y las métricas se calculan sobre los **respondidos y
+> comparables** (suman 1.206, según `perMode` de `baseline_metrics.json`: 188 · 128 · 232 ·
+> 92 · 96 · 93 · 377). Los **100 casos de diferencia** no aparecían contabilizados en ningún
+> sitio, y eso es precisamente el patrón que el proyecto persigue en sus propios experimentos
+> (sesgo del superviviente: los casos que no llegaron desaparecían del denominador sin dejar
+> rastro). **Lo que falta y no puede reconstruirse aquí:** el motivo de cada descarte, porque
+> las campañas se ejecutaron contra el servicio externo antes de que existiera esta
+> disciplina. Queda registrado como limitación del baseline heredado, no como cifra a
+> corregir: los porcentajes publicados son correctos **sobre su denominador declarado de
+> 1.206**, que es el que aparece en la tabla.
+
 | Métrica global (n = 1.206) | Valor |
 |---|---|
 | Potencia esférica idéntica | 95.44 % |

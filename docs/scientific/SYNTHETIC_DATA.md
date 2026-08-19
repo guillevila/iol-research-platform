@@ -13,7 +13,16 @@ divergencia entre motores y pruebas de la plataforma.
 | Modo | Uso | Reproducibilidad |
 |---|---|---|
 | `gridEyes(spec)` | *grid experiments*: barridos deterministas (AL×K, etc.) | determinista por construcción; `meta.kind='grid'` |
-| `randomEyes(n, seed)` | *random synthetic experiments* | LCG con semilla fija (idéntico al usado en las campañas del baseline); `meta.kind='random'`, `meta.seed` |
+| `randomEyes(n, seed)` | *random synthetic experiments* | LCG con semilla fija (el mismo de las campañas del baseline, **por compatibilidad histórica, no por calidad** — ver aviso abajo); `meta.kind='random'`, `meta.seed` |
+
+> **Defecto MEDIDO del PRNG** (auditoría V1.15). El LCG de `makeRng` **no es un buen
+> generador**: infla la varianza de las normales derivadas un **1.3–2.8 %** según semilla, y
+> su sesgo sobre E|N(0,σ)| es de **~0.8 % al alza** y sistemático (medido y publicado en
+> `experiments/exp015_pipeline_eq_trazado` → `bloque0_anclas_exp006.sesgo_prng_medido`, y
+> documentado en `src/uncertainty/montecarlo.mjs`). Se conserva **por reproducibilidad de los
+> resultados ya publicados**, no porque sea adecuado. Los módulos nuevos (V1.12 en adelante)
+> usan `mulberry32` local. Antes de usar `randomEyes` para un análisis nuevo cuya conclusión
+> dependa de la varianza, ténganse en cuenta esos números.
 
 ## Distribuciones
 

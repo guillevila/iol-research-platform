@@ -15,8 +15,27 @@ de referencia y sus límites declarados:
   esperado escrito de memoria: se deriva algebraicamente en el propio test.
 - **Cobertura actual:** suite completa verde en CI en cada push (recuento vigente en
   `CURRENT_SPRINT.md`; la cifra en este documento quedaba obsoleta con cada sprint).
-- **Validación cruzada interna:** trazado → paraxial cuando h→0 (testado); la
-  comparación sistemática sobre el ojo completo es Sprint 4/11.
+- **Validación cruzada interna:** trazado → paraxial cuando la apertura → 0, verificado
+  sobre una rejilla de 18 ojos (V1.13) y publicado en `exp003`; la comparación sistemática
+  sobre el ojo completo **ya está entregada** (`exp013`, atlas AL×K×pupila, y el contrato de
+  comparabilidad de V1.8). *(Corrección V1.15: este punto la presentaba como futura, citando
+  la numeración de sprints de V0.)* **Advertencia de alcance:** el ancla apertura→0 valida el
+  LÍMITE; no demuestra que toda divergencia a pupila finita se deba a la apertura.
+
+> **Qué NO puede pasar STRICT hoy, y por qué importa para el diseño del estudio**
+> (auditoría V1.15). Exigir STRICT es correcto, pero dos vías son estructuralmente
+> incompatibles con él mientras dos OQ sigan abiertas, y el estudio debe saberlo al
+> planificarse:
+> - **Ninguna córnea tórica trazada** pasa STRICT, por construcción: sus dos políticas son
+>   derivación (radios recuperados de K1/K2) o declaración, y el modelo de datos no tiene
+>   radios per-meridiano medidos (OQ #10). Llamar «medida» a una derivación sería el relleno
+>   tácito que el proyecto prohíbe.
+> - **El posicionamiento de la LIO** por centro geométrico en lugar de por planos principales
+>   es un supuesto registrado que STRICT bloquea (OQ #3, parte interna).
+>
+> Consecuencia práctica: un estudio de nivel 3 que exija STRICT **solo puede cubrir hoy la
+> vía esférica con córnea completamente medida**. Ampliarlo exige resolver esas dos OQ, no
+> relajar el modo.
 
 ## Nivel 2 — Benchmark contra EVO congelado (disponible hoy)
 

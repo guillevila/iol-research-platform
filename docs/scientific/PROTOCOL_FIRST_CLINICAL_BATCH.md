@@ -6,6 +6,26 @@ RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING
 Este protocolo se fija ANTES de recibir dato alguno; cualquier desviación futura se
 documentará como enmienda fechada. Operacionaliza el nivel 3 de `VALIDATION_STRATEGY.md`.
 
+> ## Enmienda 1 (V1.15) — dos precisiones que el protocolo necesita antes de recoger dato alguno
+>
+> Este documento está **preregistrado**: no se reescribe, se enmienda con fecha.
+>
+> **(a) Datum del objetivo primario.** «|posición prevista − posición medida|» resta dos
+> magnitudes que hoy **no comparten definición**: la prevista es `iol_position_mm` (ápex →
+> plano principal/central), y la medida vendrá en la convención del dispositivo
+> postoperatorio (típicamente ápex o endotelio → cara anterior de la LIO). El protocolo debe
+> registrar la convención del dispositivo y declarar la conversión —que exige espesor e
+> índice de la lente— **antes** de calcular ninguna diferencia. Sin eso, la métrica primaria
+> mezcla convenciones y su sesgo es de décimas de mm, magnitud que `exp001` demuestra
+> relevante (OQ #3).
+>
+> **(b) «f(+EQ/OCT)» no es H_EQ.** Desde V1.11 el código distingue tajantemente dos cosas que
+> este texto equipara: el **ecuador CALCULADO** (`EquatorialPlanePredictor`: ACD + LT/2, la
+> hipótesis H_EQ) y el **ecuador MEDIDO** por OCT (`lens_eq_plane_mm`, campo reservado y sin
+> consumir, bloqueado por convenciones de datum entre dispositivos, OQ #3 + #10). El estudio
+> puede contrastar **tres** modelos, no dos: base f(AL, ACD, LT, K), proxy geométrico H_EQ, y
+> ecuador medido — y solo el tercero requiere que se resuelva el bloqueo del campo reservado.
+
 ## 1. Objetivos, por orden
 
 1. **Primario:** error del predictor de posición — |posición prevista − posición medida|

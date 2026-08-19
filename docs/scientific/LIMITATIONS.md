@@ -102,7 +102,8 @@ que V1.9/V1.11/V1.12/V1.14 midieron. Ver también [`../V1_CLOSURE.md` §5](../V1
 
 10. Fidelidad a EVO v2.0 en fechas de muestreo; dominio AL 20–32 / K 34–50 / A 110–125;
    sin post-refractiva, Argos ni córnea posterior medida; histéresis Zeiss 709/939;
-   la propia regla de recomendación de EVO solo se auto-reproduce al 96.2 %.
+   la propia regla de recomendación de EVO solo se auto-reproduce al 96.2 % (cifra y regla en
+   `INFORME.md`).
 
 ## Limitaciones de los datos sintéticos
 
