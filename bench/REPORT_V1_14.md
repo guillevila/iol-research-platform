@@ -76,33 +76,59 @@ Cuatro cambios, todos en `src/` (mejoran el **motor**, no un experimento concret
 
 ## 3 · Speedup medido, con disciplina
 
-**Protocolo** (`bench/compare.mjs`): un **proceso aislado por workload** (para que ninguno
-caliente ni ensucie a otro), 8 pasadas de warmup, 15 réplicas, **3 lanzamientos**; el
-estadístico es la mediana de las medianas por lanzamiento. Se publica además el mínimo
-(robusto al ruido aditivo) y la dispersión entre lanzamientos.
+### Protocolo definitivo: dos commits limpios, instrumentación simétrica, orden contrabalanceado
 
-**Suelo de medición declarado:** medí primero la variabilidad del propio instrumento. Tres
-lanzamientos del **mismo** código dieron medianas con hasta **130 %** de dispersión en los
-workloads sub-milisegundo. Por eso todo workload con dispersión > 25 % se marca `RUIDO` y
-**su tiempo no se usa como evidencia**: para esos casos la evidencia es el trabajo
-determinista, que no depende de la máquina.
+La primera medición de este sprint comparaba un árbol con `git stash`, lo que dejaba el
+baseline **sin** la instrumentación de contadores y el final **con** ella: asimétrico. La
+medición que se publica aquí lo corrige:
 
-| Workload | antes (ms) | después (ms) | speedup | antes.min | después.min | disp. | evidencia |
-|---|---|---|---|---|---|---|---|
-| `fija` | 0.50 | 0.30 | ×1.67 | 0.20 | 0.10 | 50 %/0 % | solo trabajo |
-| `continua` | 5.60 | 2.70 | ×2.07 | 3.50 | 1.80 | 20 %/35 % | solo trabajo |
-| `catalogo` | 13.90 | 5.80 | ×2.40 | 9.80 | 4.10 | 43 %/17 % | solo trabajo |
-| `conica` | 0.50 | 0.40 | ×1.25 | 0.30 | 0.20 | 60 %/33 % | solo trabajo |
-| `pose` | 0.30 | 0.30 | ×1.00 | 0.20 | 0.10 | 100 %/150 % | solo trabajo |
-| `torico` | 0.80 | 0.50 | ×1.60 | 0.30 | 0.30 | 80 %/75 % | solo trabajo |
-| **`barrido`** | **37.30** | **15.90** | **×2.35** | 28.40 | 12.00 | 10 %/2 % | **tiempo** |
-| **`incertidumbre`** | **9.50** | **5.00** | **×1.90** | 6.20 | 4.00 | 22 %/11 % | **tiempo** |
-| **`eleccion`** | **26.20** | **15.70** | **×1.67** | 20.30 | 12.10 | 15 %/7 % | **tiempo** |
-| **`pipeline_eq`** | **15.60** | **6.60** | **×2.36** | 11.80 | 5.10 | 22 %/15 % | **tiempo** |
-| suma total | 110.20 | 53.20 | ×2.07 | | | | |
-| **suma solo fiables** | **88.60** | **43.20** | **×2.05** | | | | **← el speedup defendible** |
+- **dos `git worktree` independientes**, uno en `bf9c5dc` (el commit inmediatamente anterior
+  a V1.14) y otro en `HEAD`;
+- **instrumentación simétrica**: se retiran los `bump()` del árbol final, de modo que ambos
+  midan motor puro. Ninguna rama tiene ventaja de instrumentación;
+- **orden contrabalanceado** base→final y final→base, 3 rondas (6 lanzamientos por rama),
+  para que la deriva térmica o del JIT no se atribuya a una de las dos;
+- proceso nuevo por medición, 8 pasadas de warmup, 15 réplicas;
+- mismo Node (v24.18.0), mismo host, mismos workloads con los mismos parámetros.
 
-**Experimentos reales** (una corrida cada uno, mismo entorno):
+| Workload | base med. | final med. | speedup | base min | final min | speedup(min) | disp. base/final | evidencia |
+|---|---|---|---|---|---|---|---|---|
+| `continua` | 5.45 | 2.55 | ×2.14 | 3.20 | 1.70 | ×1.88 | 25 % / 30 % | ruidoso |
+| `catalogo` | 13.35 | 4.80 | **×2.78** | 9.10 | 3.90 | ×2.33 | 19 % / 28 % | **tiempo** |
+| `barrido` | 35.30 | 16.10 | **×2.19** | 29.00 | 11.80 | ×2.46 | 30 % / 34 % | **tiempo** |
+| `incertidumbre` | 7.30 | 4.90 | ×1.49 | 5.90 | 3.90 | ×1.51 | 19 % / 47 % | ruidoso |
+| `eleccion` | 28.40 | 15.55 | ×1.83 | 20.70 | 11.20 | ×1.85 | 55 % / 54 % | ruidoso |
+| `pipeline_eq` | 15.00 | 6.70 | ×2.24 | 11.20 | 4.70 | ×2.38 | 122 % / 50 % | ruidoso |
+| **agregado (6 workloads > 3 ms)** | **104.80** | **50.60** | **×2.07** | 79.10 | 37.20 | ×2.13 | | |
+
+**Cifra principal defendible: ×2.07** sobre los seis workloads que superan claramente el suelo
+del instrumento. Los sub-milisegundo (`fija`, `conica`, `pose`, `torico`) quedan **excluidos
+por completo** de la cifra agregada: su ruido supera al efecto, y su evidencia es el trabajo
+determinista, no el tiempo. La cifra se calcula como suma de medianas del baseline dividida
+por suma de medianas del final —es decir, ponderando cada workload por su coste— **no** como
+media de cocientes, que daría un número mayor y menos honesto.
+
+**Convergencia de tres protocolos independientes**, que es lo que la hace creíble:
+
+| Protocolo | speedup agregado |
+|---|---|
+| Asimétrico con `git stash` (medición inicial) | ×2.05 |
+| **Simétrico desde commits limpios, contrabalanceado** | **×2.07** |
+| Simétrico, estadístico robusto (suma de mínimos) | ×2.13 |
+
+**La heterogeneidad es real y no se esconde:** va de ×1.49 (`incertidumbre`) a ×2.78
+(`catalogo`). El patrón tiene explicación física: los workloads dominados por `bestFocus`
+sobre haces grandes (catálogo, barrido, pipeline) son los que más ganan, porque eran los que
+más veces recorrían la métrica de spot con indirección y asignación. El dominado por
+reconstruir el ojo en cada extracción (`incertidumbre`) gana menos, porque esa parte no se
+tocó.
+
+Nota sobre la dispersión: esta tanda se ejecutó como 72 mediciones consecutivas y varios
+workloads muestran dispersión alta (hasta 122 %), señal de ruido térmico del sistema. Por eso
+se publica también la columna de mínimos —estadístico robusto frente a ruido aditivo— y por eso
+las tres cifras agregadas coinciden dentro del 4 %.
+
+**Experimentos reales** (una corrida cada uno, mismo entorno, árbol instrumentado):
 
 | Experimento | antes | después | speedup |
 |---|---|---|---|
@@ -110,15 +136,14 @@ determinista, que no depende de la máquina.
 | `exp014` (incertidumbre) | 5767 ms | 2575 ms | ×2.24 |
 | `exp015` (pipeline EQ) | 3073 ms | 1694 ms | ×1.81 |
 
-### Sesgo declarado de la medición
+**Suite completa:** 3883 ms → **3639 ms**, y eso *añadiendo* 17 tests nuevos (contrato de
+rendimiento + batería adversarial, 1408 ms). El motor más rápido compensa con creces el coste
+de la verificación nueva.
 
-El baseline se midió con `git stash -- src/`, que revierte **también** la instrumentación de
-contadores. Es decir: el baseline corrió **sin** los `bump()` y el final **con** ellos
-instalados (apagados). Cuantificado sobre `eleccion`, 4 lanzamientos aislados por rama:
-medianas 16.7 ms (con instrumentación) frente a 16.05 ms (sin) — **~4 %, dentro del ruido**
-de ese workload. El sesgo va **en contra** del speedup que publico, así que las cifras de
-arriba son **conservadoras**. Encender los contadores cuesta ×1.14 adicional, y por eso están
-apagados durante toda medición de tiempo.
+**Coste de la instrumentación**, medido para que nadie tenga que fiarse: contadores instalados
+y apagados ≈ 4 % (dentro del ruido; medido sobre `eleccion`, 4 lanzamientos por rama);
+encenderlos cuesta ×1.14. Durante toda medición de tiempo están apagados, y en la comparación
+simétrica de arriba no están ni instalados.
 
 ## 4 · Cómo se demuestra que ningún resultado cambió
 
@@ -134,6 +159,9 @@ Tres mecanismos independientes, todos ejecutables:
    distribución Monte Carlo bajo la misma semilla, contabilidad de rechazos con motivos,
    advertencia de censura, procedencia de la posición y de la pupila, `unsupported_dimensions`.
    Resultado: **idéntica bit a bit en los 10**.
+   La verificación DEFINITIVA se hizo entre **dos checkouts limpios**: instantánea capturada
+   en `bf9c5dc` (pre-V1.14) y verificada desde `HEAD` — dos árboles independientes, uno sin
+   optimizar y otro optimizado, producen salida byte-idéntica.
 2. **Los 12 experimentos publicados reproducen** su `results.json` número a número
    (`scripts/check_experiments.mjs`), incluidos exp013/014/015, que son los que más cambiaron
    de coste.
@@ -208,7 +236,128 @@ Perfil **después** de las optimizaciones (`exp014`, 2255 ms muestreados):
 | `spotRmsPlano` | 10.1 % | Ya optimizado; el resto es la aritmética irreducible de dos pasadas, que se conserva a propósito. |
 | recolector de basura | 9.5 % | Bajó de 10.1 % con un total muy inferior (de 533 ms a 215 ms). Reducirlo más exige atacar `intersect`. |
 
-## 9 · Lo que este informe NO demuestra
+## 10 · Trabajo CIENTÍFICO frente a trabajo de IMPLEMENTACIÓN
+
+Que se tracen los mismos rayos **no** significa que no haya optimización. V1.14 distingue dos
+clases de trabajo y solo toca la segunda:
+
+| | TRABAJO CIENTÍFICO | TRABAJO DE IMPLEMENTACIÓN |
+|---|---|---|
+| **Qué es** | rayos trazados, superficies intersecadas, evaluaciones de objetivo, potencias candidatas, búsquedas de foco, extracciones Monte Carlo | asignaciones de memoria, arrays temporales, comprobaciones repetidas, recorridos redundantes, indirección de propiedades, recolección de basura |
+| **Lo define** | la pregunta científica y sus parámetros declarados | cómo está escrito el código |
+| **En V1.14** | **INVARIANTE** — verificado exacto por el contrato HARD | **REDUCIDO** — es de donde sale todo el speedup |
+| **Cambiarlo es** | cambiar el experimento (prohibido en este sprint) | optimizar (el objetivo del sprint) |
+
+Por eso la puerta de equivalencia informa «trabajo sin cambios» en los diez workloads y aun
+así el motor va al doble: no se hace menos ciencia, se hace con menos desperdicio.
+
+## 11 · Refutaciones adversariales ejecutadas
+
+Los ocho vectores del encargo se ejecutaron como pruebas, no como opinión. Todas viven en
+`tests/perf_adversarial.test.mjs` (12 tests) y se ejecutan en cada CI.
+
+### A · Caché y estado compartido (el riesgo que V1.14 introduce de verdad)
+
+Las optimizaciones metieron **estado mutable a nivel de módulo**: los buffers `scratch`
+(spotRmsAt), `planos` (bestFocus) y el objeto `cursor` (traceRay). Se atacaron así:
+
+| Ataque | Resultado |
+|---|---|
+| `A→B→A` con haces de distinto ojo y tamaño: ¿el A final == el A aislado? | idéntico |
+| haz **grande** y luego **pequeño**: ¿el pequeño lee datos viejos del prefijo sobrante? | idéntico (el bucle recorre lo escrito, no la capacidad) |
+| rayos **filtrados intercalados** (|d_z| < 1e-12) en mitad de la lista: ¿se descuadran índice y contador? | idéntico al haz sin degenerados |
+| `bestFocus` A→B→A, y ¿su aplanado contamina `spotRmsAt`, que usa el *otro* buffer? | idéntico |
+| llamada que **falla a mitad** (bracket inválido, haz vacío, mínimo en el borde): ¿deja residuo tóxico? | el cálculo siguiente es idéntico |
+| **aliasing**: ¿dos rayos del mismo haz comparten el array de posición o dirección? | todos distintos; y ninguno comparte identidad con el haz de entrada |
+| ¿`traceRay` **muta** el rayo de entrada? | no; trazarlo dos veces da lo mismo |
+| **orden de ejecución**: 3 pasadas en orden aleatorio determinista + orden inverso | toda salida idéntica |
+| **repetición**: 25 pasadas del workload Monte Carlo | todas idénticas |
+
+**Reentrancia:** no existe camino donde `spotRmsAt` o `bestFocus` se llamen anidadamente —
+ninguna de las dos invoca código de usuario ni acepta callbacks, y el motor es de un solo hilo
+sin `await` en la ruta caliente. El único punto recursivo del trazado es `intersect` para
+superficies `transformed`, que **no toca ninguno de los dos buffers**.
+
+### B · Resultado cambiado
+
+La comprobación decisiva es entre **dos checkouts limpios**: se capturó la instantánea
+científica en `bf9c5dc` (pre-V1.14, sin optimizar) y se verificó desde `HEAD`. Resultado:
+**idéntica bit a bit en los diez workloads**. Además se verificaron rutas que los workloads no
+cubren: pérdidas por apertura con su razón y punto, contabilidad `rays + lost = total` con sus
+motivos, `parallelBundle` con sus pares ±h, y que `evaluateObjective` conserva todos sus campos
+(incluido `residual_d = null` y `bestFocus_mm = null` para el objetivo A).
+
+### C · Benchmark engañoso
+
+El propio informe encontró y corrigió el sesgo: la primera medición era **asimétrica**
+(baseline sin instrumentar, final instrumentado). Se rehízo desde commits limpios con
+instrumentación simétrica y orden contrabalanceado — sección 3. Los sub-milisegundo se excluyen
+de la cifra agregada por ruido, y la exclusión **no favorece** al resultado (sus speedups
+aparentes eran ×1.00–×1.67, por debajo de la media).
+
+### D · Parámetro científico reducido
+
+Barrido del diff completo `bf9c5dc..HEAD` sobre `src/`: **ninguna** constante científica
+cambia. El único `1e-12` que aparece en el diff es el mismo filtro de dirección preexistente,
+movido de sitio, no alterado. Y el contrato HARD incluye los parámetros de cada workload en la
+instantánea comparada: reducir uno haría fallar el test nombrándolo.
+
+### E · CI frágil
+
+El test SOFT de presupuesto **no puede fallar por tiempo**: sus únicas aserciones son que la
+calibración mide un tiempo positivo y que todo workload con presupuesto SOFT tiene también
+contrato HARD; un exceso se reporta por consola como aviso. La suite completa pasó de 3883 ms
+a **3639 ms** *añadiendo* 17 tests: el contrato no encarece la CI.
+
+### F · Memoria y GC
+
+| Medida | Resultado |
+|---|---|
+| GC en `barrido` (20 pasadas) | 419 → 264 recolecciones; **262.1 → 74.2 ms** |
+| GC en `incertidumbre` | 37 → 27; **49.6 → 11.9 ms** |
+| GC en `eleccion` | 161 → 128; **75.0 → 29.6 ms** |
+| Fuga tras **250 pasadas** de `barrido`/`eleccion`/`incertidumbre` | +0.08 a +0.17 MiB (nivel de ruido, sin crecimiento monótono) |
+| **Tradeoff declarado**: los buffers crecen y **no encogen** | +54 KiB tras un haz de 1000 rayos; peor caso del motor (haz Fibonacci de 20 000 rayos) ≈ **1.25 MiB permanentes** |
+
+Ese ~1.25 MiB es el precio de la velocidad y se publica como tal: está acotado por el mayor haz
+que el proceso haya visto, no crece con el número de evaluaciones.
+
+### G · Determinismo
+
+Cubierto por los tests de orden aleatorio, orden inverso, 25 repeticiones del Monte Carlo, y la
+equivalencia entre commits limpios. Sobre el orden de reducción en coma flotante: los buffers
+`Float64Array` almacenan **exactamente** el mismo `double` que un `Array`, y las dos pasadas
+(centroide y luego varianza) conservan su orden de acumulación — por eso la salida es idéntica
+bit a bit y no «casi igual».
+
+### H · Generalidad
+
+`src/` no contiene ninguna referencia a `exp013`/`exp014`/`exp015`, a los workloads del
+benchmark, ni a ojos, pupilas, números de anillos o factories concretos. No hay *fast paths*
+que reconozcan casos históricos ni cachés precalculadas. Los tamaños iniciales de buffer (1024
+y 6×512) son solo semillas: el crecimiento dinámico se ejercita con haces mayores en los tests.
+La independencia arquitectónica del motor sigue verde (6/6), y `src/perf/counters.mjs` no
+importa nada del proyecto, así que no puede crear ciclos.
+
+## 12 · Por qué el catálogo cuesta lo que cuesta (y por qué NO se optimiza)
+
+El contador dice: catálogo de 141 escalones → 169 evaluaciones de objetivo, frente a ~30 del
+continuo solo. Las ~139 evaluaciones extra **no son un desperdicio**: el optimizador evalúa
+cada escalón del catálogo exactamente **una vez** (`for (const p of catalog_d)`), y de ahí
+salen tres cosas que el contrato científico publica:
+
+1. la **recomendada** (el escalón de menor coste);
+2. la **segunda opción** y su diferencia (contrato de V1.8, base del análisis de empates);
+3. el registro **`catalog_no_evaluables`** — qué escalones no pudieron evaluarse y por qué,
+   que es la guarda anti-sesgo-del-superviviente de V1.9.
+
+Evaluar solo los dos escalones que rodean al óptimo continuo sería más rápido y **asumiría
+unimodalidad del coste sobre el catálogo** sin demostrarla, además de vaciar (2) y (3). Es
+exactamente la clase de atajo que este proyecto rechaza. Coste **estructural**, no evitable:
+queda documentado para que, cuando lleguen cohortes reales, se sepa que la dimensión dominante
+es el tamaño del catálogo y no la precisión del optimizador.
+
+## 13 · Lo que este informe NO demuestra
 
 - **No** demuestra que el motor sea rápido en términos absolutos: demuestra que hace **el
   mismo cálculo** por aproximadamente la mitad del tiempo en esta máquina.

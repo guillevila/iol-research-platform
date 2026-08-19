@@ -460,10 +460,25 @@ registrada como no consumida en la salida (`pupila`).
 El control central del apartado 2, ejecutado sobre toda la rejilla de ojos sintéticos.
 Aceptación: **ningún** ojo de la rejilla diverge más de 10⁻³ D con apertura → 0.
 
-### V1.14 · Rendimiento
-El trazado es ~10³ veces más caro que el paraxial. Aceptación: presupuesto de tiempo
-declarado por experimento; sin optimización que altere resultados (cualquier cambio de
-resultado por rendimiento es un defecto, no una mejora).
+### V1.14 · Rendimiento (EJECUTADO: src/perf/, bench/, tests/performance_contract + perf_adversarial)
+El trazado es ~10³ veces más caro que el paraxial. Aceptación ejecutada: **speedup ×2.07**
+sobre los workloads medibles, con **identidad bitwise** de toda salida científica verificada
+entre dos checkouts limpios; ninguna optimización altera un resultado.
+
+**Enmienda del criterio de aceptación** (hallazgo del propio sprint). El plan pedía
+«presupuesto de tiempo declarado por experimento». Un umbral en milisegundos absolutos sobre
+un runner de CI compartido es una prueba FRÁGIL: falla por vecinos ruidosos, no por
+regresiones — medido, tres lanzamientos del mismo código dieron hasta 130 % de dispersión. Se
+sustituye por un presupuesto de TRES niveles con estatus explícito: **HARD** el trabajo
+determinista exacto por workload (rayos, intersecciones, focos, evaluaciones, geometrías) más
+la equivalencia bitwise, que son machine-independent y sí protegen; **SOFT** un presupuesto
+relativo calibrado contra un bucle medido en el mismo proceso, que avisa y no rompe la CI; y
+**CARACTERIZACIÓN** de wall-clock en `bench/`, fuera de `experiments/` porque un tiempo no
+puede reproducirse número a número sin romper `check_experiments`.
+
+Distinción que el sprint hace explícita: el trabajo CIENTÍFICO (rayos, superficies,
+evaluaciones, extracciones) queda INVARIANTE y verificado exacto; lo que se reduce es el
+trabajo de IMPLEMENTACIÓN (asignaciones, recorridos redundantes, GC).
 
 ### V1.15 · Documentación
 `RAY_TRACING.md` ampliado, `V1_CLOSURE.md`, OPEN_QUESTIONS actualizado.
