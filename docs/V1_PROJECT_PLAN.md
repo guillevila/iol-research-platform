@@ -365,14 +365,33 @@ campo; su desbloqueo sigue siendo externo (OQ #2 + #3). Del mapeo histórico H9
 («EQ/ATA/STS → V1.11») este sprint entrega el predictor GEOMÉTRICO del ecuador;
 ata_mm/sts_mm siguen reservados — compromiso cerrado por registro, no por activación.
 
-Aceptación: (a) exp006 vigilado y reproduciendo; (b) exp015 reproduce el eje paraxial
-delgado de exp006 **bit a bit** (mismas semillas, misma vía, posición vía predictor —
-demuestra que promover H_EQ a CAPA B es numéricamente neutro); (c) la divergencia del
-pipeline físico se publica descompuesta por causa (lente delgada→gruesa con la MISMA
-factory, paraxial→trazado a criterio fijo, criterio A vs C, linealización→re-evaluación
-con curvatura publicada, potencia continua→catálogo), con aditividad MEDIDA; (d) ancla
-de refutación: beneficio ≈ 0 en la diagonal σ_m = σ_bio también re-evaluado; (e) toda
-diferencia se llama divergencia; H_EQ sigue siendo hipótesis declarada.
+Aceptación (EJECUTADA; el punto (c) se ENMENDÓ tras la revisión adversarial — ver abajo):
+(a) exp006 vigilado y reproduciendo; (b) exp015 reproduce el eje paraxial delgado de
+exp006 **bit a bit** (27/27 celdas; mismas semillas, misma vía, posición vía predictor —
+demuestra que promover H_EQ a CAPA B es numéricamente neutro); (c) la divergencia se
+publica descompuesta en canales que cambian **UNA sola cosa cada uno**, en dos dominios
+que no se restan entre sí — dominio REFRACCIÓN (intra-paraxial): residuo de ESTIMADOR
+contra el ancla congelada, física de no-linealidad, potencia de sonda (cuantización de
+0.5 D) y lente delgada→gruesa a potencia EMPAREJADA; dominio POTENCIA CONTINUA (cruce de
+motores, misma factory): canal de motor óptico, con su cota de discretización del haz
+publicada. La suma telescopa exactamente al total; (d) ancla de refutación: beneficio ≡ 0
+en la diagonal σ_m = σ_bio, verificado; (e) toda diferencia se llama divergencia; H_EQ
+sigue siendo hipótesis declarada.
+
+**Enmienda del punto (c) (hallazgo adversarial de V1.11).** La redacción original de la
+aceptación —escrita en el mismo commit que corrigió el título del sprint— prometía dos
+canales más («criterio A vs C», «potencia continua→catálogo») y «aditividad MEDIDA». Se
+recortan, con motivo declarado en lugar de dejarlos como promesa incumplida:
+- *criterio A vs C*: la divergencia entre objetivos ya está cuantificada en exp008/exp009
+  y elegir criterio exige datos postoperatorios (OQ #8); re-medirla por ojo aquí no
+  aportaba a la pregunta del sprint.
+- *potencia continua→catálogo*: colisiona con la disciplina de convenciones de V1.8
+  (entre motores solo se compara potencia CONTINUA). La cuantización sí entra, pero
+  donde corresponde: como canal propio del dominio refracción (potencia de sonda), que
+  es justo donde la revisión demostró que estaba contaminando la lectura.
+- *aditividad MEDIDA*: sustituida por descomposición TELESCÓPICA. La aditividad se mide
+  cuando los canales son conmutables (V1.12); aquí no lo son — no existe «trazado de
+  lente sin geometría», así que el orden es un CAMINO, no una permutación.
 
 ### V1.12 · Incertidumbre sobre trazado (EJECUTADO: src/uncertainty/raytrace_uncertainty.mjs, exp014)
 NO es un port del Monte Carlo paraxial: arquitectura nueva elegida por las invariantes.

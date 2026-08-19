@@ -85,6 +85,13 @@ const CONFIG = {
     nota: 'Simpson compuesto partido en δ=0 (|f| tiene vértice ahí), por lado [0, 4σ]; '
       + 'la cola >4σ aporta P ≈ 6.3e-5 y sesga E|f| a la baja ~0.034 % (declarado)',
   },
+  aproximacion_brazo_eq: 'ambos brazos se evalúan alrededor de posGeom (misma estructura que '
+    + 'exp006). En el mundo H_EQ el ruido de medida ocurre alrededor del ecuador VERDADERO '
+    + '(posGeom + ε_bio), así que el brazo EQ descarta el término cruzado 2c·ε_bio·ε_med de la '
+    + 'respuesta cuadrática. Cota en esta rejilla: con s ≈ 2.3 D/mm y c ≈ 0.09 D/mm² (curvatura '
+    + 'medida en el bloque 2), s/(2c·σ_bio) ≈ 40 ⇒ efecto sobre E|·| < 1e-6 D, dos órdenes por '
+    + 'debajo del canal más pequeño. Con σ_bio grande o lentes de mayor curvatura dejaría de '
+    + 'ser despreciable y habría que re-derivarlo.',
   seeds: { mc_verificacion: 20260818, v112: 20260819 },
   sigmas_v112: {
     acd_mm: 0.10, lt_mm: 0.10, position_prediction_mm: 0.30,
@@ -304,6 +311,13 @@ for (const o of CONFIG.ojos) {
   const refGruesa = pos => paraxialEnPos(pre, pos).refractionForIOL(factory.create({ power_d: sGruesa.best.power_d }));
   const fRefDelgada = d => refDelgada(pos0 + d) - refDelgada(pos0);
   const fRefGruesa = d => refGruesa(pos0 + d) - refGruesa(pos0);
+  // PELDAÑO INTERMEDIO A POTENCIA EMPAREJADA (corrección adversarial V1.11): el modelo
+  // delgado sondeado en la potencia del GRUESO. Sin él, la diferencia delgada↔gruesa
+  // mezcla dos cosas — el escalón comercial de 0.5 D las lleva a potencias distintas
+  // (32 vs 32.5 en el corto) — y el efecto de lente puro queda enmascarado, incluso en
+  // su SIGNO.
+  const refDelgadaAtPg = pos => paraxialEnPos(pre, pos).refractionForThinPower(sGruesa.best.power_d);
+  const fRefDelgadaAtPg = d => refDelgadaAtPg(pos0 + d) - refDelgadaAtPg(pos0);
 
   // --- dominio POTENCIA continua (cruce de motores, misma factory) ---
   const PstarGruesa = pos => potenciaExactaGruesa(pre, pos);
@@ -363,9 +377,16 @@ for (const o of CONFIG.ojos) {
   });
 
   // --- matrices de beneficio (bloque 3) ---
-  const EabsRefDelgada = {}, EabsRefGruesa = {}, EabsPGruesa = {}, EabsPTrazada = {};
+  // EabsLineal: la MISMA cuadratura aplicada a la respuesta LINEAL sens·δ. Es el
+  // peldaño que separa el efecto de cambiar de RESPUESTA (física de no-linealidad)
+  // del de cambiar de ESTIMADOR (cuadratura determinista vs el MC congelado de
+  // exp006). Sin él, el «canal linealización» era ~99 % ruido del ancla.
+  const EabsLineal = {}, EabsRefDelgada = {}, EabsRefDelgadaAtPg = {}, EabsRefGruesa = {},
+    EabsPGruesa = {}, EabsPTrazada = {};
   for (const sig of [...CONFIG.sigma_bio_mm, ...CONFIG.sigma_medida_mm]) {
+    EabsLineal[sig] = esperanzaAbs(d => sDelgada.sensitivity_ref_per_mm_d * d, sig);
     EabsRefDelgada[sig] = esperanzaAbs(fRefDelgada, sig);
+    EabsRefDelgadaAtPg[sig] = esperanzaAbs(fRefDelgadaAtPg, sig);
     EabsRefGruesa[sig] = esperanzaAbs(fRefGruesa, sig);
     EabsPGruesa[sig] = esperanzaAbs(fPGruesa, sig);
     EabsPTrazada[sig] = esperanzaAbs(fPTrazada, sig);
@@ -373,15 +394,25 @@ for (const o of CONFIG.ojos) {
   for (const sBio of CONFIG.sigma_bio_mm) {
     for (const sMed of CONFIG.sigma_medida_mm) {
       const pub = exp006.rows.find(r => r.ojo === o.id && r.sigma_bio_mm === sBio && r.sigma_medida_mm === sMed);
+      const benLineal = EabsLineal[sBio] - EabsLineal[sMed];
       const benDelgada = EabsRefDelgada[sBio] - EabsRefDelgada[sMed];
+      const benDelgadaAtPg = EabsRefDelgadaAtPg[sBio] - EabsRefDelgadaAtPg[sMed];
       const benGruesa = EabsRefGruesa[sBio] - EabsRefGruesa[sMed];
       bloque3Refraccion.push({
         ojo: o.id, sigma_bio_mm: sBio, sigma_medida_mm: sMed,
         beneficio_publicado_exp006_d: pub.beneficio_d,
+        beneficio_lineal_cuadratura_d: benLineal,
         beneficio_delgada_reevaluada_d: benDelgada,
+        beneficio_delgada_a_potencia_gruesa_d: benDelgadaAtPg,
         beneficio_gruesa_reevaluada_d: benGruesa,
-        canal_linealizacion_d: benDelgada - pub.beneficio_d,
-        canal_modelo_lente_d: benGruesa - benDelgada,
+        // canales con UN cambio cada uno (corrección adversarial V1.11)
+        residuo_estimador_exp006_d: benLineal - pub.beneficio_d,
+        canal_fisica_linealizacion_d: benDelgada - benLineal,
+        canal_potencia_sonda_d: benDelgadaAtPg - benDelgada,
+        canal_lente_puro_d: benGruesa - benDelgadaAtPg,
+        // el canal agregado que publicaba la versión anterior, conservado para que la
+        // comparación con lo que se dijo antes sea explícita y no haya que reconstruirla
+        canal_escalon_mas_lente_d: benGruesa - benDelgada,
       });
       const benPG = EabsPGruesa[sBio] - EabsPGruesa[sMed];
       const benPT = EabsPTrazada[sBio] - EabsPTrazada[sMed];
@@ -432,6 +463,36 @@ const verificacionCuadratura = {
   desviacion_relativa: Math.abs(mcEabs - quadEabs) / quadEabs,
   nota: 'tolerancia esperable ~3 %: SE del MC (~0.6 %) + defecto del LCG de makeRng '
     + '(infla varianza 1.3-2.8 %, medido en V1.12) + truncamiento declarado de la cuadratura (0.034 %)',
+};
+
+// CONVERGENCIA DEL HAZ (corrección adversarial V1.11): el canal motor se mide con un
+// haz DISCRETIZADO (n_anillos declarado). Sin esta sonda, parte del canal sería
+// cuadratura del haz presentada como física del motor — y el óptimo ABSOLUTO publicado
+// arrastra un sesgo de muestreo mayor que el canal más pequeño de la tabla.
+const preCorto = ojoDe(CONFIG.ojos[0]);
+const pos0Corto = posiciones.corto.iol_position_mm;
+const trazadaCon = anillos => {
+  const centro = potenciaExactaGruesa(preCorto, pos0Corto);
+  const en = pos => optimizePowerByRaytrace({
+    postop: createPredictedPostopEye(preCorto, { iol_position_mm: pos, position_source: 'exp015_convergencia_haz' }),
+    factory, pupil_mm: CONFIG.pupil_mm, n_anillos: anillos, sampling: SamplingKind.MERIDIONAL,
+    search_d: [centro - 2.5, centro + 2.5], tol_d: 1e-7,
+  }).exact_power_d;
+  const p0 = en(pos0Corto);
+  return { absoluto_d: p0, respuesta_mas_04_d: en(pos0Corto + 0.4) - p0, respuesta_menos_04_d: en(pos0Corto - 0.4) - p0 };
+};
+const haz40 = trazadaCon(CONFIG.n_anillos);
+const haz160 = trazadaCon(160);
+const convergenciaHaz = {
+  celda: `ojo corto, potencia continua trazada, pupila ${CONFIG.pupil_mm} mm`,
+  n_anillos_publicado: CONFIG.n_anillos, n_anillos_referencia: 160,
+  sesgo_absoluto_d: haz40.absoluto_d - haz160.absoluto_d,
+  sesgo_respuesta_mas_04_d: haz40.respuesta_mas_04_d - haz160.respuesta_mas_04_d,
+  sesgo_respuesta_menos_04_d: haz40.respuesta_menos_04_d - haz160.respuesta_menos_04_d,
+  nota: 'el ABSOLUTO de potencia trazada NO está convergido en muestreo (~-8e-3 D con 40 '
+    + 'anillos, y 160→320 aún deriva): léase como óptimo del haz DECLARADO, no como valor '
+    + 'convergido. La RESPUESTA a δ (lo que entra en los canales) es de modo común y su '
+    + 'residuo es ~1 % del canal motor — cota publicada aquí, no asumida.',
 };
 
 // ---------------------------------------------------------------------------------
@@ -506,7 +567,16 @@ const result = redondea({
       intervalos_16: conv16, intervalos_8: conv8,
       delta_relativo: Math.abs(conv16 - conv8) / conv16,
     },
+    convergencia_haz: convergenciaHaz,
     verificacion_montecarlo: verificacionCuadratura,
+    lectura_canales: 'cada canal cambia UNA sola cosa (corrección adversarial V1.11): '
+      + 'residuo_estimador_exp006 = mismo modelo lineal, cuadratura determinista vs el MC '
+      + 'congelado de exp006 (SE con n=6000 + defecto del LCG + redondeo a 3 decimales — '
+      + 'NO es física); canal_fisica_linealizacion = misma potencia y mismo estimador, '
+      + 'respuesta lineal vs re-evaluada; canal_potencia_sonda = misma respuesta delgada, '
+      + 'sondeada en la potencia del escalón del otro motor (cuantización de 0.5 D); '
+      + 'canal_lente_puro = MISMA potencia, lente delgada vs gruesa. La suma de los cuatro '
+      + 'telescopa exactamente a (beneficio_gruesa_reevaluada − beneficio_publicado_exp006).',
   },
   bloque4_v112: bloque4,
   supuestos_trazado: supuestosTrazadoNominal,
@@ -568,14 +638,28 @@ const md = [
   '',
   '## 3 · Matriz de beneficio re-evaluada (columna σ_medida = 0.10 mm)',
   '',
-  '### Dominio refracción (paraxial): linealización y modelo de lente',
+  '### Dominio refracción (paraxial): un cambio por canal',
   '',
-  '| Ojo | σ_bio | exp006 publicado (D) | delgada re-evaluada (D) | gruesa re-evaluada (D) | canal linealización (D) | canal lente (D) |',
-  '|---|---|---|---|---|---|---|',
+  'Cada columna de canal cambia **una sola cosa**. Los cuatro telescopan exactamente a',
+  '(gruesa re-evaluada − exp006 publicado). Nótese que el primero **no es física**: es la',
+  'diferencia de ESTIMADOR contra el ancla congelada (MC n=6000 con el LCG defectuoso',
+  'medido en V1.12, más su redondeo a 3 decimales).',
+  '',
+  '| Ojo | σ_bio | exp006 pub. (D) | gruesa re-eval. (D) | residuo estimador (D) | física no-linealidad (D) | potencia de sonda (D) | lente puro (D) |',
+  '|---|---|---|---|---|---|---|---|',
   ...['corto', 'normal', 'largo'].flatMap(ojo =>
     col(R.bloque3_beneficio.dominio_refraccion_paraxial, ojo, () => true).map(c =>
-      `| ${c.ojo} | ${c.sigma_bio_mm} | ${fmt(c.beneficio_publicado_exp006_d)} | ${fmt(c.beneficio_delgada_reevaluada_d)} | `
-      + `${fmt(c.beneficio_gruesa_reevaluada_d)} | ${fmt(c.canal_linealizacion_d)} | ${fmt(c.canal_modelo_lente_d)} |`)),
+      `| ${c.ojo} | ${c.sigma_bio_mm} | ${fmt(c.beneficio_publicado_exp006_d)} | ${fmt(c.beneficio_gruesa_reevaluada_d)} | `
+      + `${c.residuo_estimador_exp006_d.toExponential(2)} | ${c.canal_fisica_linealizacion_d.toExponential(2)} | `
+      + `${c.canal_potencia_sonda_d.toExponential(2)} | ${c.canal_lente_puro_d.toExponential(2)} |`)),
+  '',
+  `- ${R.bloque3_beneficio.lectura_canales}`,
+  '- **Corrección adversarial de este sprint:** la primera versión publicaba un «canal',
+  '  linealización» y un «canal lente» que eran, respectivamente, ~99 % ruido del estimador',
+  '  del ancla y ~100 % efecto de sondear cada motor en su propio escalón de 0.5 D — con el',
+  '  efecto de lente puro de signo OPUESTO en el ojo corto. Las lecturas «la no-linealidad',
+  '  importa milidioptrías» y «la lente gruesa importa ~0.01 D en cortos» eran artefactos de',
+  '  atribución, no física.',
   '',
   '### Dominio potencia continua (cruce de motores, misma factory)',
   '',
@@ -590,6 +674,13 @@ const md = [
     + '(el 0 de exp006 también era por construcción: extracciones emparejadas).',
   `- Convergencia de la cuadratura (celda trazada, σ 0.3): 16 vs 8 intervalos → delta relativo `
     + `${(100 * R.bloque3_beneficio.convergencia_cuadratura.delta_relativo).toFixed(4)} %.`,
+  `- **Convergencia del haz** (${R.bloque3_beneficio.convergencia_haz.celda}, `
+    + `${R.bloque3_beneficio.convergencia_haz.n_anillos_publicado} vs `
+    + `${R.bloque3_beneficio.convergencia_haz.n_anillos_referencia} anillos): sesgo del ABSOLUTO `
+    + `${R.bloque3_beneficio.convergencia_haz.sesgo_absoluto_d.toExponential(2)} D; sesgo de la `
+    + `RESPUESTA a δ = ±0.4 mm ${R.bloque3_beneficio.convergencia_haz.sesgo_respuesta_mas_04_d.toExponential(2)} / `
+    + `${R.bloque3_beneficio.convergencia_haz.sesgo_respuesta_menos_04_d.toExponential(2)} D. `
+    + R.bloque3_beneficio.convergencia_haz.nota,
   `- Verificación Monte Carlo del método (${R.bloque3_beneficio.verificacion_montecarlo.celda}): `
     + `cuadratura ${fmt(R.bloque3_beneficio.verificacion_montecarlo.cuadratura_d)} vs MC `
     + `${fmt(R.bloque3_beneficio.verificacion_montecarlo.montecarlo_n20000_d)} `
@@ -617,6 +708,11 @@ const md = [
   '- **NO re-elige la potencia por extracción**: mantiene la estructura de exp006 (respuesta',
   '  alrededor de posGeom); la inestabilidad de la elección es OTRA pregunta (V1.12,',
   '  raytraceChoiceStability).',
+  '- **NO modela el ruido de medida alrededor del ecuador desplazado**: ambos brazos se',
+  `  evalúan alrededor de posGeom, descartando el término cruzado 2c·ε_bio·ε_med. ${CONFIG.aproximacion_brazo_eq.split('Cota en esta rejilla: ')[1]}`,
+  '- **NO publica una potencia trazada absoluta convergida en muestreo**: el óptimo continuo',
+  '  trazado es el del haz DECLARADO de 40 anillos y arrastra ~−8e-3 D de discretización (cota',
+  '  medida arriba); lo comparable entre motores es la RESPUESTA a δ, de modo común.',
   '- **NO convierte entre convenciones**: la divergencia de motor vive solo en el dominio',
   '  de potencia; el puente dRef/dP es informativo, no un conversor de resultados.',
   '- **NO decide criterio de foco ni política corneal** (OQ #7/#8): el trazado usa el',

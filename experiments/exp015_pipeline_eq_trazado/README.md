@@ -1,6 +1,6 @@
 # exp015 — Pipeline EQ (V1.11): H_EQ a través del pipeline físico real
 
-**SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada** · commit `7eeff4211b`
+**SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada** · commit `12b434e8bc`
 
 **Hipótesis declarada:** H_EQ: posicion de LIO = ecuador capsular; ecuador = ACD + LT/2 + eps_bio (DECLARADA, no hecho). Nada de esto la valida biológicamente.
 La conversión posición→resultado de exp006 (linealización paraxial de lente delgada) se
@@ -47,19 +47,32 @@ refracción SOLO intra-paraxial; entre motores, POTENCIA CONTINUA con la misma f
 
 ## 3 · Matriz de beneficio re-evaluada (columna σ_medida = 0.10 mm)
 
-### Dominio refracción (paraxial): linealización y modelo de lente
+### Dominio refracción (paraxial): un cambio por canal
 
-| Ojo | σ_bio | exp006 publicado (D) | delgada re-evaluada (D) | gruesa re-evaluada (D) | canal linealización (D) | canal lente (D) |
-|---|---|---|---|---|---|---|
-| corto | 0.2 | 0.1780 | 0.1801 | 0.1842 | 0.0021 | 0.0041 |
-| corto | 0.3 | 0.3630 | 0.3601 | 0.3684 | -0.0029 | 0.0083 |
-| corto | 0.4 | 0.5460 | 0.5402 | 0.5526 | -0.0058 | 0.0124 |
-| normal | 0.2 | 0.1060 | 0.1074 | 0.1108 | 0.0014 | 0.0034 |
-| normal | 0.3 | 0.2170 | 0.2149 | 0.2217 | -0.0021 | 0.0068 |
-| normal | 0.4 | 0.3260 | 0.3223 | 0.3325 | -0.0037 | 0.0102 |
-| largo | 0.2 | 0.0500 | 0.0507 | 0.0507 | 0.0007 | 0.0000 |
-| largo | 0.3 | 0.1020 | 0.1014 | 0.1015 | -0.0006 | 0.0001 |
-| largo | 0.4 | 0.1540 | 0.1522 | 0.1522 | -0.0018 | 0.0001 |
+Cada columna de canal cambia **una sola cosa**. Los cuatro telescopan exactamente a
+(gruesa re-evaluada − exp006 publicado). Nótese que el primero **no es física**: es la
+diferencia de ESTIMADOR contra el ancla congelada (MC n=6000 con el LCG defectuoso
+medido en V1.12, más su redondeo a 3 decimales).
+
+| Ojo | σ_bio | exp006 pub. (D) | gruesa re-eval. (D) | residuo estimador (D) | física no-linealidad (D) | potencia de sonda (D) | lente puro (D) |
+|---|---|---|---|---|---|---|---|
+| corto | 0.2 | 0.1780 | 0.1842 | 2.06e-3 | -1.00e-6 | 4.26e-3 | -1.15e-4 |
+| corto | 0.3 | 0.3630 | 0.3684 | -2.87e-3 | -4.00e-6 | 8.52e-3 | -2.31e-4 |
+| corto | 0.4 | 0.5460 | 0.5526 | -5.81e-3 | -1.00e-5 | 1.28e-2 | -3.46e-4 |
+| normal | 0.2 | 0.1060 | 0.1108 | 1.44e-3 | -1.00e-6 | 3.39e-3 | 6.00e-6 |
+| normal | 0.3 | 0.2170 | 0.2217 | -2.13e-3 | -5.00e-6 | 6.78e-3 | 1.20e-5 |
+| normal | 0.4 | 0.3260 | 0.3325 | -3.69e-3 | -1.40e-5 | 1.02e-2 | 1.80e-5 |
+| largo | 0.2 | 0.0500 | 0.0507 | 7.19e-4 | 0.00e+0 | 0.00e+0 | 3.00e-5 |
+| largo | 0.3 | 0.1020 | 0.1015 | -5.61e-4 | -2.00e-6 | 0.00e+0 | 6.10e-5 |
+| largo | 0.4 | 0.1540 | 0.1522 | -1.84e-3 | -5.00e-6 | 0.00e+0 | 9.10e-5 |
+
+- cada canal cambia UNA sola cosa (corrección adversarial V1.11): residuo_estimador_exp006 = mismo modelo lineal, cuadratura determinista vs el MC congelado de exp006 (SE con n=6000 + defecto del LCG + redondeo a 3 decimales — NO es física); canal_fisica_linealizacion = misma potencia y mismo estimador, respuesta lineal vs re-evaluada; canal_potencia_sonda = misma respuesta delgada, sondeada en la potencia del escalón del otro motor (cuantización de 0.5 D); canal_lente_puro = MISMA potencia, lente delgada vs gruesa. La suma de los cuatro telescopa exactamente a (beneficio_gruesa_reevaluada − beneficio_publicado_exp006).
+- **Corrección adversarial de este sprint:** la primera versión publicaba un «canal
+  linealización» y un «canal lente» que eran, respectivamente, ~99 % ruido del estimador
+  del ancla y ~100 % efecto de sondear cada motor en su propio escalón de 0.5 D — con el
+  efecto de lente puro de signo OPUESTO en el ojo corto. Las lecturas «la no-linealidad
+  importa milidioptrías» y «la lente gruesa importa ~0.01 D en cortos» eran artefactos de
+  atribución, no física.
 
 ### Dominio potencia continua (cruce de motores, misma factory)
 
@@ -77,6 +90,7 @@ refracción SOLO intra-paraxial; entre motores, POTENCIA CONTINUA con la misma f
 
 - **Ancla de refutación** — diagonal σ_m = σ_bio = 0.2: beneficio ≡ 0 por construcción (misma integral en ambos brazos): **VERIFICADO** (el 0 de exp006 también era por construcción: extracciones emparejadas).
 - Convergencia de la cuadratura (celda trazada, σ 0.3): 16 vs 8 intervalos → delta relativo 0.1162 %.
+- **Convergencia del haz** (ojo corto, potencia continua trazada, pupila 3 mm, 40 vs 160 anillos): sesgo del ABSOLUTO -8.21e-3 D; sesgo de la RESPUESTA a δ = ±0.4 mm -4.25e-4 / 3.92e-4 D. el ABSOLUTO de potencia trazada NO está convergido en muestreo (~-8e-3 D con 40 anillos, y 160→320 aún deriva): léase como óptimo del haz DECLARADO, no como valor convergido. La RESPUESTA a δ (lo que entra en los canales) es de modo común y su residuo es ~1 % del canal motor — cota publicada aquí, no asumida.
 - Verificación Monte Carlo del método (normal, dominio refracción gruesa, σ = 0.30 mm): cuadratura 0.3325 vs MC 0.3359 (desviación 1.02 %). tolerancia esperable ~3 %: SE del MC (~0.6 %) + defecto del LCG de makeRng (infla varianza 1.3-2.8 %, medido en V1.12) + truncamiento declarado de la cuadratura (0.034 %)
 
 ## 4 · Integración V1.12: la hipótesis con incertidumbre auditable
@@ -97,6 +111,11 @@ refracción SOLO intra-paraxial; entre motores, POTENCIA CONTINUA con la misma f
 - **NO re-elige la potencia por extracción**: mantiene la estructura de exp006 (respuesta
   alrededor de posGeom); la inestabilidad de la elección es OTRA pregunta (V1.12,
   raytraceChoiceStability).
+- **NO modela el ruido de medida alrededor del ecuador desplazado**: ambos brazos se
+  evalúan alrededor de posGeom, descartando el término cruzado 2c·ε_bio·ε_med. con s ≈ 2.3 D/mm y c ≈ 0.09 D/mm² (curvatura medida en el bloque 2), s/(2c·σ_bio) ≈ 40 ⇒ efecto sobre E|·| < 1e-6 D, dos órdenes por debajo del canal más pequeño. Con σ_bio grande o lentes de mayor curvatura dejaría de ser despreciable y habría que re-derivarlo.
+- **NO publica una potencia trazada absoluta convergida en muestreo**: el óptimo continuo
+  trazado es el del haz DECLARADO de 40 anillos y arrastra ~−8e-3 D de discretización (cota
+  medida arriba); lo comparable entre motores es la RESPUESTA a δ, de modo común.
 - **NO convierte entre convenciones**: la divergencia de motor vive solo en el dominio
   de potencia; el puente dRef/dP es informativo, no un conversor de resultados.
 - **NO decide criterio de foco ni política corneal** (OQ #7/#8): el trazado usa el

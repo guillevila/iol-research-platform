@@ -48,6 +48,7 @@
    "truncamiento_sigmas": 4,
    "nota": "Simpson compuesto partido en δ=0 (|f| tiene vértice ahí), por lado [0, 4σ]; la cola >4σ aporta P ≈ 6.3e-5 y sesga E|f| a la baja ~0.034 % (declarado)"
   },
+  "aproximacion_brazo_eq": "ambos brazos se evalúan alrededor de posGeom (misma estructura que exp006). En el mundo H_EQ el ruido de medida ocurre alrededor del ecuador VERDADERO (posGeom + ε_bio), así que el brazo EQ descarta el término cruzado 2c·ε_bio·ε_med de la respuesta cuadrática. Cota en esta rejilla: con s ≈ 2.3 D/mm y c ≈ 0.09 D/mm² (curvatura medida en el bloque 2), s/(2c·σ_bio) ≈ 40 ⇒ efecto sobre E|·| < 1e-6 D, dos órdenes por debajo del canal más pequeño. Con σ_bio grande o lentes de mayor curvatura dejaría de ser despreciable y habría que re-derivarlo.",
   "seeds": {
    "mc_verificacion": 20260818,
    "v112": 20260819
@@ -63,8 +64,8 @@
    }
   }
  },
- "timestamp": "2026-08-18T11:59:53.518Z",
- "commit": "7eeff4211b0559f895e300c7b4e8df4b6495a78c",
+ "timestamp": "2026-08-19T06:31:38.372Z",
+ "commit": "12b434e8bc0fa2e2cb85bd91fe640969efc86659",
  "procedencia_commit": "último commit AL GENERAR: la reproducibilidad la garantiza scripts/check_experiments.mjs, no este campo (hallazgo V1.3)",
  "autotest_cuadratura": {
   "funcion": "f(δ) = 1.7·δ, σ = 0.3",
@@ -591,270 +592,405 @@
     "sigma_bio_mm": 0.2,
     "sigma_medida_mm": 0.05,
     "beneficio_publicado_exp006_d": 0.271,
+    "beneficio_lineal_cuadratura_d": 0.270097,
     "beneficio_delgada_reevaluada_d": 0.270097,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.276485,
     "beneficio_gruesa_reevaluada_d": 0.276311,
-    "canal_linealizacion_d": -0.000903,
-    "canal_modelo_lente_d": 0.006215
+    "residuo_estimador_exp006_d": -0.000903,
+    "canal_fisica_linealizacion_d": -0.000001,
+    "canal_potencia_sonda_d": 0.006388,
+    "canal_lente_puro_d": -0.000173,
+    "canal_escalon_mas_lente_d": 0.006215
    },
    {
     "ojo": "corto",
     "sigma_bio_mm": 0.2,
     "sigma_medida_mm": 0.1,
     "beneficio_publicado_exp006_d": 0.178,
+    "beneficio_lineal_cuadratura_d": 0.180065,
     "beneficio_delgada_reevaluada_d": 0.180064,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.184323,
     "beneficio_gruesa_reevaluada_d": 0.184207,
-    "canal_linealizacion_d": 0.002064,
-    "canal_modelo_lente_d": 0.004143
+    "residuo_estimador_exp006_d": 0.002065,
+    "canal_fisica_linealizacion_d": -0.000001,
+    "canal_potencia_sonda_d": 0.004259,
+    "canal_lente_puro_d": -0.000115,
+    "canal_escalon_mas_lente_d": 0.004143
    },
    {
     "ojo": "corto",
     "sigma_bio_mm": 0.2,
     "sigma_medida_mm": 0.2,
     "beneficio_publicado_exp006_d": 0,
+    "beneficio_lineal_cuadratura_d": 0,
     "beneficio_delgada_reevaluada_d": 0,
+    "beneficio_delgada_a_potencia_gruesa_d": 0,
     "beneficio_gruesa_reevaluada_d": 0,
-    "canal_linealizacion_d": 0,
-    "canal_modelo_lente_d": 0
+    "residuo_estimador_exp006_d": 0,
+    "canal_fisica_linealizacion_d": 0,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0,
+    "canal_escalon_mas_lente_d": 0
    },
    {
     "ojo": "corto",
     "sigma_bio_mm": 0.3,
     "sigma_medida_mm": 0.05,
     "beneficio_publicado_exp006_d": 0.456,
+    "beneficio_lineal_cuadratura_d": 0.450162,
     "beneficio_delgada_reevaluada_d": 0.450159,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.460805,
     "beneficio_gruesa_reevaluada_d": 0.460517,
-    "canal_linealizacion_d": -0.005841,
-    "canal_modelo_lente_d": 0.010358
+    "residuo_estimador_exp006_d": -0.005838,
+    "canal_fisica_linealizacion_d": -0.000003,
+    "canal_potencia_sonda_d": 0.010647,
+    "canal_lente_puro_d": -0.000288,
+    "canal_escalon_mas_lente_d": 0.010358
    },
    {
     "ojo": "corto",
     "sigma_bio_mm": 0.3,
     "sigma_medida_mm": 0.1,
     "beneficio_publicado_exp006_d": 0.363,
+    "beneficio_lineal_cuadratura_d": 0.36013,
     "beneficio_delgada_reevaluada_d": 0.360126,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.368643,
     "beneficio_gruesa_reevaluada_d": 0.368413,
-    "canal_linealizacion_d": -0.002874,
-    "canal_modelo_lente_d": 0.008286
+    "residuo_estimador_exp006_d": -0.00287,
+    "canal_fisica_linealizacion_d": -0.000004,
+    "canal_potencia_sonda_d": 0.008517,
+    "canal_lente_puro_d": -0.000231,
+    "canal_escalon_mas_lente_d": 0.008286
    },
    {
     "ojo": "corto",
     "sigma_bio_mm": 0.3,
     "sigma_medida_mm": 0.2,
     "beneficio_publicado_exp006_d": 0.18,
+    "beneficio_lineal_cuadratura_d": 0.180065,
     "beneficio_delgada_reevaluada_d": 0.180062,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.184321,
     "beneficio_gruesa_reevaluada_d": 0.184205,
-    "canal_linealizacion_d": 0.000062,
-    "canal_modelo_lente_d": 0.004143
+    "residuo_estimador_exp006_d": 0.000065,
+    "canal_fisica_linealizacion_d": -0.000003,
+    "canal_potencia_sonda_d": 0.004259,
+    "canal_lente_puro_d": -0.000115,
+    "canal_escalon_mas_lente_d": 0.004143
    },
    {
     "ojo": "corto",
     "sigma_bio_mm": 0.4,
     "sigma_medida_mm": 0.05,
     "beneficio_publicado_exp006_d": 0.644,
+    "beneficio_lineal_cuadratura_d": 0.630227,
     "beneficio_delgada_reevaluada_d": 0.630217,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.645123,
     "beneficio_gruesa_reevaluada_d": 0.644719,
-    "canal_linealizacion_d": -0.013783,
-    "canal_modelo_lente_d": 0.014501
+    "residuo_estimador_exp006_d": -0.013773,
+    "canal_fisica_linealizacion_d": -0.00001,
+    "canal_potencia_sonda_d": 0.014905,
+    "canal_lente_puro_d": -0.000404,
+    "canal_escalon_mas_lente_d": 0.014501
    },
    {
     "ojo": "corto",
     "sigma_bio_mm": 0.4,
     "sigma_medida_mm": 0.1,
     "beneficio_publicado_exp006_d": 0.546,
+    "beneficio_lineal_cuadratura_d": 0.540195,
     "beneficio_delgada_reevaluada_d": 0.540185,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.552961,
     "beneficio_gruesa_reevaluada_d": 0.552615,
-    "canal_linealizacion_d": -0.005815,
-    "canal_modelo_lente_d": 0.01243
+    "residuo_estimador_exp006_d": -0.005805,
+    "canal_fisica_linealizacion_d": -0.00001,
+    "canal_potencia_sonda_d": 0.012776,
+    "canal_lente_puro_d": -0.000346,
+    "canal_escalon_mas_lente_d": 0.01243
    },
    {
     "ojo": "corto",
     "sigma_bio_mm": 0.4,
     "sigma_medida_mm": 0.2,
     "beneficio_publicado_exp006_d": 0.366,
+    "beneficio_lineal_cuadratura_d": 0.36013,
     "beneficio_delgada_reevaluada_d": 0.360121,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.368638,
     "beneficio_gruesa_reevaluada_d": 0.368407,
-    "canal_linealizacion_d": -0.005879,
-    "canal_modelo_lente_d": 0.008287
+    "residuo_estimador_exp006_d": -0.00587,
+    "canal_fisica_linealizacion_d": -0.000009,
+    "canal_potencia_sonda_d": 0.008517,
+    "canal_lente_puro_d": -0.000231,
+    "canal_escalon_mas_lente_d": 0.008287
    },
    {
     "ojo": "normal",
     "sigma_bio_mm": 0.2,
     "sigma_medida_mm": 0.05,
     "beneficio_publicado_exp006_d": 0.162,
+    "beneficio_lineal_cuadratura_d": 0.161156,
     "beneficio_delgada_reevaluada_d": 0.161156,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.166242,
     "beneficio_gruesa_reevaluada_d": 0.166251,
-    "canal_linealizacion_d": -0.000844,
-    "canal_modelo_lente_d": 0.005096
+    "residuo_estimador_exp006_d": -0.000844,
+    "canal_fisica_linealizacion_d": -0.000001,
+    "canal_potencia_sonda_d": 0.005087,
+    "canal_lente_puro_d": 0.000009,
+    "canal_escalon_mas_lente_d": 0.005096
    },
    {
     "ojo": "normal",
     "sigma_bio_mm": 0.2,
     "sigma_medida_mm": 0.1,
     "beneficio_publicado_exp006_d": 0.106,
+    "beneficio_lineal_cuadratura_d": 0.107438,
     "beneficio_delgada_reevaluada_d": 0.107437,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.110828,
     "beneficio_gruesa_reevaluada_d": 0.110834,
-    "canal_linealizacion_d": 0.001437,
-    "canal_modelo_lente_d": 0.003397
+    "residuo_estimador_exp006_d": 0.001438,
+    "canal_fisica_linealizacion_d": -0.000001,
+    "canal_potencia_sonda_d": 0.003391,
+    "canal_lente_puro_d": 0.000006,
+    "canal_escalon_mas_lente_d": 0.003397
    },
    {
     "ojo": "normal",
     "sigma_bio_mm": 0.2,
     "sigma_medida_mm": 0.2,
     "beneficio_publicado_exp006_d": 0,
+    "beneficio_lineal_cuadratura_d": 0,
     "beneficio_delgada_reevaluada_d": 0,
+    "beneficio_delgada_a_potencia_gruesa_d": 0,
     "beneficio_gruesa_reevaluada_d": 0,
-    "canal_linealizacion_d": 0,
-    "canal_modelo_lente_d": 0
+    "residuo_estimador_exp006_d": 0,
+    "canal_fisica_linealizacion_d": 0,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0,
+    "canal_escalon_mas_lente_d": 0
    },
    {
     "ojo": "normal",
     "sigma_bio_mm": 0.3,
     "sigma_medida_mm": 0.05,
     "beneficio_publicado_exp006_d": 0.272,
+    "beneficio_lineal_cuadratura_d": 0.268594,
     "beneficio_delgada_reevaluada_d": 0.268589,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.277067,
     "beneficio_gruesa_reevaluada_d": 0.277082,
-    "canal_linealizacion_d": -0.003411,
-    "canal_modelo_lente_d": 0.008493
+    "residuo_estimador_exp006_d": -0.003406,
+    "canal_fisica_linealizacion_d": -0.000005,
+    "canal_potencia_sonda_d": 0.008478,
+    "canal_lente_puro_d": 0.000015,
+    "canal_escalon_mas_lente_d": 0.008493
    },
    {
     "ojo": "normal",
     "sigma_bio_mm": 0.3,
     "sigma_medida_mm": 0.1,
     "beneficio_publicado_exp006_d": 0.217,
+    "beneficio_lineal_cuadratura_d": 0.214875,
     "beneficio_delgada_reevaluada_d": 0.21487,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.221652,
     "beneficio_gruesa_reevaluada_d": 0.221664,
-    "canal_linealizacion_d": -0.00213,
-    "canal_modelo_lente_d": 0.006794
+    "residuo_estimador_exp006_d": -0.002125,
+    "canal_fisica_linealizacion_d": -0.000005,
+    "canal_potencia_sonda_d": 0.006782,
+    "canal_lente_puro_d": 0.000012,
+    "canal_escalon_mas_lente_d": 0.006794
    },
    {
     "ojo": "normal",
     "sigma_bio_mm": 0.3,
     "sigma_medida_mm": 0.2,
     "beneficio_publicado_exp006_d": 0.107,
+    "beneficio_lineal_cuadratura_d": 0.107438,
     "beneficio_delgada_reevaluada_d": 0.107433,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.110824,
     "beneficio_gruesa_reevaluada_d": 0.11083,
-    "canal_linealizacion_d": 0.000433,
-    "canal_modelo_lente_d": 0.003397
+    "residuo_estimador_exp006_d": 0.000438,
+    "canal_fisica_linealizacion_d": -0.000004,
+    "canal_potencia_sonda_d": 0.003391,
+    "canal_lente_puro_d": 0.000006,
+    "canal_escalon_mas_lente_d": 0.003397
    },
    {
     "ojo": "normal",
     "sigma_bio_mm": 0.4,
     "sigma_medida_mm": 0.05,
     "beneficio_publicado_exp006_d": 0.384,
+    "beneficio_lineal_cuadratura_d": 0.376032,
     "beneficio_delgada_reevaluada_d": 0.376018,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.387886,
     "beneficio_gruesa_reevaluada_d": 0.387907,
-    "canal_linealizacion_d": -0.007982,
-    "canal_modelo_lente_d": 0.011889
+    "residuo_estimador_exp006_d": -0.007968,
+    "canal_fisica_linealizacion_d": -0.000014,
+    "canal_potencia_sonda_d": 0.011868,
+    "canal_lente_puro_d": 0.000021,
+    "canal_escalon_mas_lente_d": 0.011889
    },
    {
     "ojo": "normal",
     "sigma_bio_mm": 0.4,
     "sigma_medida_mm": 0.1,
     "beneficio_publicado_exp006_d": 0.326,
+    "beneficio_lineal_cuadratura_d": 0.322313,
     "beneficio_delgada_reevaluada_d": 0.322299,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.332471,
     "beneficio_gruesa_reevaluada_d": 0.332489,
-    "canal_linealizacion_d": -0.003701,
-    "canal_modelo_lente_d": 0.010191
+    "residuo_estimador_exp006_d": -0.003687,
+    "canal_fisica_linealizacion_d": -0.000014,
+    "canal_potencia_sonda_d": 0.010173,
+    "canal_lente_puro_d": 0.000018,
+    "canal_escalon_mas_lente_d": 0.010191
    },
    {
     "ojo": "normal",
     "sigma_bio_mm": 0.4,
     "sigma_medida_mm": 0.2,
     "beneficio_publicado_exp006_d": 0.219,
+    "beneficio_lineal_cuadratura_d": 0.214875,
     "beneficio_delgada_reevaluada_d": 0.214862,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.221644,
     "beneficio_gruesa_reevaluada_d": 0.221656,
-    "canal_linealizacion_d": -0.004138,
-    "canal_modelo_lente_d": 0.006794
+    "residuo_estimador_exp006_d": -0.004125,
+    "canal_fisica_linealizacion_d": -0.000013,
+    "canal_potencia_sonda_d": 0.006782,
+    "canal_lente_puro_d": 0.000012,
+    "canal_escalon_mas_lente_d": 0.006794
    },
    {
     "ojo": "largo",
     "sigma_bio_mm": 0.2,
     "sigma_medida_mm": 0.05,
     "beneficio_publicado_exp006_d": 0.076,
+    "beneficio_lineal_cuadratura_d": 0.076079,
     "beneficio_delgada_reevaluada_d": 0.076079,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.076079,
     "beneficio_gruesa_reevaluada_d": 0.076124,
-    "canal_linealizacion_d": 0.000079,
-    "canal_modelo_lente_d": 0.000045
+    "residuo_estimador_exp006_d": 0.000079,
+    "canal_fisica_linealizacion_d": 0,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0.000045,
+    "canal_escalon_mas_lente_d": 0.000045
    },
    {
     "ojo": "largo",
     "sigma_bio_mm": 0.2,
     "sigma_medida_mm": 0.1,
     "beneficio_publicado_exp006_d": 0.05,
+    "beneficio_lineal_cuadratura_d": 0.050719,
     "beneficio_delgada_reevaluada_d": 0.050719,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.050719,
     "beneficio_gruesa_reevaluada_d": 0.050749,
-    "canal_linealizacion_d": 0.000719,
-    "canal_modelo_lente_d": 0.00003
+    "residuo_estimador_exp006_d": 0.000719,
+    "canal_fisica_linealizacion_d": 0,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0.00003,
+    "canal_escalon_mas_lente_d": 0.00003
    },
    {
     "ojo": "largo",
     "sigma_bio_mm": 0.2,
     "sigma_medida_mm": 0.2,
     "beneficio_publicado_exp006_d": 0,
+    "beneficio_lineal_cuadratura_d": 0,
     "beneficio_delgada_reevaluada_d": 0,
+    "beneficio_delgada_a_potencia_gruesa_d": 0,
     "beneficio_gruesa_reevaluada_d": 0,
-    "canal_linealizacion_d": 0,
-    "canal_modelo_lente_d": 0
+    "residuo_estimador_exp006_d": 0,
+    "canal_fisica_linealizacion_d": 0,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0,
+    "canal_escalon_mas_lente_d": 0
    },
    {
     "ojo": "largo",
     "sigma_bio_mm": 0.3,
     "sigma_medida_mm": 0.05,
     "beneficio_publicado_exp006_d": 0.128,
+    "beneficio_lineal_cuadratura_d": 0.126798,
     "beneficio_delgada_reevaluada_d": 0.126797,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.126797,
     "beneficio_gruesa_reevaluada_d": 0.126872,
-    "canal_linealizacion_d": -0.001203,
-    "canal_modelo_lente_d": 0.000076
+    "residuo_estimador_exp006_d": -0.001202,
+    "canal_fisica_linealizacion_d": -0.000002,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0.000076,
+    "canal_escalon_mas_lente_d": 0.000076
    },
    {
     "ojo": "largo",
     "sigma_bio_mm": 0.3,
     "sigma_medida_mm": 0.1,
     "beneficio_publicado_exp006_d": 0.102,
+    "beneficio_lineal_cuadratura_d": 0.101439,
     "beneficio_delgada_reevaluada_d": 0.101437,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.101437,
     "beneficio_gruesa_reevaluada_d": 0.101497,
-    "canal_linealizacion_d": -0.000563,
-    "canal_modelo_lente_d": 0.000061
+    "residuo_estimador_exp006_d": -0.000561,
+    "canal_fisica_linealizacion_d": -0.000002,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0.000061,
+    "canal_escalon_mas_lente_d": 0.000061
    },
    {
     "ojo": "largo",
     "sigma_bio_mm": 0.3,
     "sigma_medida_mm": 0.2,
     "beneficio_publicado_exp006_d": 0.051,
+    "beneficio_lineal_cuadratura_d": 0.050719,
     "beneficio_delgada_reevaluada_d": 0.050718,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.050718,
     "beneficio_gruesa_reevaluada_d": 0.050748,
-    "canal_linealizacion_d": -0.000282,
-    "canal_modelo_lente_d": 0.00003
+    "residuo_estimador_exp006_d": -0.000281,
+    "canal_fisica_linealizacion_d": -0.000001,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0.00003,
+    "canal_escalon_mas_lente_d": 0.00003
    },
    {
     "ojo": "largo",
     "sigma_bio_mm": 0.4,
     "sigma_medida_mm": 0.05,
     "beneficio_publicado_exp006_d": 0.181,
+    "beneficio_lineal_cuadratura_d": 0.177518,
     "beneficio_delgada_reevaluada_d": 0.177513,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.177513,
     "beneficio_gruesa_reevaluada_d": 0.177619,
-    "canal_linealizacion_d": -0.003487,
-    "canal_modelo_lente_d": 0.000106
+    "residuo_estimador_exp006_d": -0.003482,
+    "canal_fisica_linealizacion_d": -0.000005,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0.000106,
+    "canal_escalon_mas_lente_d": 0.000106
    },
    {
     "ojo": "largo",
     "sigma_bio_mm": 0.4,
     "sigma_medida_mm": 0.1,
     "beneficio_publicado_exp006_d": 0.154,
+    "beneficio_lineal_cuadratura_d": 0.152158,
     "beneficio_delgada_reevaluada_d": 0.152153,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.152153,
     "beneficio_gruesa_reevaluada_d": 0.152244,
-    "canal_linealizacion_d": -0.001847,
-    "canal_modelo_lente_d": 0.000091
+    "residuo_estimador_exp006_d": -0.001842,
+    "canal_fisica_linealizacion_d": -0.000005,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0.000091,
+    "canal_escalon_mas_lente_d": 0.000091
    },
    {
     "ojo": "largo",
     "sigma_bio_mm": 0.4,
     "sigma_medida_mm": 0.2,
     "beneficio_publicado_exp006_d": 0.103,
+    "beneficio_lineal_cuadratura_d": 0.101439,
     "beneficio_delgada_reevaluada_d": 0.101434,
+    "beneficio_delgada_a_potencia_gruesa_d": 0.101434,
     "beneficio_gruesa_reevaluada_d": 0.101495,
-    "canal_linealizacion_d": -0.001566,
-    "canal_modelo_lente_d": 0.000061
+    "residuo_estimador_exp006_d": -0.001561,
+    "canal_fisica_linealizacion_d": -0.000005,
+    "canal_potencia_sonda_d": 0,
+    "canal_lente_puro_d": 0.000061,
+    "canal_escalon_mas_lente_d": 0.000061
    }
   ],
   "dominio_potencia_cruzado": [
@@ -1082,13 +1218,23 @@
    "intervalos_8": 0.472438,
    "delta_relativo": 0.001162
   },
+  "convergencia_haz": {
+   "celda": "ojo corto, potencia continua trazada, pupila 3 mm",
+   "n_anillos_publicado": 40,
+   "n_anillos_referencia": 160,
+   "sesgo_absoluto_d": -0.008205,
+   "sesgo_respuesta_mas_04_d": -0.000425,
+   "sesgo_respuesta_menos_04_d": 0.000392,
+   "nota": "el ABSOLUTO de potencia trazada NO está convergido en muestreo (~-8e-3 D con 40 anillos, y 160→320 aún deriva): léase como óptimo del haz DECLARADO, no como valor convergido. La RESPUESTA a δ (lo que entra en los canales) es de modo común y su residuo es ~1 % del canal motor — cota publicada aquí, no asumida."
+  },
   "verificacion_montecarlo": {
    "celda": "normal, dominio refracción gruesa, σ = 0.30 mm",
    "cuadratura_d": 0.3325,
    "montecarlo_n20000_d": 0.335895,
    "desviacion_relativa": 0.010213,
    "nota": "tolerancia esperable ~3 %: SE del MC (~0.6 %) + defecto del LCG de makeRng (infla varianza 1.3-2.8 %, medido en V1.12) + truncamiento declarado de la cuadratura (0.034 %)"
-  }
+  },
+  "lectura_canales": "cada canal cambia UNA sola cosa (corrección adversarial V1.11): residuo_estimador_exp006 = mismo modelo lineal, cuadratura determinista vs el MC congelado de exp006 (SE con n=6000 + defecto del LCG + redondeo a 3 decimales — NO es física); canal_fisica_linealizacion = misma potencia y mismo estimador, respuesta lineal vs re-evaluada; canal_potencia_sonda = misma respuesta delgada, sondeada en la potencia del escalón del otro motor (cuantización de 0.5 D); canal_lente_puro = MISMA potencia, lente delgada vs gruesa. La suma de los cuatro telescopa exactamente a (beneficio_gruesa_reevaluada − beneficio_publicado_exp006)."
  },
  "bloque4_v112": {
   "outcome": {
