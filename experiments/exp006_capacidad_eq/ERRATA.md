@@ -1,10 +1,14 @@
 # ERRATA de exp006 — limitaciones de INTERPRETACIÓN (las cifras no cambian)
 
-**Estado del artefacto:** CONGELADO. `results.json` y `README.md` de exp006 se conservan
-tal como se publicaron (2026-08-10). Esta errata **no corrige ninguna cifra** — todas las
-verificadas siguen siendo correctas — sino la forma en que su prosa podría leerse. Es el
-equivalente a publicar una fe de erratas en lugar de reescribir el artículo: la
-trazabilidad del resultado histórico se preserva íntegra.
+**Estado del artefacto:** CONGELADO en sus CIFRAS. Las filas (`rows`) y la configuración
+(`config`) de `results.json` son bit a bit las de la publicación original (2026-08-10),
+verificado campo a campo. Lo único que cambió en V1.11 (commit `d5de293`, al incorporar
+exp006 al verificador de reproducibilidad) son metadatos: `timestamp`, `commit` y el campo
+`procedencia_commit` que el resto de experimentos ya llevaba desde V1.3. **Ninguna cifra
+cambia.** Esta errata **no corrige ningún número** — todos los verificados siguen siendo
+correctos — sino la forma en que su prosa podría leerse. Es el equivalente a publicar una
+fe de erratas en lugar de reescribir el artículo: la trazabilidad del resultado histórico
+se preserva íntegra.
 
 Registrada en la revisión adversarial de cierre de V1.11 (fiscales EE↔EQ e
 hipótesis→clínica). Verificación de que las cifras no cambian: `scripts/check_experiments.mjs`
@@ -40,7 +44,9 @@ evita X dioptrías en pacientes».
 El README dice: *«evita ~0.39 D en el corto frente a ~0.11 D en el largo»* (σ_bio = 0.3,
 σ_medida = 0.1). Las celdas computadas de esa misma tabla dan **0.363 D** y **0.102 D**.
 La discrepancia (+7.4 % y +7.8 %) viene de que ese texto está **fijo en el código** del
-script y no se recalcula: quedó de una versión anterior de los parámetros.
+script y no se recalcula de las filas. Su origen **no consta en el historial**: el commit
+que publicó exp006 ya traía 0.363 / 0.102 en su `results.json`, así que no hubo ninguna
+versión con parámetros que produjeran 0.39 / 0.11.
 
 **Las cifras válidas son las de `results.json`**, no las de la prosa. Cualquier trabajo
 posterior debe anclar contra el JSON. No se regenera el README porque las cifras
@@ -61,14 +67,17 @@ esperado que el estimador base»*.
 
 Medidas en V1.11 al usar exp006 como ancla de exp015:
 
-| Contribución | Magnitud medida | Efecto |
+| Contribución | Magnitud | Efecto |
 |---|---|---|
-| Sesgo del LCG de `makeRng` sobre E\|ε\| | **+0.84 %** en media (0.40–1.50 % según semilla, n = 4·10⁵ × 5 semillas) | sistemático **al alza**; explica que las 6 desviaciones observadas contra la forma cerrada σ√(2/π) sean **todas positivas** |
-| SE del estimador con n = 6000 | **0.98 %** relativo | dispersión aleatoria |
-| Redondeo publicado a 3 decimales | **1.25 %** en σ = 0.05; 0.16 % en σ = 0.40 | granularidad |
+| Sesgo del LCG de `makeRng` sobre E\|ε\| | **~0.8 %** al alza (dependiente de semilla; MEDIDO y publicado en `exp015 → bloque0_anclas_exp006.sesgo_prng_medido`, reproducible en cada corrida) | sistemático **al alza**: es lo que explica que las 54 desviaciones contra la forma cerrada σ√(2/π) sean **todas positivas** |
+| SE del estimador con n = 6000 | **0.98 %** relativo (derivable: √(1−2/π)/√(2/π)/√n) | dispersión aleatoria |
+| Redondeo publicado a 3 decimales | **1.25 %** en σ = 0.05; 0.16 % en σ = 0.40 | granularidad; pesa más en σ pequeña |
 
-Las desviaciones observadas (**0.27 %–1.52 %**) quedan explicadas por estas tres
-contribuciones sin que sobre nada. `montecarlo.mjs` documenta el defecto del LCG como
+Sobre las **54 celdas publicadas** (27 filas × 2 brazos) el rango real de desviación es
+**0.27 %–2.77 %**, todas positivas. Las tres contribuciones lo explican en la banda
+esperable del estimador, pero **no exactamente**: en las celdas de σ pequeña —donde el
+redondeo pesa más— el dato queda hasta ~2 SE por encima de la suma de sesgo + redondeo
+(6 de las 54 celdas superan 2·SE). `montecarlo.mjs` documenta el defecto del LCG como
 1.3–2.8 % de inflación de **varianza**; sobre E|ε| el efecto es ~la mitad porque
 E|ε| ∝ σ = √varianza.
 

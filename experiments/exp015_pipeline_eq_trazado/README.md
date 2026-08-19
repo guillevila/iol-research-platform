@@ -1,6 +1,6 @@
 # exp015 — Pipeline EQ (V1.11): H_EQ a través del pipeline físico real
 
-**SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada** · commit `0bf5f689c7`
+**SIMULACION / NO GROUND TRUTH CLINICO — analisis condicional bajo H_EQ declarada** · commit `e419d9ff72`
 
 **Hipótesis declarada:** H_EQ: posicion de LIO = ecuador capsular; ecuador = ACD + LT/2 + eps_bio (DECLARADA, no hecho). Nada de esto la valida biológicamente.
 La conversión posición→resultado de exp006 (linealización paraxial de lente delgada) se
@@ -13,17 +13,27 @@ refracción SOLO intra-paraxial; entre motores, POTENCIA CONTINUA con la misma f
 
 ## 0 · Anclas vivas de exp006 (leídas de lo publicado; exp006 NO se regenera)
 
-| σ (mm) | brazo | E\|ε\| publicado | forma cerrada σ√(2/π) | desviación |
-|---|---|---|---|---|
-| 0.2 | base | 0.16 | 0.1596 | 0.3 % |
-| 0.3 | base | 0.241 | 0.2394 | 0.7 % |
-| 0.4 | base | 0.323 | 0.3192 | 1.2 % |
-| 0.05 | eq | 0.04 | 0.0399 | 0.3 % |
-| 0.1 | eq | 0.081 | 0.0798 | 1.5 % |
-| 0.2 | eq | 0.162 | 0.1596 | 1.5 % |
+Alcance: **las 54 celdas publicadas** de exp006
+(27 filas × 2 brazos), no una selección. Desviación CON signo respecto de la forma cerrada.
 
-- las desviaciones observadas (0.27-1.52 %, TODAS positivas) quedan explicadas, sin que sobre nada, por tres contribuciones medidas: (1) sesgo SISTEMÁTICO al alza del LCG de makeRng, +0.84 % sobre E|ε| en media (rango 0.40-1.50 % según semilla, medido a n = 4e5 × 5 semillas; nótese que montecarlo.mjs documenta 1.3-2.8 % de inflación de VARIANZA y E|ε| ∝ σ = √varianza, de ahí que sobre E|ε| sea ~la mitad) — es lo que explica que TODAS tengan el mismo signo; (2) SE del estimador con n = 6000: 0.98 % relativo; (3) granularidad del redondeo publicado a 3 decimales: 1.25 % en σ = 0.05 y 0.16 % en σ = 0.40. Son limitaciones CONOCIDAS del artefacto congelado, no defectos de sus cifras: exp006 NO se regenera.
-- **Divergencia de texto registrada:** Lectura 2 del README: «evita ~0.39 D en el corto frente a ~0.11 D en el largo» (hardcodeado en run_exp006.mjs) ↔ las celdas de esa misma tabla dan 0.363 D (corto) y 0.102 D (largo). DIVERGENCIA DE TEXTO registrada aquí; el ancla válida es results.json. Corregir la prosa exigiría regenerar exp006 y el encargo lo prohíbe salvo defecto de CIFRAS demostrado — que no lo hay.
+- rango: **0.27 % a 2.77 %** · todas del mismo signo (positivas): true · celdas por encima de 2·SE: 6
+- sesgo del PRNG del artefacto, MEDIDO aquí (200000 extracciones × 3 semillas, σ = 0.3 mm): **0.76 %** de media (por semilla: 0.38 %, 0.40 %, 1.50 %)
+
+Muestra (primeras 6 celdas de las 54; la tabla completa está en `results.json`):
+
+| ojo | σ (mm) | brazo | E\|ε\| publicado | forma cerrada σ√(2/π) | desviación |
+|---|---|---|---|---|---|
+| corto | 0.2 | base | 0.161 | 0.1596 | 0.89 % |
+| corto | 0.05 | eq | 0.041 | 0.0399 | 2.77 % |
+| corto | 0.2 | base | 0.16 | 0.1596 | 0.27 % |
+| corto | 0.1 | eq | 0.082 | 0.0798 | 2.77 % |
+| corto | 0.2 | base | 0.161 | 0.1596 | 0.89 % |
+| corto | 0.2 | eq | 0.161 | 0.1596 | 0.89 % |
+
+- alcance: las 54 celdas publicadas (27 filas × 2 brazos), no una selección. Las desviaciones contra la forma cerrada σ√(2/π) son TODAS del mismo signo (positivas) y su rango se publica en resumen_desviaciones. Las explican tres contribuciones, dos derivables y una medida aquí: (1) sesgo SISTEMÁTICO al alza del LCG de makeRng (ver sesgo_prng_medido) — es lo que fija el signo común; (2) SE del estimador con n = 6000: 0.98 % relativo; (3) granularidad del redondeo publicado a 3 decimales: 1.25 % en σ = 0.05 y 0.16 % en σ = 0.40. Las celdas de σ pequeña, donde el redondeo pesa más, llegan a ~2 SE por encima de la suma de (1)+(3): entran en la banda esperable del estimador, no en una explicación exacta. Son limitaciones CONOCIDAS del artefacto congelado, no defectos de sus cifras: exp006 NO se regenera (ver su ERRATA.md).
+- Las limitaciones de INTERPRETACIÓN de exp006 (incluida esta) quedan registradas en su
+  **[ERRATA.md](../exp006_capacidad_eq/ERRATA.md)**: fe de erratas, sin reescribir el artefacto.
+- **Divergencia de texto registrada:** Lectura 2 del README: «evita ~0.39 D en el corto frente a ~0.11 D en el largo» (hardcodeado en run_exp006.mjs) ↔ las celdas de esa misma tabla dan 0.363 D (corto) y 0.102 D (largo). DIVERGENCIA DE TEXTO registrada aquí y en experiments/exp006_capacidad_eq/ERRATA.md; el ancla válida es results.json. Corregir la prosa exigiría regenerar exp006 y el encargo lo prohíbe salvo defecto de CIFRAS demostrado — que no lo hay. El origen de 0.39/0.11 NO consta en el historial: el commit que publicó exp006 ya traía 0.363/0.102 en su results.json.
 
 ## 1 · Reproducción bit a bit (posición vía predictor de CAPA B)
 
@@ -33,16 +43,27 @@ refracción SOLO intra-paraxial; entre motores, POTENCIA CONTINUA con la misma f
 
 ## 2 · Escalera de causas (un cambio por peldaño)
 
-| Ojo | sens delgada (D/mm) | sens gruesa (D/mm) | dP*/dδ gruesa (D/mm) | dP*/dδ trazada (D/mm) | divergencia motor (D/mm) |
-|---|---|---|---|---|---|
-| corto | 2.2574 | 2.3093 | 3.3541 | 3.2420 | -0.1121 |
-| normal | 1.3469 | 1.3895 | 2.0323 | 1.9709 | -0.0614 |
-| largo | 0.6358 | 0.6362 | 0.9392 | 0.8996 | -0.0395 |
+**Dominio REFRACCIÓN** (D de refracción y D/mm de refracción):
+
+| Ojo | sens delgada (D/mm) | sens gruesa (D/mm) | curvatura (D/mm²) | desvío de la recta a δ=0.8 mm (D) |
+|---|---|---|---|---|
+| corto | 2.2574 | 2.3093 | -0.0873 | -0.0559 |
+| normal | 1.3469 | 1.3895 | -0.0408 | -0.0262 |
+| largo | 0.6358 | 0.6362 | -0.0151 | -0.0097 |
+
+**Dominio POTENCIA CONTINUA de LIO** (D_LIO/mm; NO se restan de las columnas anteriores):
+
+| Ojo | dP*/dδ gruesa (D_LIO/mm) | dP*/dδ trazada (D_LIO/mm) | divergencia motor (D_LIO/mm) |
+|---|---|---|---|
+| corto | 3.3541 | 3.2420 | -0.1121 |
+| normal | 2.0323 | 1.9709 | -0.0614 |
+| largo | 0.9392 | 0.8996 | -0.0395 |
 
 - La descomposición es un CAMINO (telescópica): delgada→gruesa exige el paraxial y
   gruesa→trazado exige geometría; el orden inverso no es evaluable (no existe trazado
   de lente sin geometría) y por eso no hay bloque de aditividad entre órdenes.
-- Las columnas de refracción y de potencia son DOMINIOS distintos: no se restan entre sí.
+- **La curvatura es lo que impide leer mal el canal de no-linealidad del bloque 3**: la
+  respuesta NO es recta, y su desvío a δ = 0.8 mm es tres órdenes mayor que ese canal.
 - Puente declarado (solo lectura): dRef/dP delgada ≈ -0.6746 D/D en el ojo normal.
 
 ## 3 · Matriz de beneficio re-evaluada (columna σ_medida = 0.10 mm)
@@ -78,7 +99,7 @@ medido en V1.12, más su redondeo a 3 decimales).
 
 - cada canal cambia UNA sola cosa (corrección adversarial V1.11): residuo_estimador_exp006 = mismo modelo lineal, cuadratura determinista vs el MC congelado de exp006 (SE con n=6000 + defecto del LCG + redondeo a 3 decimales — NO es física); canal_fisica_linealizacion = misma potencia y mismo estimador, respuesta lineal vs re-evaluada; canal_potencia_sonda = misma respuesta delgada, sondeada en la potencia del escalón del otro motor (cuantización de 0.5 D); canal_lente_puro = MISMA potencia, lente delgada vs gruesa. La suma de los cuatro telescopa exactamente a (beneficio_gruesa_reevaluada − beneficio_publicado_exp006).
 
-> **EL CANAL DE NO-LINEALIDAD ES PEQUEÑO POR CANCELACIÓN, NO PORQUE LA RESPUESTA SEA LINEAL (corrección adversarial de cierre — la lectura anterior invitaba a la generalización falsa). La respuesta refractiva a δ SÍ está curvada: curvatura medida ≈ -0.087 D/mm² en el ojo corto, y el desvío respecto de la recta a δ = ±0.8 mm es ≈ -0.056 D — TRES órdenes de magnitud por encima del canal. El canal sale ~1e-5 D porque, para una perturbación de distribución SIMÉTRICA y una métrica E|·|, el término cuadrático se cancela EXACTAMENTE: con f(δ) = s·δ + c·δ², |f| vale s·δ + c·δ² a la derecha y s|δ| − c·δ² a la izquierda, así que E|f| = s·E|δ| + c·(E[δ²·1_{δ>0}] − E[δ²·1_{δ<0}]) = s·E|δ| (verificado numéricamente: el residuo es cero de máquina, 6.7e-16 D, para c = 0.09 y c = 0.5). Lo que sobrevive (~1e-5 D) son los términos de orden impar (cúbico+), no la curvatura. CONSECUENCIA: la linealización de exp006 está justificada PARA ESTA MÉTRICA (E|error| con ε simétrico y centrado) y NO puede extrapolarse. Cualquier métrica que rompa la simetría — un percentil, una cola unilateral, un ε_bio sesgado, o la media de la refracción CON signo — vería la curvatura entera.**
+> **EL CANAL DE NO-LINEALIDAD ES PEQUEÑO POR CANCELACIÓN, NO PORQUE LA RESPUESTA SEA LINEAL (corrección adversarial de cierre — la lectura anterior invitaba a la generalización falsa). La respuesta refractiva a δ SÍ está curvada: ver curvatura_d_mm2 y desvio_de_la_recta_a_08mm_d por ojo en bloque2_escalera.dominio_refraccion — en el ojo corto curvatura -0.0873 D/mm² y desvío -0.05590 D a δ = 0.8 mm, TRES órdenes de magnitud por encima del canal. El canal sale ~1e-5 D porque, para una perturbación de distribución SIMÉTRICA y una métrica E|·|, el término cuadrático se cancela EXACTAMENTE: con f(δ) = s·δ + c·δ², |f| vale s·δ + c·δ² a la derecha y s|δ| − c·δ² a la izquierda, así que E|f| = s·E|δ| + c·(E[δ²·1_{δ>0}] − E[δ²·1_{δ<0}]) = s·E|δ| (verificado numéricamente en cancelacion_cuadratica: cero de máquina para c = 0.09 y c = 0.5). Lo que sobrevive (~1e-5 D) son los términos de orden impar (cúbico+), no la curvatura. CONSECUENCIA: la linealización de exp006 está justificada PARA ESTA MÉTRICA (E|error| con ε simétrico y centrado) y NO puede extrapolarse. Cualquier métrica que rompa la simetría — un percentil, una cola unilateral, un ε_bio sesgado, o la media de la refracción CON signo — vería la curvatura entera.**
 
 - **Corrección adversarial de este sprint:** la primera versión publicaba un «canal
   linealización» y un «canal lente» que eran, respectivamente, ~99 % ruido del estimador
@@ -105,11 +126,14 @@ tabla anterior ni se restan de ellas: son dos dominios distintos que comparten e
 | largo | 0.4 | 0.2250 | 0.2156 | -0.0095 |
 
 - **Ancla de refutación** — diagonal σ_m = σ_bio = 0.2: beneficio ≡ 0 por construcción (misma integral en ambos brazos): **VERIFICADO** (el 0 de exp006 también era por construcción: extracciones emparejadas).
-- Convergencia de la cuadratura (celda trazada, σ 0.3): 16 vs 8 intervalos → delta relativo 0.1162 %.
 - **Convergencia del haz** (ojo corto, potencia continua trazada, pupila 3 mm, tol 1e-7), medida a 40/160/320 anillos:
   el ABSOLUTO deriva -8.21e-3 D (40→160) y -1.37e-3 D (160→320), mismo signo: **NO convergido**, no es una potencia física. La RESPUESTA a δ = +0.4 mm varía -4.96e-4 D entre 40 y 320 anillos (0.037 % relativo): es la única magnitud interpretable de este dominio.
-- **Término cruzado ε_bio × ε_med** (MEDIDO por cuadratura 2D en las 27 celdas): peor caso **1.30e-5 D** (normal, σ_bio 0.4 / σ_m 0.2). MEDIDO por cuadratura 2D, no estimado: el término ε_bio × ε_med que el brazo EQ descarta vale como máximo ~1.3e-5 D en esta rejilla (peor celda: ojo normal, σ_bio 0.40 / σ_m 0.20). Es COMPARABLE al canal de no-linealidad (≤1.4e-5 D) y dos órdenes por debajo de los canales de escalón y motor. La cota analítica anterior («< 1e-6 D») era optimista en un orden de magnitud y se ha retirado.
+
+### Verificaciones del MÉTODO (no son celdas de beneficio; cada una declara su dominio)
+
+- Convergencia de la cuadratura (normal, potencia trazada, σ = 0.30 mm): 16 vs 8 intervalos → delta relativo 0.1162 %. Es la integral E|f| en el dominio de POTENCIA, no una celda de beneficio.
 - Verificación Monte Carlo del método (normal, dominio refracción gruesa, σ = 0.30 mm): cuadratura 0.3325 vs MC 0.3359 (desviación 1.02 %). tolerancia esperable ~3 %: SE del MC (~0.6 %) + defecto del LCG de makeRng (infla varianza 1.3-2.8 %, medido en V1.12) + truncamiento declarado de la cuadratura (0.034 %)
+- **Término cruzado ε_bio × ε_med** — peor caso **1.30e-5 D** (normal, σ_bio 0.4 / σ_m 0.2). MEDIDO por cuadratura 2D sobre las 27 celdas, no estimado. Es COMPARABLE al canal de no-linealidad (≤1.4e-5 D) y queda entre DOS y TRES órdenes por debajo de los canales de escalón de sonda y de motor óptico (3e-3 a 3e-2 D). La cota analítica anterior («< 1e-6 D», de s/(2c·σ_bio) ≈ 40) era optimista en un orden de magnitud y se ha retirado. Nota de dominio: esta magnitud es de REFRACCIÓN (se calcula con la sensibilidad refractiva delgada), así que solo se compara con canales de refracción; la mención al canal de motor es de orden de magnitud, no una resta entre dominios.
 
 ## 4 · Integración V1.12: la hipótesis con incertidumbre auditable
 
@@ -140,8 +164,8 @@ tabla anterior ni se restan de ellas: son dos dominios distintos que comparten e
   desvío de la recta a ±0.8 mm ≈ -0.056 D. Con otra métrica (percentil, cola unilateral, ε
   sesgado, refracción con signo) la curvatura entra entera.
 - **NO publica una potencia trazada absoluta convergida en muestreo**: el óptimo continuo
-  trazado es el del haz DECLARADO de 40 anillos y arrastra ~−8e-3 D de discretización (cota
-  medida arriba); lo comparable entre motores es la RESPUESTA a δ, de modo común.
+  trazado es el del haz DECLARADO de 40 anillos y arrastra -9.57e-3 D de discretización frente a 320 anillos, y sigue derivando; lo comparable entre motores es
+  la RESPUESTA a δ, de modo común y con su convergencia demostrada arriba.
 - **NO convierte entre convenciones**: la divergencia de motor vive solo en el dominio
   de potencia; el puente dRef/dP es informativo, no un conversor de resultados.
 - **NO decide criterio de foco ni política corneal** (OQ #7/#8): el trazado usa el

@@ -390,9 +390,15 @@ que no se restan entre sí — dominio REFRACCIÓN (intra-paraxial): residuo de 
 contra el ancla congelada, física de no-linealidad, potencia de sonda (cuantización de
 0.5 D) y lente delgada→gruesa a potencia EMPAREJADA; dominio POTENCIA CONTINUA (cruce de
 motores, misma factory): canal de motor óptico, con su cota de discretización del haz
-publicada. La suma telescopa exactamente al total; (d) ancla de refutación: beneficio ≡ 0
-en la diagonal σ_m = σ_bio, verificado; (e) toda diferencia se llama divergencia; H_EQ
-sigue siendo hipótesis declarada.
+publicada. La suma de los CUATRO canales del dominio refracción telescopa exactamente a
+(gruesa re-evaluada − exp006 publicado), con error ≤ 1e-6 D = el redondeo publicado; el
+canal de motor óptico vive en el otro dominio y NO entra en esa suma; (d) ancla de
+refutación: beneficio ≡ 0 en la diagonal σ_m = σ_bio, verificado; (e) toda diferencia se
+llama divergencia; H_EQ sigue siendo hipótesis declarada; (f) la procedencia de la
+hipótesis atraviesa la cadena hasta la salida de la capa de incertidumbre
+(`procedencia_posicion.hypothesis` / `condicional_a_hipotesis`, legible por máquina), y
+las limitaciones de interpretación del artefacto congelado quedan registradas en
+`experiments/exp006_capacidad_eq/ERRATA.md` sin reescribirlo.
 
 **Enmienda del punto (c) (hallazgo adversarial de V1.11).** La redacción original de la
 aceptación —escrita en el mismo commit que corrigió el título del sprint— prometía dos

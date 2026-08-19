@@ -41,6 +41,7 @@
   ],
   "procedencia_sigmas": "rejilla de ESCENARIO DECLARADO reutilizada de exp006 (OQ #6) — no es repetibilidad real",
   "pupil_mm": 3,
+  "tol_d_publicado": 0.0001,
   "n_anillos": 40,
   "lente": "GenericIOLFactory — SUSTITUTO DE SIMULACIÓN declarado (OQ #4); la MISMA factory en paraxial grueso y trazado (lección V1.8)",
   "cuadratura": {
@@ -48,7 +49,7 @@
    "truncamiento_sigmas": 4,
    "nota": "Simpson compuesto partido en δ=0 (|f| tiene vértice ahí), por lado [0, 4σ]; la cola >4σ aporta P ≈ 6.3e-5 y sesga E|f| a la baja ~0.034 % (declarado)"
   },
-  "aproximacion_brazo_eq": "ambos brazos se evalúan alrededor de posGeom (misma estructura que exp006). En el mundo H_EQ el ruido de medida ocurre alrededor del ecuador VERDADERO (posGeom + ε_bio), así que el brazo EQ descarta el término cruzado 2c·ε_bio·ε_med de la respuesta curvada. La cota NO se estima por orden de magnitud: se MIDE por cuadratura 2D sobre las 27 celdas (bloque3_beneficio.termino_cruzado). Corrección adversarial de cierre: la cota anterior («< 1e-6 D», derivada de s/(2c·σ_bio) ≈ 40) era OPTIMISTA en un orden de magnitud — el peor caso medido es ~1.3e-5 D, COMPARABLE al canal de no-linealidad, no dos órdenes por debajo. Sigue siendo dos órdenes por debajo de los canales de escalón y motor, pero no puede invocarse para descartar efectos del tamaño del de no-linealidad.",
+  "aproximacion_brazo_eq": "ambos brazos se evalúan alrededor de posGeom (misma estructura que exp006). En el mundo H_EQ el ruido de medida ocurre alrededor del ecuador VERDADERO (posGeom + ε_bio), así que el brazo EQ descarta el término cruzado 2c·ε_bio·ε_med de la respuesta curvada. La cota NO se estima por orden de magnitud: se MIDE por cuadratura 2D sobre las 27 celdas (bloque3_beneficio.termino_cruzado). Corrección adversarial de cierre: la cota anterior («< 1e-6 D», derivada de s/(2c·σ_bio) ≈ 40) era OPTIMISTA en un orden de magnitud — el peor caso medido es ~1.3e-5 D, COMPARABLE al canal de no-linealidad, no dos órdenes por debajo. Sigue estando entre DOS y TRES órdenes por debajo de los canales de escalón y motor (3e-3 a 3e-2 D), pero no puede invocarse para descartar efectos del tamaño del de no-linealidad.",
   "seeds": {
    "mc_verificacion": 20260818,
    "v112": 20260819
@@ -64,8 +65,8 @@
    }
   }
  },
- "timestamp": "2026-08-19T14:02:11.350Z",
- "commit": "0bf5f689c7d58a3d8a21bb131c69a14a9ac5ef44",
+ "timestamp": "2026-08-19T14:27:18.003Z",
+ "commit": "e419d9ff72e7ff9cfc2315cbc0bac776db85f074",
  "procedencia_commit": "último commit AL GENERAR: la reproducibilidad la garantiza scripts/check_experiments.mjs, no este campo (hallazgo V1.3)",
  "autotest_cuadratura": {
   "funcion": "f(δ) = 1.7·δ, σ = 0.3",
@@ -75,7 +76,7 @@
   "nota": "incluye el truncamiento declarado a 4σ (~0.034 % a la baja)"
  },
  "bloque0_anclas_exp006": {
-  "commit_exp006": "a5cec6591b15ed41d01e27cd9d82bb0dd6c20c04",
+  "procedencia_ancla": "experiments/exp006_capacidad_eq/results.json (artefacto CONGELADO; se LEE, jamás se escribe). Su reproducibilidad la vigila scripts/check_experiments.mjs, no un campo aquí.",
   "sensibilidades_publicadas_d_mm": {
    "corto": 2.257,
    "normal": 1.347,
@@ -83,53 +84,466 @@
   },
   "err_pos_vs_forma_cerrada": [
    {
-    "sigma_mm": 0.2,
+    "ojo": "corto",
     "brazo": "base",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "corto",
+    "brazo": "eq",
+    "sigma_mm": 0.05,
+    "publicado_mm": 0.041,
+    "forma_cerrada_mm": 0.0399,
+    "desviacion_relativa": 0.027718
+   },
+   {
+    "ojo": "corto",
+    "brazo": "base",
+    "sigma_mm": 0.2,
     "publicado_mm": 0.16,
     "forma_cerrada_mm": 0.1596,
-    "desviacion_relativa": 0.0027
+    "desviacion_relativa": 0.002651
    },
    {
-    "sigma_mm": 0.3,
-    "brazo": "base",
-    "publicado_mm": 0.241,
-    "forma_cerrada_mm": 0.2394,
-    "desviacion_relativa": 0.0068
-   },
-   {
-    "sigma_mm": 0.4,
-    "brazo": "base",
-    "publicado_mm": 0.323,
-    "forma_cerrada_mm": 0.3192,
-    "desviacion_relativa": 0.0121
-   },
-   {
-    "sigma_mm": 0.05,
+    "ojo": "corto",
     "brazo": "eq",
+    "sigma_mm": 0.1,
+    "publicado_mm": 0.082,
+    "forma_cerrada_mm": 0.0798,
+    "desviacion_relativa": 0.027718
+   },
+   {
+    "ojo": "corto",
+    "brazo": "base",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "corto",
+    "brazo": "eq",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "corto",
+    "brazo": "base",
+    "sigma_mm": 0.3,
+    "publicado_mm": 0.242,
+    "forma_cerrada_mm": 0.2394,
+    "desviacion_relativa": 0.011007
+   },
+   {
+    "ojo": "corto",
+    "brazo": "eq",
+    "sigma_mm": 0.05,
     "publicado_mm": 0.04,
     "forma_cerrada_mm": 0.0399,
-    "desviacion_relativa": 0.0027
+    "desviacion_relativa": 0.002651
    },
    {
-    "sigma_mm": 0.1,
+    "ojo": "corto",
+    "brazo": "base",
+    "sigma_mm": 0.3,
+    "publicado_mm": 0.241,
+    "forma_cerrada_mm": 0.2394,
+    "desviacion_relativa": 0.006829
+   },
+   {
+    "ojo": "corto",
     "brazo": "eq",
+    "sigma_mm": 0.1,
     "publicado_mm": 0.081,
     "forma_cerrada_mm": 0.0798,
-    "desviacion_relativa": 0.0152
+    "desviacion_relativa": 0.015184
    },
    {
-    "sigma_mm": 0.2,
+    "ojo": "corto",
+    "brazo": "base",
+    "sigma_mm": 0.3,
+    "publicado_mm": 0.241,
+    "forma_cerrada_mm": 0.2394,
+    "desviacion_relativa": 0.006829
+   },
+   {
+    "ojo": "corto",
     "brazo": "eq",
+    "sigma_mm": 0.2,
     "publicado_mm": 0.162,
     "forma_cerrada_mm": 0.1596,
-    "desviacion_relativa": 0.0152
+    "desviacion_relativa": 0.015184
+   },
+   {
+    "ojo": "corto",
+    "brazo": "base",
+    "sigma_mm": 0.4,
+    "publicado_mm": 0.325,
+    "forma_cerrada_mm": 0.3192,
+    "desviacion_relativa": 0.018318
+   },
+   {
+    "ojo": "corto",
+    "brazo": "eq",
+    "sigma_mm": 0.05,
+    "publicado_mm": 0.04,
+    "forma_cerrada_mm": 0.0399,
+    "desviacion_relativa": 0.002651
+   },
+   {
+    "ojo": "corto",
+    "brazo": "base",
+    "sigma_mm": 0.4,
+    "publicado_mm": 0.323,
+    "forma_cerrada_mm": 0.3192,
+    "desviacion_relativa": 0.012051
+   },
+   {
+    "ojo": "corto",
+    "brazo": "eq",
+    "sigma_mm": 0.1,
+    "publicado_mm": 0.081,
+    "forma_cerrada_mm": 0.0798,
+    "desviacion_relativa": 0.015184
+   },
+   {
+    "ojo": "corto",
+    "brazo": "base",
+    "sigma_mm": 0.4,
+    "publicado_mm": 0.323,
+    "forma_cerrada_mm": 0.3192,
+    "desviacion_relativa": 0.012051
+   },
+   {
+    "ojo": "corto",
+    "brazo": "eq",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "normal",
+    "brazo": "base",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "normal",
+    "brazo": "eq",
+    "sigma_mm": 0.05,
+    "publicado_mm": 0.041,
+    "forma_cerrada_mm": 0.0399,
+    "desviacion_relativa": 0.027718
+   },
+   {
+    "ojo": "normal",
+    "brazo": "base",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.16,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.002651
+   },
+   {
+    "ojo": "normal",
+    "brazo": "eq",
+    "sigma_mm": 0.1,
+    "publicado_mm": 0.082,
+    "forma_cerrada_mm": 0.0798,
+    "desviacion_relativa": 0.027718
+   },
+   {
+    "ojo": "normal",
+    "brazo": "base",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "normal",
+    "brazo": "eq",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "normal",
+    "brazo": "base",
+    "sigma_mm": 0.3,
+    "publicado_mm": 0.242,
+    "forma_cerrada_mm": 0.2394,
+    "desviacion_relativa": 0.011007
+   },
+   {
+    "ojo": "normal",
+    "brazo": "eq",
+    "sigma_mm": 0.05,
+    "publicado_mm": 0.04,
+    "forma_cerrada_mm": 0.0399,
+    "desviacion_relativa": 0.002651
+   },
+   {
+    "ojo": "normal",
+    "brazo": "base",
+    "sigma_mm": 0.3,
+    "publicado_mm": 0.241,
+    "forma_cerrada_mm": 0.2394,
+    "desviacion_relativa": 0.006829
+   },
+   {
+    "ojo": "normal",
+    "brazo": "eq",
+    "sigma_mm": 0.1,
+    "publicado_mm": 0.081,
+    "forma_cerrada_mm": 0.0798,
+    "desviacion_relativa": 0.015184
+   },
+   {
+    "ojo": "normal",
+    "brazo": "base",
+    "sigma_mm": 0.3,
+    "publicado_mm": 0.241,
+    "forma_cerrada_mm": 0.2394,
+    "desviacion_relativa": 0.006829
+   },
+   {
+    "ojo": "normal",
+    "brazo": "eq",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.162,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.015184
+   },
+   {
+    "ojo": "normal",
+    "brazo": "base",
+    "sigma_mm": 0.4,
+    "publicado_mm": 0.325,
+    "forma_cerrada_mm": 0.3192,
+    "desviacion_relativa": 0.018318
+   },
+   {
+    "ojo": "normal",
+    "brazo": "eq",
+    "sigma_mm": 0.05,
+    "publicado_mm": 0.04,
+    "forma_cerrada_mm": 0.0399,
+    "desviacion_relativa": 0.002651
+   },
+   {
+    "ojo": "normal",
+    "brazo": "base",
+    "sigma_mm": 0.4,
+    "publicado_mm": 0.323,
+    "forma_cerrada_mm": 0.3192,
+    "desviacion_relativa": 0.012051
+   },
+   {
+    "ojo": "normal",
+    "brazo": "eq",
+    "sigma_mm": 0.1,
+    "publicado_mm": 0.081,
+    "forma_cerrada_mm": 0.0798,
+    "desviacion_relativa": 0.015184
+   },
+   {
+    "ojo": "normal",
+    "brazo": "base",
+    "sigma_mm": 0.4,
+    "publicado_mm": 0.323,
+    "forma_cerrada_mm": 0.3192,
+    "desviacion_relativa": 0.012051
+   },
+   {
+    "ojo": "normal",
+    "brazo": "eq",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "largo",
+    "brazo": "base",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "largo",
+    "brazo": "eq",
+    "sigma_mm": 0.05,
+    "publicado_mm": 0.041,
+    "forma_cerrada_mm": 0.0399,
+    "desviacion_relativa": 0.027718
+   },
+   {
+    "ojo": "largo",
+    "brazo": "base",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.16,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.002651
+   },
+   {
+    "ojo": "largo",
+    "brazo": "eq",
+    "sigma_mm": 0.1,
+    "publicado_mm": 0.082,
+    "forma_cerrada_mm": 0.0798,
+    "desviacion_relativa": 0.027718
+   },
+   {
+    "ojo": "largo",
+    "brazo": "base",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "largo",
+    "brazo": "eq",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
+   },
+   {
+    "ojo": "largo",
+    "brazo": "base",
+    "sigma_mm": 0.3,
+    "publicado_mm": 0.242,
+    "forma_cerrada_mm": 0.2394,
+    "desviacion_relativa": 0.011007
+   },
+   {
+    "ojo": "largo",
+    "brazo": "eq",
+    "sigma_mm": 0.05,
+    "publicado_mm": 0.04,
+    "forma_cerrada_mm": 0.0399,
+    "desviacion_relativa": 0.002651
+   },
+   {
+    "ojo": "largo",
+    "brazo": "base",
+    "sigma_mm": 0.3,
+    "publicado_mm": 0.241,
+    "forma_cerrada_mm": 0.2394,
+    "desviacion_relativa": 0.006829
+   },
+   {
+    "ojo": "largo",
+    "brazo": "eq",
+    "sigma_mm": 0.1,
+    "publicado_mm": 0.081,
+    "forma_cerrada_mm": 0.0798,
+    "desviacion_relativa": 0.015184
+   },
+   {
+    "ojo": "largo",
+    "brazo": "base",
+    "sigma_mm": 0.3,
+    "publicado_mm": 0.241,
+    "forma_cerrada_mm": 0.2394,
+    "desviacion_relativa": 0.006829
+   },
+   {
+    "ojo": "largo",
+    "brazo": "eq",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.162,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.015184
+   },
+   {
+    "ojo": "largo",
+    "brazo": "base",
+    "sigma_mm": 0.4,
+    "publicado_mm": 0.325,
+    "forma_cerrada_mm": 0.3192,
+    "desviacion_relativa": 0.018318
+   },
+   {
+    "ojo": "largo",
+    "brazo": "eq",
+    "sigma_mm": 0.05,
+    "publicado_mm": 0.04,
+    "forma_cerrada_mm": 0.0399,
+    "desviacion_relativa": 0.002651
+   },
+   {
+    "ojo": "largo",
+    "brazo": "base",
+    "sigma_mm": 0.4,
+    "publicado_mm": 0.323,
+    "forma_cerrada_mm": 0.3192,
+    "desviacion_relativa": 0.012051
+   },
+   {
+    "ojo": "largo",
+    "brazo": "eq",
+    "sigma_mm": 0.1,
+    "publicado_mm": 0.081,
+    "forma_cerrada_mm": 0.0798,
+    "desviacion_relativa": 0.015184
+   },
+   {
+    "ojo": "largo",
+    "brazo": "base",
+    "sigma_mm": 0.4,
+    "publicado_mm": 0.323,
+    "forma_cerrada_mm": 0.3192,
+    "desviacion_relativa": 0.012051
+   },
+   {
+    "ojo": "largo",
+    "brazo": "eq",
+    "sigma_mm": 0.2,
+    "publicado_mm": 0.161,
+    "forma_cerrada_mm": 0.1596,
+    "desviacion_relativa": 0.008918
    }
   ],
-  "nota_desviaciones": "las desviaciones observadas (0.27-1.52 %, TODAS positivas) quedan explicadas, sin que sobre nada, por tres contribuciones medidas: (1) sesgo SISTEMÁTICO al alza del LCG de makeRng, +0.84 % sobre E|ε| en media (rango 0.40-1.50 % según semilla, medido a n = 4e5 × 5 semillas; nótese que montecarlo.mjs documenta 1.3-2.8 % de inflación de VARIANZA y E|ε| ∝ σ = √varianza, de ahí que sobre E|ε| sea ~la mitad) — es lo que explica que TODAS tengan el mismo signo; (2) SE del estimador con n = 6000: 0.98 % relativo; (3) granularidad del redondeo publicado a 3 decimales: 1.25 % en σ = 0.05 y 0.16 % en σ = 0.40. Son limitaciones CONOCIDAS del artefacto congelado, no defectos de sus cifras: exp006 NO se regenera.",
+  "resumen_desviaciones": {
+   "n_valores": 54,
+   "min_relativa": 0.002651,
+   "max_relativa": 0.027718,
+   "todas_positivas": true,
+   "n_por_encima_de_2_se": 6
+  },
+  "sesgo_prng_medido": {
+   "n_por_semilla": 200000,
+   "semillas": [
+    20260811,
+    20260812,
+    20260813
+   ],
+   "sigma_probada_mm": 0.3,
+   "relativo_por_semilla": [
+    0.003821,
+    0.00397,
+    0.015035
+   ],
+   "relativo_medio": 0.007609,
+   "nota": "sesgo del LCG de makeRng sobre E|ε| frente a la forma cerrada σ√(2/π). montecarlo.mjs documenta 1.3-2.8 % de inflación de VARIANZA; sobre E|ε| el efecto es ~la mitad porque E|ε| ∝ σ = √varianza. Es SISTEMÁTICO al alza: explica que las desviaciones del artefacto tengan todas el mismo signo."
+  },
+  "nota_desviaciones": "alcance: las 54 celdas publicadas (27 filas × 2 brazos), no una selección. Las desviaciones contra la forma cerrada σ√(2/π) son TODAS del mismo signo (positivas) y su rango se publica en resumen_desviaciones. Las explican tres contribuciones, dos derivables y una medida aquí: (1) sesgo SISTEMÁTICO al alza del LCG de makeRng (ver sesgo_prng_medido) — es lo que fija el signo común; (2) SE del estimador con n = 6000: 0.98 % relativo; (3) granularidad del redondeo publicado a 3 decimales: 1.25 % en σ = 0.05 y 0.16 % en σ = 0.40. Las celdas de σ pequeña, donde el redondeo pesa más, llegan a ~2 SE por encima de la suma de (1)+(3): entran en la banda esperable del estimador, no en una explicación exacta. Son limitaciones CONOCIDAS del artefacto congelado, no defectos de sus cifras: exp006 NO se regenera (ver su ERRATA.md).",
   "inconsistencia_prosa_exp006": {
    "texto_publicado": "Lectura 2 del README: «evita ~0.39 D en el corto frente a ~0.11 D en el largo» (hardcodeado en run_exp006.mjs)",
    "celdas_publicadas": "las celdas de esa misma tabla dan 0.363 D (corto) y 0.102 D (largo)",
-   "tratamiento": "DIVERGENCIA DE TEXTO registrada aquí; el ancla válida es results.json. Corregir la prosa exigiría regenerar exp006 y el encargo lo prohíbe salvo defecto de CIFRAS demostrado — que no lo hay."
+   "tratamiento": "DIVERGENCIA DE TEXTO registrada aquí y en experiments/exp006_capacidad_eq/ERRATA.md; el ancla válida es results.json. Corregir la prosa exigiría regenerar exp006 y el encargo lo prohíbe salvo defecto de CIFRAS demostrado — que no lo hay. El origen de 0.39/0.11 NO consta en el historial: el commit que publicó exp006 ya traía 0.363/0.102 en su results.json."
   }
  },
  "bloque1_reproduccion": {
@@ -608,7 +1022,7 @@
     "canal_fisica_linealizacion_d": -0.000001,
     "canal_potencia_sonda_d": 0.006388,
     "canal_lente_puro_d": -0.000173,
-    "canal_escalon_mas_lente_d": 0.006215
+    "suma_escalon_mas_lente_d": 0.006215
    },
    {
     "ojo": "corto",
@@ -625,7 +1039,7 @@
     "canal_fisica_linealizacion_d": -0.000001,
     "canal_potencia_sonda_d": 0.004259,
     "canal_lente_puro_d": -0.000115,
-    "canal_escalon_mas_lente_d": 0.004143
+    "suma_escalon_mas_lente_d": 0.004143
    },
    {
     "ojo": "corto",
@@ -642,7 +1056,7 @@
     "canal_fisica_linealizacion_d": 0,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0,
-    "canal_escalon_mas_lente_d": 0
+    "suma_escalon_mas_lente_d": 0
    },
    {
     "ojo": "corto",
@@ -659,7 +1073,7 @@
     "canal_fisica_linealizacion_d": -0.000003,
     "canal_potencia_sonda_d": 0.010647,
     "canal_lente_puro_d": -0.000288,
-    "canal_escalon_mas_lente_d": 0.010358
+    "suma_escalon_mas_lente_d": 0.010358
    },
    {
     "ojo": "corto",
@@ -676,7 +1090,7 @@
     "canal_fisica_linealizacion_d": -0.000004,
     "canal_potencia_sonda_d": 0.008517,
     "canal_lente_puro_d": -0.000231,
-    "canal_escalon_mas_lente_d": 0.008286
+    "suma_escalon_mas_lente_d": 0.008286
    },
    {
     "ojo": "corto",
@@ -693,7 +1107,7 @@
     "canal_fisica_linealizacion_d": -0.000003,
     "canal_potencia_sonda_d": 0.004259,
     "canal_lente_puro_d": -0.000115,
-    "canal_escalon_mas_lente_d": 0.004143
+    "suma_escalon_mas_lente_d": 0.004143
    },
    {
     "ojo": "corto",
@@ -710,7 +1124,7 @@
     "canal_fisica_linealizacion_d": -0.00001,
     "canal_potencia_sonda_d": 0.014905,
     "canal_lente_puro_d": -0.000404,
-    "canal_escalon_mas_lente_d": 0.014501
+    "suma_escalon_mas_lente_d": 0.014501
    },
    {
     "ojo": "corto",
@@ -727,7 +1141,7 @@
     "canal_fisica_linealizacion_d": -0.00001,
     "canal_potencia_sonda_d": 0.012776,
     "canal_lente_puro_d": -0.000346,
-    "canal_escalon_mas_lente_d": 0.01243
+    "suma_escalon_mas_lente_d": 0.01243
    },
    {
     "ojo": "corto",
@@ -744,7 +1158,7 @@
     "canal_fisica_linealizacion_d": -0.000009,
     "canal_potencia_sonda_d": 0.008517,
     "canal_lente_puro_d": -0.000231,
-    "canal_escalon_mas_lente_d": 0.008287
+    "suma_escalon_mas_lente_d": 0.008287
    },
    {
     "ojo": "normal",
@@ -761,7 +1175,7 @@
     "canal_fisica_linealizacion_d": -0.000001,
     "canal_potencia_sonda_d": 0.005087,
     "canal_lente_puro_d": 0.000009,
-    "canal_escalon_mas_lente_d": 0.005096
+    "suma_escalon_mas_lente_d": 0.005096
    },
    {
     "ojo": "normal",
@@ -778,7 +1192,7 @@
     "canal_fisica_linealizacion_d": -0.000001,
     "canal_potencia_sonda_d": 0.003391,
     "canal_lente_puro_d": 0.000006,
-    "canal_escalon_mas_lente_d": 0.003397
+    "suma_escalon_mas_lente_d": 0.003397
    },
    {
     "ojo": "normal",
@@ -795,7 +1209,7 @@
     "canal_fisica_linealizacion_d": 0,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0,
-    "canal_escalon_mas_lente_d": 0
+    "suma_escalon_mas_lente_d": 0
    },
    {
     "ojo": "normal",
@@ -812,7 +1226,7 @@
     "canal_fisica_linealizacion_d": -0.000005,
     "canal_potencia_sonda_d": 0.008478,
     "canal_lente_puro_d": 0.000015,
-    "canal_escalon_mas_lente_d": 0.008493
+    "suma_escalon_mas_lente_d": 0.008493
    },
    {
     "ojo": "normal",
@@ -829,7 +1243,7 @@
     "canal_fisica_linealizacion_d": -0.000005,
     "canal_potencia_sonda_d": 0.006782,
     "canal_lente_puro_d": 0.000012,
-    "canal_escalon_mas_lente_d": 0.006794
+    "suma_escalon_mas_lente_d": 0.006794
    },
    {
     "ojo": "normal",
@@ -846,7 +1260,7 @@
     "canal_fisica_linealizacion_d": -0.000004,
     "canal_potencia_sonda_d": 0.003391,
     "canal_lente_puro_d": 0.000006,
-    "canal_escalon_mas_lente_d": 0.003397
+    "suma_escalon_mas_lente_d": 0.003397
    },
    {
     "ojo": "normal",
@@ -863,7 +1277,7 @@
     "canal_fisica_linealizacion_d": -0.000014,
     "canal_potencia_sonda_d": 0.011868,
     "canal_lente_puro_d": 0.000021,
-    "canal_escalon_mas_lente_d": 0.011889
+    "suma_escalon_mas_lente_d": 0.011889
    },
    {
     "ojo": "normal",
@@ -880,7 +1294,7 @@
     "canal_fisica_linealizacion_d": -0.000014,
     "canal_potencia_sonda_d": 0.010173,
     "canal_lente_puro_d": 0.000018,
-    "canal_escalon_mas_lente_d": 0.010191
+    "suma_escalon_mas_lente_d": 0.010191
    },
    {
     "ojo": "normal",
@@ -897,7 +1311,7 @@
     "canal_fisica_linealizacion_d": -0.000013,
     "canal_potencia_sonda_d": 0.006782,
     "canal_lente_puro_d": 0.000012,
-    "canal_escalon_mas_lente_d": 0.006794
+    "suma_escalon_mas_lente_d": 0.006794
    },
    {
     "ojo": "largo",
@@ -914,7 +1328,7 @@
     "canal_fisica_linealizacion_d": 0,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0.000045,
-    "canal_escalon_mas_lente_d": 0.000045
+    "suma_escalon_mas_lente_d": 0.000045
    },
    {
     "ojo": "largo",
@@ -931,7 +1345,7 @@
     "canal_fisica_linealizacion_d": 0,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0.00003,
-    "canal_escalon_mas_lente_d": 0.00003
+    "suma_escalon_mas_lente_d": 0.00003
    },
    {
     "ojo": "largo",
@@ -948,7 +1362,7 @@
     "canal_fisica_linealizacion_d": 0,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0,
-    "canal_escalon_mas_lente_d": 0
+    "suma_escalon_mas_lente_d": 0
    },
    {
     "ojo": "largo",
@@ -965,7 +1379,7 @@
     "canal_fisica_linealizacion_d": -0.000002,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0.000076,
-    "canal_escalon_mas_lente_d": 0.000076
+    "suma_escalon_mas_lente_d": 0.000076
    },
    {
     "ojo": "largo",
@@ -982,7 +1396,7 @@
     "canal_fisica_linealizacion_d": -0.000002,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0.000061,
-    "canal_escalon_mas_lente_d": 0.000061
+    "suma_escalon_mas_lente_d": 0.000061
    },
    {
     "ojo": "largo",
@@ -999,7 +1413,7 @@
     "canal_fisica_linealizacion_d": -0.000001,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0.00003,
-    "canal_escalon_mas_lente_d": 0.00003
+    "suma_escalon_mas_lente_d": 0.00003
    },
    {
     "ojo": "largo",
@@ -1016,7 +1430,7 @@
     "canal_fisica_linealizacion_d": -0.000005,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0.000106,
-    "canal_escalon_mas_lente_d": 0.000106
+    "suma_escalon_mas_lente_d": 0.000106
    },
    {
     "ojo": "largo",
@@ -1033,7 +1447,7 @@
     "canal_fisica_linealizacion_d": -0.000005,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0.000091,
-    "canal_escalon_mas_lente_d": 0.000091
+    "suma_escalon_mas_lente_d": 0.000091
    },
    {
     "ojo": "largo",
@@ -1050,7 +1464,7 @@
     "canal_fisica_linealizacion_d": -0.000005,
     "canal_potencia_sonda_d": 0,
     "canal_lente_puro_d": 0.000061,
-    "canal_escalon_mas_lente_d": 0.000061
+    "suma_escalon_mas_lente_d": 0.000061
    }
   ],
   "dominio_potencia_cruzado": [
@@ -1608,7 +2022,7 @@
     "masa_excluida_por_la_puerta": 0
    },
    "cota_medida_d": 0.000013,
-   "lectura": "MEDIDO por cuadratura 2D, no estimado: el término ε_bio × ε_med que el brazo EQ descarta vale como máximo ~1.3e-5 D en esta rejilla (peor celda: ojo normal, σ_bio 0.40 / σ_m 0.20). Es COMPARABLE al canal de no-linealidad (≤1.4e-5 D) y dos órdenes por debajo de los canales de escalón y motor. La cota analítica anterior («< 1e-6 D») era optimista en un orden de magnitud y se ha retirado."
+   "lectura": "MEDIDO por cuadratura 2D sobre las 27 celdas, no estimado. Es COMPARABLE al canal de no-linealidad (≤1.4e-5 D) y queda entre DOS y TRES órdenes por debajo de los canales de escalón de sonda y de motor óptico (3e-3 a 3e-2 D). La cota analítica anterior («< 1e-6 D», de s/(2c·σ_bio) ≈ 40) era optimista en un orden de magnitud y se ha retirado. Nota de dominio: esta magnitud es de REFRACCIÓN (se calcula con la sensibilidad refractiva delgada), así que solo se compara con canales de refracción; la mención al canal de motor es de orden de magnitud, no una resta entre dominios."
   },
   "verificacion_montecarlo": {
    "celda": "normal, dominio refracción gruesa, σ = 0.30 mm",
@@ -1617,7 +2031,27 @@
    "desviacion_relativa": 0.010213,
    "nota": "tolerancia esperable ~3 %: SE del MC (~0.6 %) + defecto del LCG de makeRng (infla varianza 1.3-2.8 %, medido en V1.12) + truncamiento declarado de la cuadratura (0.034 %)"
   },
-  "aviso_no_linealidad": "EL CANAL DE NO-LINEALIDAD ES PEQUEÑO POR CANCELACIÓN, NO PORQUE LA RESPUESTA SEA LINEAL (corrección adversarial de cierre — la lectura anterior invitaba a la generalización falsa). La respuesta refractiva a δ SÍ está curvada: curvatura medida ≈ -0.087 D/mm² en el ojo corto, y el desvío respecto de la recta a δ = ±0.8 mm es ≈ -0.056 D — TRES órdenes de magnitud por encima del canal. El canal sale ~1e-5 D porque, para una perturbación de distribución SIMÉTRICA y una métrica E|·|, el término cuadrático se cancela EXACTAMENTE: con f(δ) = s·δ + c·δ², |f| vale s·δ + c·δ² a la derecha y s|δ| − c·δ² a la izquierda, así que E|f| = s·E|δ| + c·(E[δ²·1_{δ>0}] − E[δ²·1_{δ<0}]) = s·E|δ| (verificado numéricamente: el residuo es cero de máquina, 6.7e-16 D, para c = 0.09 y c = 0.5). Lo que sobrevive (~1e-5 D) son los términos de orden impar (cúbico+), no la curvatura. CONSECUENCIA: la linealización de exp006 está justificada PARA ESTA MÉTRICA (E|error| con ε simétrico y centrado) y NO puede extrapolarse. Cualquier métrica que rompa la simetría — un percentil, una cola unilateral, un ε_bio sesgado, o la media de la refracción CON signo — vería la curvatura entera.",
+  "cancelacion_cuadratica": {
+   "nota": "con f(δ) = s·δ + c·δ² y ε simétrico, E|f| = s·E|δ| exactamente: el término cuadrático se cancela. Se calcula el residuo para varias curvaturas c (s = 2.31 D/mm, σ = 0.3 mm, cuadratura fina) — cero de máquina mientras el vértice de la parábola no entre en el rango.",
+   "residuos": [
+    {
+     "c_d_mm2": 0.09,
+     "curvatura_a_08mm_d": 0.0576,
+     "residuo_E_abs_d": 0
+    },
+    {
+     "c_d_mm2": 0.5,
+     "curvatura_a_08mm_d": 0.32,
+     "residuo_E_abs_d": 0
+    },
+    {
+     "c_d_mm2": 2,
+     "curvatura_a_08mm_d": 1.28,
+     "residuo_E_abs_d": 0.000003
+    }
+   ]
+  },
+  "aviso_no_linealidad": "EL CANAL DE NO-LINEALIDAD ES PEQUEÑO POR CANCELACIÓN, NO PORQUE LA RESPUESTA SEA LINEAL (corrección adversarial de cierre — la lectura anterior invitaba a la generalización falsa). La respuesta refractiva a δ SÍ está curvada: ver curvatura_d_mm2 y desvio_de_la_recta_a_08mm_d por ojo en bloque2_escalera.dominio_refraccion — en el ojo corto curvatura -0.0873 D/mm² y desvío -0.05590 D a δ = 0.8 mm, TRES órdenes de magnitud por encima del canal. El canal sale ~1e-5 D porque, para una perturbación de distribución SIMÉTRICA y una métrica E|·|, el término cuadrático se cancela EXACTAMENTE: con f(δ) = s·δ + c·δ², |f| vale s·δ + c·δ² a la derecha y s|δ| − c·δ² a la izquierda, así que E|f| = s·E|δ| + c·(E[δ²·1_{δ>0}] − E[δ²·1_{δ<0}]) = s·E|δ| (verificado numéricamente en cancelacion_cuadratica: cero de máquina para c = 0.09 y c = 0.5). Lo que sobrevive (~1e-5 D) son los términos de orden impar (cúbico+), no la curvatura. CONSECUENCIA: la linealización de exp006 está justificada PARA ESTA MÉTRICA (E|error| con ε simétrico y centrado) y NO puede extrapolarse. Cualquier métrica que rompa la simetría — un percentil, una cola unilateral, un ε_bio sesgado, o la media de la refracción CON signo — vería la curvatura entera.",
   "lectura_canales": "cada canal cambia UNA sola cosa (corrección adversarial V1.11): residuo_estimador_exp006 = mismo modelo lineal, cuadratura determinista vs el MC congelado de exp006 (SE con n=6000 + defecto del LCG + redondeo a 3 decimales — NO es física); canal_fisica_linealizacion = misma potencia y mismo estimador, respuesta lineal vs re-evaluada; canal_potencia_sonda = misma respuesta delgada, sondeada en la potencia del escalón del otro motor (cuantización de 0.5 D); canal_lente_puro = MISMA potencia, lente delgada vs gruesa. La suma de los cuatro telescopa exactamente a (beneficio_gruesa_reevaluada − beneficio_publicado_exp006)."
  },
  "bloque4_v112": {

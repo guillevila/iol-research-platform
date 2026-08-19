@@ -112,9 +112,10 @@ test('H_EQ · V1.12: lt_mm con un predictor que no lo consume = VARIABLE INERTE 
   }), /VARIABLE INERTE/);
 });
 
-test('H_EQ · V1.12: causalidad — la MISMA σ_ACD produce derivada distinta con H_EQ que con offset', () => {
-  // ConstantOffset: dPos/dACD = 1; H_EQ: dPos/dACD = 1 también, pero H_EQ añade el
-  // camino por LT — aquí verificamos que ambos consumen acd_mm y el sistema lo mide
+test('H_EQ · V1.12: σ_ACD propaga por el predictor y la salida nombra el predictor usado', () => {
+  // NO compara derivadas entre predictores: con H_EQ y con ConstantOffset dPos/dACD = 1 en
+  // ambos, así que la derivada refractiva coincide. Lo que se fija aquí es que la sigma
+  // propaga POR el predictor y que la salida identifica cuál se usó.
   const base = {
     preop: ojo(), iol: new GenericIOLFactory().create({ power_d: 21 }),
     sigmas: { acd_mm: sigma(0.15) },

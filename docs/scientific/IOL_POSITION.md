@@ -22,10 +22,16 @@ la lente; las conversiones entre convenciones deben ser explícitas (OPEN_QUESTI
 ## Interfaz
 
 ```js
-predictor.predict(preopEye, iol?) -> { iol_position_mm, source, inputs_used }
+predictor.predict(preopEye, iol?) -> { iol_position_mm, source, inputs_used, hypothesis? }
 ```
 
 Toda salida documenta su procedencia (`source`) y qué variables usó (`inputs_used`).
+`hypothesis` es opcional: cuando NO es nulo, marca el resultado como **condicional a una
+hipótesis biológica sin validar** (p. ej. `'H_EQ'`). Es una marca legible por máquina, no
+prosa: la capa de incertidumbre la transporta hasta su salida en `procedencia_posicion`
+(con `condicional_a_hipotesis`), de modo que ningún consumidor aguas abajo pueda tomar el
+número por una posición medida. Un predictor sin hipótesis declarada deja el campo ausente
+y su salida lo refleja — la posición sigue siendo PREDICHA, nunca medida.
 
 ## Implementaciones disponibles
 
@@ -45,9 +51,11 @@ Toda salida documenta su procedencia (`source`) y qué variables usó (`inputs_u
    falta para ser clínicamente irrelevante (<0.25 D).
 2. **Capacidad informativa** (Sprint 8 — ejecutado en `experiments/exp006_capacidad_eq`):
    bajo la hipótesis declarada H_EQ (LIO en el ecuador capsular; ecuador = ACD+LT/2 +
-   desvío biológico σ_bio), medir EQ con σ_m solo aporta si σ_m < σ_bio, y el valor
-   refractivo del beneficio escala con la potencia del ojo: con σ_bio=0.3 mm y
-   σ_m=0.1 mm evita ~0.36 D de error medio en ojos cortos frente a ~0.10 D en largos.
+   desvío biológico σ_bio) y con σ_bio/σ_m **DECLARADAS sin procedencia medida** (OQ #6),
+   un estimador del ecuador con σ_m solo tiene menor divergencia de posición esperada que
+   el estimador base si σ_m < σ_bio, y su traducción en dioptrías escala con la potencia
+   del ojo: con σ_bio=0.3 mm y σ_m=0.1 mm, ~0.36 D en ojos cortos frente a ~0.10 D en
+   largos. **Nada de esto es un beneficio clínico** (ver `exp006_capacidad_eq/ERRATA.md`).
    Es un análisis condicional: la validez de H_EQ la decidirán datos reales
    (PROTOCOL_FIRST_CLINICAL_BATCH.md, objetivo primario).
    **Desde V1.11**, H_EQ es además un predictor de CAPA B implementado
