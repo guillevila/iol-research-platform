@@ -1,8 +1,36 @@
 # OPEN_QUESTIONS — Incertidumbre científica registrada
 
-**Versión:** 1.1 · **Fecha:** 11/08/2026 · RESEARCH USE ONLY
+**Versión:** 1.2 · **Fecha:** 19/08/2026 · RESEARCH USE ONLY
 Regla del proyecto: la incertidumbre científica se registra aquí y se resuelve con
 evidencia, nunca con suposición.
+
+## Estado tras el cierre de V1 (auditoría pregunta a pregunta, V1.15)
+
+Cada pregunta se revisó **contra el código**, no contra su propia redacción. Vocabulario:
+
+- **ABIERTA · EXTERNA** — nada que programar la resuelve; espera un dato, una ficha o una
+  publicación que no está en este repositorio.
+- **PARCIAL** — una parte quedó resuelta y se dice cuál; el resto sigue abierto y se dice
+  por qué.
+- **RESUELTA** — con la capacidad que la resolvió.
+
+| OQ | Tema | Estado | Qué la desbloquearía |
+|---|---|---|---|
+| #1 | Índices de refracción del ojo de simulación | **ABIERTA · EXTERNA** | una cita bibliográfica verificable |
+| #2 | Modelos de literatura para posición de LIO | **ABIERTA · EXTERNA** | la publicación con sus coeficientes (**es lo que mantiene V1.10 BLOCKED**) |
+| #3 | Convenciones de «posición de LIO» | **PARCIAL** | especificación del dispositivo postoperatorio + posicionamiento por planos principales |
+| #4 | Geometría real de LIO comerciales | **ABIERTA · EXTERNA** | fichas de fabricante |
+| #5 | Distribuciones poblacionales para sintéticos | **ABIERTA · EXTERNA** | estudio poblacional citable |
+| #6 | Sigmas reales de medida y biología | **PARCIAL** | repetibilidad citable + cohorte con posición medida |
+| #7 | Qué política corneal se acerca más a la refracción real | **ABIERTA · EXTERNA** | cohorte postoperatoria con biómetro identificado |
+| #8 | Qué criterio óptico debe optimizar el trazado | **PARCIAL** | cohorte postoperatoria |
+| #9 | Procedencia y comparabilidad de la Q corneal | **ABIERTA · EXTERNA** | esquema de procedencia de dispositivo/zona/convención |
+| #10 | Radios corneales per-meridiano MEDIDOS | **ABIERTA · EXTERNA** | tomografía con radios por meridiano y cara |
+| #11 | Marcas de LIO tórica ↔ eje de la geometría | **ABIERTA · EXTERNA** | ficha de fabricante con esa relación |
+
+**Ninguna** de las once se resolvió escribiendo código, y eso es coherente con lo que son:
+la mayoría son dependencias del mundo exterior. Las dos PARCIALES lo son porque V1 construyó
+la maquinaria que las consumirá, no porque haya respondido la pregunta científica.
 
 ---
 
@@ -48,6 +76,15 @@ evidencia, nunca con suposición.
   medido es ~0.3 mm ≈ 0.4 D). Ahora ese supuesto se REGISTRA (y bloquea en STRICT);
   resolver la convención exige implementar el posicionamiento por planos principales
   calculados de la geometría.
+- **Estado (V1.11):** resuelta la parte INTERNA. El datum del modelo está declarado en un
+  solo sitio y es coherente de extremo a extremo: ápex corneal anterior = z = 0
+  (`units.mjs`), `acd_mm` medida desde epitelio (`eye.mjs`), de modo que ACD + LT/2 **es**
+  directamente un `iol_position_mm` válido sin corrección por CCT — y eso queda escrito en
+  el docstring de `EquatorialPlanePredictor`, junto con la advertencia de que un ACD medido
+  desde ENDOTELIO por otro dispositivo NO es válido sin conversión explícita.
+  Sigue abierta la parte EXTERNA (qué convención usa cada dispositivo postoperatorio) y la
+  INTERNA pendiente de la adenda: el posicionamiento por planos principales calculados de
+  la geometría, hoy sustituido por el centro geométrico con el supuesto registrado.
 - **Datos requeridos:** especificación del dispositivo de medida postoperatoria.
 
 ## #4 · Geometría real de LIO comerciales
@@ -74,8 +111,12 @@ evidencia, nunca con suposición.
 
 - **Pregunta:** ¿qué desviaciones típicas reales tienen la posición postoperatoria de
   la LIO (dado un predictor), la AL, la queratometría y la ACD por dispositivo?
-- **Por qué importa:** el sistema de incertidumbre (Sprint 10) propaga sigmas
-  DECLARADAS; con sigmas reales, sus intervalos serían informativos por paciente.
+- **Por qué importa:** el sistema de incertidumbre propaga sigmas DECLARADAS; con sigmas
+  reales, sus intervalos serían informativos por paciente.
+  *(Corrección de referencia, V1.15: este párrafo decía «el sistema de incertidumbre
+  (Sprint 10)», refiriéndose al Sprint 10 del plan de **V0** —el Monte Carlo paraxial de
+  `montecarlo.mjs`—. Hoy «V1.10» es otra cosa por completo: los predictores de literatura,
+  que siguen BLOCKED. La referencia inducía a error y se retira.)*
 - **Evidencia disponible:** ninguna propia; los valores usados en exp004 (0.2/0.4 mm
   de posición; 0.03 mm AL; 0.10 D K) son escenarios declarados, no medidas.
 - **Estado (V1.12):** la MAQUINARIA para consumir sigmas reales ya existe —
@@ -143,6 +184,16 @@ evidencia, nunca con suposición.
   asfericidad/tilt hagan que A y C se separen de verdad.
 - **Qué lo cambiaría:** asfericidad (V1.2), tilt y descentración (V1.3) y tórico (V1.6)
   rompen esa simetría. La comparación debe **repetirse** tras cada uno de esos sprints.
+- **Cierre del compromiso con el tórico (auditoría V1.15).** Los dos primeros sprints
+  tienen su reevaluación registrada abajo (exp009, exp010). El tercero —el tórico— **no
+  puede tenerla, y la razón es más informativa que un número**: desde V1.6,
+  `evaluateObjective` **rechaza** cualquier sistema tórico, porque un objetivo ESCALAR
+  destruye el astigmatismo y su eje. Es decir, la pregunta «¿A o C en un sistema tórico?»
+  está mal formulada: en presencia de astigmatismo el resultado no es un número, es una
+  pareja de líneas focales con un eje, y ahí el sustituto no es «otro escalar» sino la
+  métrica 2D (`analyzeAstigmaticBundle` + `clinicalFromAstigmaticAnalysis`). El compromiso
+  del plan queda por tanto **resuelto por imposibilidad declarada**, no pendiente. Lo que
+  sigue abierto es A vs C en sistemas de revolución con asimetría suficiente.
 - **Reevaluación tras V1.2 (exp009):** con Q de LIO declarada |Q| ≤ 1 sobre el ojo
   normal, la separación A–C a pupila 6 mm sube de 0.008 D (Q=0) a 0.015 D — se duplica
   pero sigue ~33 veces por debajo del escalón de 0.5 D. La conclusión de exp008

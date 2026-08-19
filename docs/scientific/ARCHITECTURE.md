@@ -1,6 +1,7 @@
 # ARCHITECTURE — Plataforma de investigación en cálculo de LIO
 
-**Versión:** 1.0 · **Fecha:** 10/08/2026 · RESEARCH USE ONLY
+**Versión:** 1.1 · **Fecha:** 19/08/2026 · RESEARCH USE ONLY
+*(v1.1: tabla de capas sincronizada con el `src/` real al cerrar V1 y desambiguación de «CAPA B».)*
 
 ## Principio rector
 
@@ -13,19 +14,35 @@ fórmulas modernas vive en la segunda pieza, no en la tercera.
 
 ```
 CAPA A  Datos anatómicos          src/core/eye.mjs        preoperative_eye (ausencias permitidas)
-CAPA B  Postoperatorio previsto   src/core/eye.mjs        predicted_postoperative_eye
-        Predictores de posición   src/predictors/         interfaz IOLPositionPredictor
+CAPA B  Predicción BIOLÓGICA      src/predictors/         predict(preop) → posición + procedencia
+        de la posición de LIO                             (ConstantOffset, FractionOfAL,
+                                                           EquatorialPlane/H_EQ, LinearRegression)
+        su salida                 src/core/eye.mjs        predicted_postoperative_eye
 CAPA C  Óptica física             src/optics/paraxial.mjs vergencias reducidas (gaussiano)
-                                  src/optics/raytrace/    Snell 3D, superficies, foco
+                                  src/optics/raytrace/    Snell 3D, superficies, foco, astigmatismo 2D
+                                  src/optics/cornea.mjs   políticas corneales declaradas
                                   src/optics/eyebuilder.mjs  EyeModel+IOL → sistema óptico
 CAPA D  Modelo de LIO             src/core/iol.mjs        UNKNOWN explícito; genéricas etiquetadas
-CAPA E  Optimizador               src/optimize/           argmin del error óptico previsto
-CAPA F  Incertidumbre             en PredictionResult     sensibilidades, alternativas, empates
+                                  src/core/iol_factory.mjs geometría POR potencia (nunca reutilizada)
+                                  src/toric/              rotación tórica por física
+CAPA E  Optimizador               src/optimize/           potencia continua y de catálogo
+CAPA F  Incertidumbre             src/uncertainty/        sigmas con procedencia, causalidad
+                                                           medidas→predictor→posición (V1.12)
 BENCH   Comparación de motores    src/bench/              predict(case, iol) homogéneo
 LEGACY  Benchmark congelado       legacy/evo_replica/     run_evo_replica(case)
 SINTÉT. Ojos sintéticos           src/synth/              source=synthetic, semillas fijas
+CLÍNICO Esquemas de datos reales  src/clinical/           (sin datos: solo el contrato)
+PERF    Coste computacional       src/perf/               contadores deterministas (V1.14)
 EXP     Experimentos              experiments/            config+semilla+commit+resultados
+BANCO   Rendimiento               bench/                  workloads, equivalencia bitwise, timings
 ```
+
+> **Desambiguación de «CAPA B»** (sincronización V1.15). En el resto del repositorio —y en
+> particular en V1.11 y V1.12— «CAPA B» significa **el predictor de posición**, no el estado
+> postoperatorio que produce. La distinción importa porque toda la disciplina de causalidad
+> de V1.12 depende de ella: las medidas se perturban y fluyen **por** el predictor, y el
+> residual propio del predictor viaja por un canal separado. El `predicted_postoperative_eye`
+> es la **salida** de esa capa, no la capa.
 
 ## Reglas de dependencia
 

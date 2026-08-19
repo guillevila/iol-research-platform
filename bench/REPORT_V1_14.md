@@ -165,7 +165,8 @@ Tres mecanismos independientes, todos ejecutables:
 2. **Los 12 experimentos publicados reproducen** su `results.json` número a número
    (`scripts/check_experiments.mjs`), incluidos exp013/014/015, que son los que más cambiaron
    de coste.
-3. **Suite completa 331/331**, con el legado EVO byte-congelado (7/7) y la independencia
+3. **Suite completa 343/343** (331 al cerrar la primera tanda de V1.14, más los 12 tests de
+   la batería adversarial de rendimiento), con el legado EVO byte-congelado (7/7) y la independencia
    arquitectónica del motor (6/6) verificadas aparte.
 
 ## 5 · Trabajo eliminado (medido, no estimado)
