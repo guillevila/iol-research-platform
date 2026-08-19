@@ -57,8 +57,14 @@ Solo se ajustará un predictor (`LinearRegressionPredictor` con `provenance` del
 si el conjunto de ajuste tiene n suficiente para que el intervalo del coeficiente
 principal no incluya el cero con holgura (se calculará con los datos; sin n
 suficiente, el lote se usa únicamente para REPORTAR errores de los modelos
-existentes). El requisito de precisión objetivo viene de exp001: σ_pos que deja el
-error refractivo < 0.25 D por tipo de ojo (0.10 mm en cortos, 0.35 mm en largos).
+existentes). La precisión objetivo se deriva de exp001 bajo el criterio **DECLARADO** de 0.25 D
+(escalón de redondeo en refracción escrita; **no** un umbral clínico con respaldo aportado
+aquí — ver `experiments/exp001_sensibilidad_elp/ERRATA.md`): la σ_pos que mantendría la
+divergencia por debajo de ese criterio es ~0.10 mm en ojos cortos y ~0.35 mm en largos. Si
+0.25 D es el umbral relevante para el resultado del paciente es una pregunta que este lote
+deberá **responder**, no asumir. *(Corrección V1.15: decía «el requisito de precisión
+objetivo» y «error refractivo», convirtiendo un criterio declarado en requisito de diseño
+clínico dentro del documento preregistrado — donde más pesa.)*
 
 ## 5. Flujo operativo
 

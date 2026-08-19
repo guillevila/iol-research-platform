@@ -226,6 +226,30 @@ contradijeron lo que creíamos, **con la corrección aplicada**:
 | Una sigma declarada se propaga si está en la lista | `pupil_mm` era un **canal fantasma**: pasaba la sonda y moría en silencio | V1.12: perturbación real en ambas salidas |
 | Reutilizar el haz entre extracciones Monte Carlo daría velocidad | El perfil demostró que `generateBundle` **ni aparece** entre los costes | V1.14: medir evitó optimizar algo inútil |
 
+## 8 bis · Una tensión declarada: HTML corregidos, generadores congelados
+
+La auditoría de cierre encontró las **peores** sobreafirmaciones clínicas del repositorio no
+en los documentos científicos sino en los **HTML que un usuario abre**: un panel afirmaba que
+0.25 D es «el mínimo que un paciente puede llegar a notar» y que por debajo de eso el motor
+era «clínicamente indistinguible de EVO» —un veredicto de equivalencia clínica sin una sola
+refracción postoperatoria—, y la calculadora publicaba una divergencia mediana de «0,00 D»
+que el baseline congelado desmiente (es 0.01–0.02 D). Corregí los markdown en la primera
+pasada y **dejé intacto lo que de verdad se lee**: exactamente el fallo de «lector externo».
+
+Los cuatro HTML (`calculadora-torica.html`, `dashboard.html`, `informe-cientifico.html`,
+`dashboard-investigacion.html`) están corregidos. Pero **dos de sus generadores
+(`gendash.mjs`, `geninforme.mjs`) viven dentro del legado byte-congelado** y no pueden
+tocarse sin romper el manifiesto de hashes que la CI verifica en Linux y Windows. La
+consecuencia hay que decirla en vez de esconderla:
+
+> **Si alguien regenera `dashboard.html` o `informe-cientifico.html` con los generadores
+> congelados, las frases corregidas VUELVEN.** El tercer generador
+> (`experiments/gendash_investigacion.mjs`) sí está fuera del congelado y se corrigió en
+> origen. Resolver el resto exige una decisión que excede a V1.15: o se descongela el
+> harness del legado —lo que rompe la garantía de que el benchmark no cambia bajo los pies—
+> o se acepta que esos dos HTML son artefactos que deben re-corregirse tras cada
+> regeneración. **No se ha elegido por defecto: queda registrado como decisión pendiente.**
+
 ## 9 · Qué es hoy este proyecto, y qué no
 
 **HOY ES** una plataforma de investigación y un motor óptico experimental: reproduce su

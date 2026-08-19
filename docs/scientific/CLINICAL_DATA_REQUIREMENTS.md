@@ -28,8 +28,9 @@ fecha de cirugía generalizable a trimestre; `surgeon_id` como código.
   potencia, y postop con `iol_axial_position_mm` medida + refracción estable (≥ 30 días).
 - Tamaño orientativo: se determinará con análisis de potencia una vez se conozca la
   varianza real; los experimentos de sensibilidad (exp001) indican qué precisión de
-  posición es necesaria para que el error óptico quede bajo 0.25 D por tipo de ojo —
-  ese resultado fija el requisito de medida antes que el tamaño muestral.
+  posición mantendría la divergencia óptica bajo el criterio **DECLARADO** de 0.25 D por
+  tipo de ojo (no un umbral clínico: ver `experiments/exp001_sensibilidad_elp/ERRATA.md`) —
+  ese resultado orienta el requisito de medida antes que el tamaño muestral.
 - Refracción a distancia estandarizada (gafa, vértice declarado) y dispositivo de
   medida registrado (`measurement_device`).
 

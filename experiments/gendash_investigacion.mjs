@@ -200,7 +200,7 @@ no afirman cuál acierta.</div>
   <h2>exp001 · Sensibilidad de la refracción a la posición de la LIO</h2>
   <p class="sub">D de error refractivo por mm de error de posición (paraxial; predictor de simulación). La pregunta nuclear del proyecto: dónde importa conocer la posición.</p>
   ${p1}
-  <p class="note">Precisión de posición requerida para quedar bajo 0.25 D: de ±0.10 mm (ojo corto) a ±3 mm (muy largo).</p>
+  <p class="note">Bajo el criterio DECLARADO de 0.25 D, la precisión de posición que mantendría la divergencia por debajo de ese valor: de ±0.10 mm (ojo corto) a ±3 mm (muy largo).</p>
 </div>
 
 <div class="card">
