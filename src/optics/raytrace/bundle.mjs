@@ -43,6 +43,7 @@
  * RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.
  */
 import { assertFinite } from '../../core/units.mjs';
+import { bump, WorkUnit } from '../../perf/counters.mjs';
 
 export const SamplingKind = Object.freeze({
   MERIDIONAL: 'MERIDIONAL',
@@ -82,6 +83,7 @@ export function generateBundle({
   perRing = 6,
   zStart_mm = -10,
 } = {}) {
+  bump(WorkUnit.BUNDLE_BUILT);
   validar(radius_mm, n);
   if (!Object.values(SamplingKind).includes(kind)) {
     throw new TypeError(`muestreo desconocido: ${kind}. Válidos: ${Object.values(SamplingKind).join(', ')}`);

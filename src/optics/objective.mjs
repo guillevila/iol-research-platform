@@ -100,6 +100,7 @@
 import { assertFinite } from '../core/units.mjs';
 import { N_VITREOUS } from './constants.mjs';
 import { traceRay, spotRmsAt, bestFocus } from './raytrace/trace.mjs';
+import { bump, WorkUnit } from '../perf/counters.mjs';
 
 export const ObjectiveKind = Object.freeze({
   SPOT_RMS_AT_RETINA: 'SPOT_RMS_AT_RETINA',
@@ -159,6 +160,7 @@ export function equivalentDefocus_d(zFoco_mm, zRetina_mm, zReferencia_mm, n = N_
  *   es null para el objetivo A, cuyo coste no es una dioptría.
  */
 export function evaluateObjective(eye, bundle, kind = ObjectiveKind.EQUIVALENT_DEFOCUS) {
+  bump(WorkUnit.OBJECTIVE_EVAL);
   if (!Object.values(ObjectiveKind).includes(kind)) {
     throw new TypeError(`objetivo desconocido: ${kind}. Válidos: ${Object.values(ObjectiveKind).join(', ')}`
       + (kind === 'BEST_FOCUS_ON_RETINA'

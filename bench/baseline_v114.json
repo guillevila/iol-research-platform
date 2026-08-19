@@ -1,0 +1,713 @@
+{
+ "workloads": {
+  "fija": {
+   "descripcion": "evaluación física de UNA LIO fija (bloque elemental del motor)",
+   "parametros_cientificos": {
+    "pupil_mm": 3,
+    "n_anillos": 40,
+    "sampling": "MERIDIONAL",
+    "objective": "EQUIVALENT_DEFOCUS",
+    "power_d": 21
+   },
+   "trabajo_determinista": {
+    "best_focus": 1,
+    "evaluaciones_objetivo": 1,
+    "geometrias_lio": 1,
+    "haces_generados": 1,
+    "intersecciones": 240,
+    "ojos_trazables": 1,
+    "rayos_trazados": 80,
+    "spot_rms": 40
+   },
+   "salida_cientifica": {
+    "bestFocus_mm": "#f64:40372a97b50a4f63",
+    "cornea_policy": "KERATOMETRIC_READING",
+    "cost": "#f64:3ff5ee89b5561f80",
+    "detail": {
+     "criterio": "desenfoque equivalente del mejor foco respecto a la retina (D)",
+     "desplazamiento_mm": "#f64:bfd55a12bd6c2740",
+     "rms_en_mejor_foco_mm": "#f64:3f668c22844c61d3",
+     "signo": "+ = enfoca por detrás de la retina (hipermétrope)"
+    },
+    "raysLost": "#f64:0000000000000000",
+    "raysTraced": "#f64:4054000000000000",
+    "residual_d": "#f64:bff5ee89b5561f80",
+    "spotRms_mm": "#f64:3f9133e1dfc6042c",
+    "supuestos": [
+     "cornea_policy: P = K: se usa la lectura del dispositivo COMO potencia física",
+     "cornea_policy: depende de la convención de conversión declarada (n_k=1.3375); otra convención daría otra P",
+     "iol: geometría de SUSTITUTO DE SIMULACIÓN (DERIVED_GENERIC) — radios/índice/espesor declarados, no de la lente implantada",
+     "cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)"
+    ]
+   }
+  },
+  "continua": {
+   "descripcion": "optimización CONTINUA de potencia por trazado (sección áurea)",
+   "parametros_cientificos": {
+    "pupil_mm": 3,
+    "n_anillos": 40,
+    "search_d": [
+     15,
+     27
+    ],
+    "tol_d": 0.0001
+   },
+   "trabajo_determinista": {
+    "best_focus": 28,
+    "evaluaciones_objetivo": 28,
+    "geometrias_lio": 28,
+    "haces_generados": 1,
+    "intersecciones": 6720,
+    "ojos_trazables": 28,
+    "rayos_trazados": 2240,
+    "spot_rms": 1120
+   },
+   "salida_cientifica": {
+    "at_exact": {
+     "bestFocus_mm": "#f64:4037800025cfdec0",
+     "cost": "#f64:3ee310432b000000",
+     "raysLost": "#f64:0000000000000000",
+     "raysTraced": "#f64:4054000000000000",
+     "residual_d": "#f64:3ee310432b000000",
+     "spotRms_mm": "#f64:3f6633c746d8098e"
+    },
+    "catalog_no_evaluables": [],
+    "exact_power_d": "#f64:4033b4051e75469e",
+    "parametros": {
+     "cornea_policy": "KERATOMETRIC_READING",
+     "cornea_rotationally_symmetric": true,
+     "fidelity": "RESEARCH",
+     "iol_factory": "generic_n1.49_t0.8",
+     "is_simulation_surrogate": true,
+     "muestreo_2d": false,
+     "n_anillos": "#f64:4044000000000000",
+     "pose": null,
+     "pupil_mm": "#f64:4008000000000000",
+     "rayos": "#f64:4054000000000000",
+     "sampling": "MERIDIONAL",
+     "search_d": [
+      "#f64:402e000000000000",
+      "#f64:403b000000000000"
+     ],
+     "tol_d": "#f64:3f1a36e2eb1c432d"
+    },
+    "recomendada": null,
+    "supuestos_trazado": [
+     "cornea_policy: P = K: se usa la lectura del dispositivo COMO potencia física",
+     "cornea_policy: depende de la convención de conversión declarada (n_k=1.3375); otra convención daría otra P",
+     "iol: geometría de SUSTITUTO DE SIMULACIÓN (DERIVED_GENERIC) — radios/índice/espesor declarados, no de la lente implantada",
+     "cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)"
+    ]
+   }
+  },
+  "catalogo": {
+   "descripcion": "optimización continua + contención en catálogo comercial (0.5 D)",
+   "parametros_cientificos": {
+    "pupil_mm": 3,
+    "n_anillos": 40,
+    "catalogo": "10..30 paso 0.5",
+    "search_d": [
+     15,
+     27
+    ]
+   },
+   "trabajo_determinista": {
+    "best_focus": 69,
+    "evaluaciones_objetivo": 69,
+    "geometrias_lio": 69,
+    "haces_generados": 1,
+    "intersecciones": 16560,
+    "ojos_trazables": 69,
+    "rayos_trazados": 5520,
+    "spot_rms": 2760
+   },
+   "salida_cientifica": {
+    "at_exact": {
+     "bestFocus_mm": "#f64:4037800025cfdec0",
+     "cost": "#f64:3ee310432b000000",
+     "raysLost": "#f64:0000000000000000",
+     "raysTraced": "#f64:4054000000000000",
+     "residual_d": "#f64:3ee310432b000000",
+     "spotRms_mm": "#f64:3f6633c746d8098e"
+    },
+    "catalog_no_evaluables": [],
+    "exact_power_d": "#f64:4033b4051e75469e",
+    "recomendada": null,
+    "segunda": null,
+    "supuestos_trazado": [
+     "cornea_policy: P = K: se usa la lectura del dispositivo COMO potencia física",
+     "cornea_policy: depende de la convención de conversión declarada (n_k=1.3375); otra convención daría otra P",
+     "iol: geometría de SUSTITUTO DE SIMULACIÓN (DERIVED_GENERIC) — radios/índice/espesor declarados, no de la lente implantada",
+     "cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)"
+    ]
+   }
+  },
+  "conica": {
+   "descripcion": "trazado con superficie CÓNICA (asfericidad declarada): rama cuadrática",
+   "parametros_cientificos": {
+    "pupil_mm": 3,
+    "n_anillos": 40,
+    "q_anterior": -0.26,
+    "q_posterior": -0.25
+   },
+   "trabajo_determinista": {
+    "best_focus": 1,
+    "evaluaciones_objetivo": 1,
+    "geometrias_lio": 1,
+    "haces_generados": 1,
+    "intersecciones": 320,
+    "ojos_trazables": 1,
+    "rayos_trazados": 80,
+    "spot_rms": 40
+   },
+   "salida_cientifica": {
+    "bestFocus_mm": "#f64:40377a24adfbf417",
+    "cornea_kind": "two_surface_physical",
+    "cost": "#f64:3fb7a6dd2924b400",
+    "raysLost": "#f64:0000000000000000",
+    "raysTraced": "#f64:4054000000000000",
+    "residual_d": "#f64:bfb7a6dd2924b400",
+    "spotRms_mm": "#f64:3f615128a26e1bfd",
+    "supuestos": [
+     "iol: geometría de SUSTITUTO DE SIMULACIÓN (DERIVED_GENERIC) — radios/índice/espesor declarados, no de la lente implantada"
+    ]
+   }
+  },
+  "pose": {
+   "descripcion": "sistema con POSE 3D (tilt+descentración): transformadas rígidas y muestreo 2D",
+   "parametros_cientificos": {
+    "pupil_mm": 3,
+    "n_anillos": 8,
+    "sampling": "RINGS_EQUAL_AREA",
+    "tilt_x_deg": 5,
+    "decenter_y_mm": 0.3
+   },
+   "trabajo_determinista": {
+    "best_focus": 1,
+    "evaluaciones_objetivo": 1,
+    "geometrias_lio": 1,
+    "haces_generados": 1,
+    "intersecciones": 240,
+    "ojos_trazables": 1,
+    "rayos_trazados": 48,
+    "spot_rms": 40
+   },
+   "salida_cientifica": {
+    "bestFocus_mm": "#f64:4037174150919ace",
+    "cost": "#f64:3ffb01d10b3677c0",
+    "detail": {
+     "criterio": "desenfoque equivalente del mejor foco respecto a la retina (D)",
+     "desplazamiento_mm": "#f64:bfda2fabdb994c80",
+     "rms_en_mejor_foco_mm": "#f64:3f72c95dbc1383b8",
+     "signo": "+ = enfoca por detrás de la retina (hipermétrope)"
+    },
+    "pose_source": "DECLARED_SCENARIO",
+    "raysLost": "#f64:0000000000000000",
+    "raysTraced": "#f64:4048000000000000",
+    "residual_d": "#f64:bffb01d10b3677c0",
+    "spotRms_mm": "#f64:3f96609086ec1a6f"
+   }
+  },
+  "torico": {
+   "descripcion": "análisis astigmático 2D con LIO tórica (bicónica, Newton) — sin objetivo escalar",
+   "parametros_cientificos": {
+    "pupil_mm": 3,
+    "n_anillos": 8,
+    "sampling": "RINGS_EQUAL_AREA",
+    "cilindro_d": 2
+   },
+   "trabajo_determinista": {
+    "geometrias_lio": 1,
+    "haces_generados": 1,
+    "intersecciones": 144,
+    "ojos_trazables": 1,
+    "rayos_trazados": 48
+   },
+   "salida_cientifica": {
+    "clinico": {
+     "convencion": "cilindro negativo; desenfoque equivalente (sin distancia de vértice); eje = meridiano plano",
+     "cylinder_d": "#f64:c001465cd887c940",
+     "degenerate_reason": null,
+     "etiqueta": "SIMULACION / NO GROUND TRUTH CLINICO",
+     "flat": {
+      "defocus_d": "#f64:bff150547c3bf800",
+      "meridian_deg": "#f64:0000000000000000",
+      "z_mm": "#f64:40373c509d57abdd"
+     },
+     "minus_cyl_axis_deg": "#f64:0000000000000000",
+     "orthogonality_residual_deg": "#f64:0000000000000000",
+     "se_d": "#f64:c0014b58aa61e0a0",
+     "sphere_d": "#f64:bff150547c3bf800",
+     "steep": {
+      "defocus_d": "#f64:c009ee8716a5c540",
+      "meridian_deg": "#f64:4056800000000000",
+      "z_mm": "#f64:4036baf60a13f140"
+     },
+     "warnings": []
+    },
+    "ejes": null,
+    "focos": null,
+    "raysLost": "#f64:0000000000000000",
+    "raysTraced": "#f64:4048000000000000",
+    "supuestos": [
+     "cornea_policy: P = K: se usa la lectura del dispositivo COMO potencia física",
+     "cornea_policy: depende de la convención de conversión declarada (n_k=1.3375); otra convención daría otra P",
+     "cornea: astigmatismo queratométrico medido (3.00 D) no modelado: cálculo de equivalente esférico sobre K media (la vía tórica sí lo modela)",
+     "iol: geometría de SUSTITUTO DE SIMULACIÓN (DERIVED_GENERIC) — radios/índice/espesor declarados, no de la lente implantada",
+     "cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)"
+    ],
+    "toric": true
+   }
+  },
+  "barrido": {
+   "descripcion": "barrido CONTROLLED_PHYSICS reducido: 6 ojos × potencia continua (misma física)",
+   "parametros_cientificos": {
+    "pupil_mm": 3,
+    "n_anillos": 40,
+    "ojos": 6,
+    "search_d": [
+     5,
+     35
+    ]
+   },
+   "trabajo_determinista": {
+    "best_focus": 180,
+    "evaluaciones_objetivo": 180,
+    "geometrias_lio": 846,
+    "haces_generados": 6,
+    "intersecciones": 43200,
+    "ojos_paraxiales": 18,
+    "ojos_trazables": 180,
+    "rayos_trazados": 14400,
+    "spot_rms": 7290
+   },
+   "salida_cientifica": {
+    "salidas": [
+     {
+      "al_mm": "#f64:4035000000000000",
+      "best": {
+       "error_d": "#f64:3f7ab35dfb9c0ee7",
+       "power_d": "#f64:403f800000000000",
+       "predicted_refraction_d": "#f64:3f7ab35dfb9c0ee7"
+      },
+      "lens_model": "thick_lens_from_factory",
+      "paraxial_gruesa_d": "#f64:403f825aca4cd800",
+      "second": {
+       "error_d": "#f64:3fd664301c6512f4",
+       "power_d": "#f64:4040000000000000",
+       "predicted_refraction_d": "#f64:bfd664301c6512f4"
+      },
+      "sens_d_mm": "#f64:400205911f770116",
+      "tie": false,
+      "trazada_d": "#f64:403eaaf77d8eb638"
+     },
+     {
+      "al_mm": "#f64:4036800000000000",
+      "best": {
+       "error_d": "#f64:3fb129bb82201cab",
+       "power_d": "#f64:4038800000000000",
+       "predicted_refraction_d": "#f64:bfb129bb82201cab"
+      },
+      "lens_model": "thick_lens_from_factory",
+      "paraxial_gruesa_d": "#f64:403867cfd1153800",
+      "second": {
+       "error_d": "#f64:3fd24f28bd55b11a",
+       "power_d": "#f64:4038000000000000",
+       "predicted_refraction_d": "#f64:3fd24f28bd55b11a"
+      },
+      "sens_d_mm": "#f64:3ffa9990cfb7bfb1",
+      "tie": false,
+      "trazada_d": "#f64:4037bb51ae09f47c"
+     },
+     {
+      "al_mm": "#f64:4037800000000000",
+      "best": {
+       "error_d": "#f64:3fc183e1fa977936",
+       "power_d": "#f64:4034800000000000",
+       "predicted_refraction_d": "#f64:bfc183e1fa977936"
+      },
+      "lens_model": "thick_lens_from_factory",
+      "paraxial_gruesa_d": "#f64:40344eafcc9c4800",
+      "second": {
+       "error_d": "#f64:3fcbc97b44f57585",
+       "power_d": "#f64:4034000000000000",
+       "predicted_refraction_d": "#f64:3fcbc97b44f57585"
+      },
+      "sens_d_mm": "#f64:3ff5931c4243d35b",
+      "tie": false,
+      "trazada_d": "#f64:4033b4067d23a3b2"
+     },
+     {
+      "al_mm": "#f64:4038800000000000",
+      "best": {
+       "error_d": "#f64:3fb7361c76199bd6",
+       "power_d": "#f64:4030800000000000",
+       "predicted_refraction_d": "#f64:3fb7361c76199bd6"
+      },
+      "lens_model": "thick_lens_from_factory",
+      "paraxial_gruesa_d": "#f64:4030a0cc093e6800",
+      "second": {
+       "error_d": "#f64:3fd0f138fc294934",
+       "power_d": "#f64:4031000000000000",
+       "predicted_refraction_d": "#f64:bfd0f138fc294934"
+      },
+      "sens_d_mm": "#f64:3ff0c4923fc975f1",
+      "tie": false,
+      "trazada_d": "#f64:403012910f398f64"
+     },
+     {
+      "al_mm": "#f64:403a000000000000",
+      "best": {
+       "error_d": "#f64:3fc57401c16db2b7",
+       "power_d": "#f64:4028000000000000",
+       "predicted_refraction_d": "#f64:bfc57401c16db2b7"
+      },
+      "lens_model": "thick_lens_from_factory",
+      "paraxial_gruesa_d": "#f64:402787420fd99000",
+      "second": {
+       "error_d": "#f64:3fc7e4d0a4a07b56",
+       "power_d": "#f64:4027000000000000",
+       "predicted_refraction_d": "#f64:3fc7e4d0a4a07b56"
+      },
+      "sens_d_mm": "#f64:3fe7868ee7d6eca5",
+      "tie": true,
+      "trazada_d": "#f64:40268328cbfbc2d2"
+     },
+     {
+      "al_mm": "#f64:403b000000000000",
+      "best": {
+       "error_d": "#f64:3fb42d8c585b321c",
+       "power_d": "#f64:4022000000000000",
+       "predicted_refraction_d": "#f64:bfb42d8c585b321c"
+      },
+      "lens_model": "thick_lens_from_factory",
+      "paraxial_gruesa_d": "#f64:4021c722a5951000",
+      "second": {
+       "error_d": "#f64:3fd1904cc590c5bd",
+       "power_d": "#f64:4021000000000000",
+       "predicted_refraction_d": "#f64:3fd1904cc590c5bd"
+      },
+      "sens_d_mm": "#f64:3fe12c1398b1c259",
+      "tie": false,
+      "trazada_d": "#f64:4020cdcc1de53ee2"
+     }
+    ]
+   }
+  },
+  "incertidumbre": {
+   "descripcion": "V1.12 con LIO FIJA: 150 extracciones, cada una re-predice y re-traza",
+   "parametros_cientificos": {
+    "n": 150,
+    "seed": 4242,
+    "pupil_mm": 3,
+    "n_anillos": 12,
+    "sigmas": "al 0.03 / acd 0.10 / pos 0.30"
+   },
+   "trabajo_determinista": {
+    "best_focus": 164,
+    "evaluaciones_objetivo": 164,
+    "geometrias_lio": 1,
+    "haces_generados": 164,
+    "intersecciones": 11808,
+    "ojos_trazables": 164,
+    "rayos_trazados": 3936,
+    "spot_rms": 6561
+   },
+   "salida_cientifica": {
+    "advertencia_censura": null,
+    "ancla_lineal": {
+     "derivadas_d_por_unidad": {
+      "acd_mm": "#f64:4000aac8c61b1ee0",
+      "al_mm": "#f64:c011278e417cee36",
+      "position_prediction_mm": "#f64:4000ac76dc775a6b"
+     },
+     "nota": "derivadas por diferencias centradas (paso = sd) a través del pipeline COMPLETO, predictor incluido. Un ratio ≉ 1 documenta no-linealidad del sistema, no un error.",
+     "ratio_mc_sobre_lineal": "#f64:3fefad7e1339426d",
+     "sd_lineal_d": "#f64:3fe57cedf4b2b194"
+    },
+    "ancla_nominal_exacta": true,
+    "convergencia": {
+     "cortes": [
+      {
+       "media_d": "#f64:bfe050de9a51c926",
+       "n": "#f64:4042800000000000",
+       "sd_d": "#f64:3fe7c2c1235fca5a",
+       "se_media_d": "#f64:3fbf3ffd47323f98"
+      },
+      {
+       "media_d": "#f64:bfd475bffee05a11",
+       "n": "#f64:4052c00000000000",
+       "sd_d": "#f64:3fe63f18d6b659f0",
+       "se_media_d": "#f64:3fb48ce7c08d690f"
+      },
+      {
+       "media_d": "#f64:bfd34c350595996a",
+       "n": "#f64:4062c00000000000",
+       "sd_d": "#f64:3fe5458694519603",
+       "se_media_d": "#f64:3fabca0146bb0994"
+      }
+     ],
+     "delta_sd_ultimo_corte_d": "#f64:3f9f32484c987da0",
+     "nota": "los cortes son PREFIJOS ANIDADOS de la misma secuencia: garantizan la estabilidad del estimador acumulado a lo largo de UNA corrida (condición necesaria), no la varianza entre réplicas — para eso, corre con semillas independientes (adversarial V1.12: el delta entre prefijos subestima la varianza real del estimador ~√3)"
+    },
+    "correlaciones": "INDEPENDENCIA asumida entre todas las entradas perturbadas — supuesto DECLARADO del escenario, no una propiedad medida",
+    "distribucion": {
+     "max_d": "#f64:3ff67abe977d58c0",
+     "media_d": "#f64:bfd34c350595996a",
+     "min_d": "#f64:c001760d529c9600",
+     "n": "#f64:4062c00000000000",
+     "percentiles_d": {
+      "p25": "#f64:bfe61d05706b85a0",
+      "p5": "#f64:bff732add662a663",
+      "p50": "#f64:bfcc66cb62ca4a00",
+      "p75": "#f64:3fc4901770aa4700",
+      "p95": "#f64:3fe7edf6f8014945"
+     },
+     "sd_d": "#f64:3fe5458694519603",
+     "se_media_d": "#f64:3fabca0146bb0994"
+    },
+    "motivos_rechazo": {},
+    "n_intentados": "#f64:4062c00000000000",
+    "n_rechazados": "#f64:0000000000000000",
+    "n_validos": "#f64:4062c00000000000",
+    "nominal": {
+     "cornea_policy": "KERATOMETRIC_READING",
+     "iol_position_mm": "#f64:4015cccccccccccd",
+     "residual_d": "#f64:bfd27b395027e500",
+     "supuestos_trazado": [
+      "cornea_policy: P = K: se usa la lectura del dispositivo COMO potencia física",
+      "cornea_policy: depende de la convención de conversión declarada (n_k=1.3375); otra convención daría otra P",
+      "iol: geometría de SUSTITUTO DE SIMULACIÓN (DERIVED_GENERIC) — radios/índice/espesor declarados, no de la lente implantada",
+      "cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)"
+     ]
+    },
+    "procedencia_posicion": {
+     "condicional_a_hipotesis": true,
+     "hypothesis": "H_EQ",
+     "inputs_used": [
+      "acd_mm",
+      "lt_mm"
+     ],
+     "nota": "TODO resultado de esta salida es CONDICIONAL a la hipótesis H_EQ, que NO está validada: la posición postoperatoria no está medida, es PREDICHA bajo esa hipótesis. Validarla exige posición de LIO medida en cohorte postoperatoria (nivel 3).",
+     "position_source": "equatorial_plane_geometric (H_EQ DECLARADA: LIO en el ecuador capsular ≈ ACD + LT/2 — hipótesis, no hecho; SIMULACION, validación exige datos postoperatorios nivel 3)",
+     "predictor": "equatorial_plane_geometric"
+    },
+    "pupila": {
+     "escenario_mm": "#f64:4008000000000000",
+     "medida_preop_mm": null,
+     "nota": "pupila de ESCENARIO declarado; el ojo no trae pupil_mm medida"
+    },
+    "sigmas_declaradas": [
+     {
+      "provenance": "escenario declarado de benchmark V1.14 (OQ #6): no es repetibilidad real",
+      "sd": "#f64:3f9eb851eb851eb8",
+      "tipo": "declarada",
+      "variable": "al_mm"
+     },
+     {
+      "provenance": "escenario declarado de benchmark V1.14 (OQ #6): no es repetibilidad real",
+      "sd": "#f64:3fb999999999999a",
+      "tipo": "declarada",
+      "variable": "acd_mm"
+     },
+     {
+      "provenance": "escenario declarado de benchmark V1.14 (OQ #6): no es repetibilidad real",
+      "sd": "#f64:3fd3333333333333",
+      "tipo": "declarada",
+      "variable": "position_prediction_mm"
+     }
+    ],
+    "unsupported_dimensions": []
+   }
+  },
+  "eleccion": {
+   "descripcion": "V1.12 estabilidad de ELECCIÓN: re-optimiza el catálogo por extracción (el más caro)",
+   "parametros_cientificos": {
+    "n": 60,
+    "seed": 777,
+    "pupil_mm": 3,
+    "n_anillos": 12,
+    "ventana_d": 2,
+    "catalogo": "16..26 paso 0.5"
+   },
+   "trabajo_determinista": {
+    "best_focus": 596,
+    "evaluaciones_objetivo": 596,
+    "geometrias_lio": 62,
+    "haces_generados": 7,
+    "intersecciones": 42912,
+    "ojos_trazables": 596,
+    "rayos_trazados": 14304,
+    "spot_rms": 23976
+   },
+   "salida_cientifica": {
+    "eleccion_nominal_d": "#f64:4033800000000000",
+    "escalon_modal_d": "#f64:4033800000000000",
+    "fraccion_eleccion_nominal": "#f64:3fd6666666666666",
+    "fuera_de_ventana": {
+     "fraccion": "#f64:3f91111111111111",
+     "n": "#f64:3ff0000000000000",
+     "nota": "elecciones CENSURADAS: el óptimo salió de la ventana declarada — el escalón exacto es desconocido más allá del borde; amplía window_d para resolverlas. Cuentan en el denominador: descartarlas truncaría las extracciones extremas y sesgaría las fracciones."
+    },
+    "motivos_rechazo": {},
+    "n_decididos": "#f64:404e000000000000",
+    "n_intentados": "#f64:404e000000000000",
+    "n_rechazados": "#f64:0000000000000000",
+    "nota": "la elección es DISCRETA: su inestabilidad (con qué frecuencia cambia el escalón elegido) es una pregunta distinta de la incertidumbre del resultado con una lente fija — no se resumen una en la otra",
+    "por_escalon": [
+     {
+      "fraccion": "#f64:3fd6666666666666",
+      "power_d": "#f64:4033800000000000",
+      "veces": "#f64:4035000000000000"
+     },
+     {
+      "fraccion": "#f64:3fd5555555555555",
+      "power_d": "#f64:4034000000000000",
+      "veces": "#f64:4034000000000000"
+     },
+     {
+      "fraccion": "#f64:3fc999999999999a",
+      "power_d": "#f64:4033000000000000",
+      "veces": "#f64:4028000000000000"
+     },
+     {
+      "fraccion": "#f64:3fa999999999999a",
+      "power_d": "#f64:4034800000000000",
+      "veces": "#f64:4008000000000000"
+     },
+     {
+      "fraccion": "#f64:3fa1111111111111",
+      "power_d": "#f64:4035000000000000",
+      "veces": "#f64:4000000000000000"
+     },
+     {
+      "fraccion": "#f64:3f91111111111111",
+      "power_d": "#f64:4032800000000000",
+      "veces": "#f64:3ff0000000000000"
+     }
+    ],
+    "procedencia_posicion": {
+     "condicional_a_hipotesis": false,
+     "hypothesis": null,
+     "inputs_used": [
+      "acd_mm"
+     ],
+     "nota": "el predictor no declara hipótesis biológica (su procedencia está en position_source); la posición sigue siendo PREDICHA, nunca medida",
+     "position_source": "constant_offset_1.7mm (SIMULACION: offset declarado, no calibrado clinicamente)",
+     "predictor": "constant_offset_1.7mm"
+    },
+    "pupila": {
+     "escenario_mm": "#f64:4008000000000000",
+     "medida_preop_mm": null,
+     "nota": "pupila de ESCENARIO declarado; el ojo no trae pupil_mm medida"
+    },
+    "ventana_evaluada_d": [
+     "#f64:4031800000000000",
+     "#f64:4032000000000000",
+     "#f64:4032800000000000",
+     "#f64:4033000000000000",
+     "#f64:4033800000000000",
+     "#f64:4034000000000000",
+     "#f64:4034800000000000",
+     "#f64:4035000000000000",
+     "#f64:4035800000000000"
+    ]
+   }
+  },
+  "pipeline_eq": {
+   "descripcion": "cadena H_EQ de V1.11: predictor geométrico → postop previsto → trazado",
+   "parametros_cientificos": {
+    "pupil_mm": 3,
+    "n_anillos": 40,
+    "ojos": 3,
+    "predictor": "equatorial_plane_geometric"
+   },
+   "trabajo_determinista": {
+    "best_focus": 87,
+    "evaluaciones_objetivo": 87,
+    "geometrias_lio": 87,
+    "haces_generados": 3,
+    "intersecciones": 20880,
+    "ojos_trazables": 87,
+    "rayos_trazados": 6960,
+    "spot_rms": 3509
+   },
+   "salida_cientifica": {
+    "salidas": [
+     {
+      "at_exact": {
+       "bestFocus_mm": "#f64:4034fffffb4f657a",
+       "cost": "#f64:3ebaf11930000000",
+       "raysLost": "#f64:0000000000000000",
+       "raysTraced": "#f64:4054000000000000",
+       "residual_d": "#f64:bebaf11930000000",
+       "spotRms_mm": "#f64:3f6b07f89b81e436"
+      },
+      "hypothesis": "H_EQ",
+      "inputs_used": [
+       "acd_mm",
+       "lt_mm"
+      ],
+      "posicion_mm": "#f64:4015666666666666",
+      "position_source": "equatorial_plane_geometric (H_EQ DECLARADA: LIO en el ecuador capsular ≈ ACD + LT/2 — hipótesis, no hecho; SIMULACION, validación exige datos postoperatorios nivel 3)",
+      "supuestos": [
+       "cornea_policy: P = K: se usa la lectura del dispositivo COMO potencia física",
+       "cornea_policy: depende de la convención de conversión declarada (n_k=null); otra convención daría otra P",
+       "iol: geometría de SUSTITUTO DE SIMULACIÓN (DERIVED_GENERIC) — radios/índice/espesor declarados, no de la lente implantada",
+       "cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)"
+      ],
+      "trazada_d": "#f64:403f5e96a2551677"
+     },
+     {
+      "at_exact": {
+       "bestFocus_mm": "#f64:4037800020d46c37",
+       "cost": "#f64:3ee1996a7c000000",
+       "raysLost": "#f64:0000000000000000",
+       "raysTraced": "#f64:4054000000000000",
+       "residual_d": "#f64:3ee1996a7c000000",
+       "spotRms_mm": "#f64:3f66374ac540c9f3"
+      },
+      "hypothesis": "H_EQ",
+      "inputs_used": [
+       "acd_mm",
+       "lt_mm"
+      ],
+      "posicion_mm": "#f64:4015cccccccccccd",
+      "position_source": "equatorial_plane_geometric (H_EQ DECLARADA: LIO en el ecuador capsular ≈ ACD + LT/2 — hipótesis, no hecho; SIMULACION, validación exige datos postoperatorios nivel 3)",
+      "supuestos": [
+       "cornea_policy: P = K: se usa la lectura del dispositivo COMO potencia física",
+       "cornea_policy: depende de la convención de conversión declarada (n_k=null); otra convención daría otra P",
+       "iol: geometría de SUSTITUTO DE SIMULACIÓN (DERIVED_GENERIC) — radios/índice/espesor declarados, no de la lente implantada",
+       "cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)"
+      ],
+      "trazada_d": "#f64:4034bede81bde142"
+     },
+     {
+      "at_exact": {
+       "bestFocus_mm": "#f64:403affffeb9a2980",
+       "cost": "#f64:3ecf0b8601000000",
+       "raysLost": "#f64:0000000000000000",
+       "raysTraced": "#f64:4054000000000000",
+       "residual_d": "#f64:becf0b8601000000",
+       "spotRms_mm": "#f64:3f64215b9638fdb9"
+      },
+      "hypothesis": "H_EQ",
+      "inputs_used": [
+       "acd_mm",
+       "lt_mm"
+      ],
+      "posicion_mm": "#f64:401699999999999a",
+      "position_source": "equatorial_plane_geometric (H_EQ DECLARADA: LIO en el ecuador capsular ≈ ACD + LT/2 — hipótesis, no hecho; SIMULACION, validación exige datos postoperatorios nivel 3)",
+      "supuestos": [
+       "cornea_policy: P = K: se usa la lectura del dispositivo COMO potencia física",
+       "cornea_policy: depende de la convención de conversión declarada (n_k=null); otra convención daría otra P",
+       "iol: geometría de SUSTITUTO DE SIMULACIÓN (DERIVED_GENERIC) — radios/índice/espesor declarados, no de la lente implantada",
+       "cornea: superficie EQUIVALENTE trazada como esférica (construcción de la política corneal, no medida)"
+      ],
+      "trazada_d": "#f64:4024f39d974103aa"
+     }
+    ]
+   }
+  }
+ }
+}

@@ -19,6 +19,7 @@ import { N_AIR, N_AQUEOUS, N_CORNEA, N_VITREOUS } from './constants.mjs';
 import { sphericalSurface, planarSurface, conicSurface, biconicSurface, transformedSurface } from './raytrace/surfaces.mjs';
 import { isIdentityPose, rotationOfPose, createIOLPose } from '../core/pose.mjs';
 import { focusOfSystem } from './raytrace/trace.mjs';
+import { bump, WorkUnit } from '../perf/counters.mjs';
 
 /**
  * Modelo corneal del ojo. Si hay radios y CCT MEDIDOS se usa la córnea física de dos
@@ -112,6 +113,7 @@ const notaSurrogate = iol => `iol: geometría de SUSTITUTO DE SIMULACIÓN (${iol
  * gruesa inyectada) queda eliminada.
  */
 export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = DEFAULT_FIDELITY_MODE } = {}) {
+  bump(WorkUnit.PARAXIAL_EYE_BUILT);
   assertFidelityMode(fidelity);
   rechazarPoseEnParaxial(postop, 'buildParaxialEye');
   const preop = postop.preop;
@@ -213,6 +215,7 @@ export function buildParaxialEye(postop, { cornea: corneaOpts = {}, fidelity = D
  * se centra en `postop.iol_position_mm` (cara anterior en pos − t/2).
  */
 export function buildRaytraceEye(postop, iol, { aperture_mm = 2.5, cornea: corneaOpts = {}, cornea_toric: corneaToricOpts = null, fidelity = DEFAULT_FIDELITY_MODE } = {}) {
+  bump(WorkUnit.EYE_BUILT);
   assertFidelityMode(fidelity);
   const preop = postop.preop;
   assertTraceableGeometry(iol, 'buildRaytraceEye');

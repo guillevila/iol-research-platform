@@ -15,6 +15,7 @@
 import { assertFinite, assertInRange } from './units.mjs';
 import { createIOL, GeometryStatus, UNKNOWN, ASSUMED_SPHERICAL } from './iol.mjs';
 import { N_AQUEOUS } from '../optics/constants.mjs';
+import { bump, WorkUnit } from '../perf/counters.mjs';
 
 /**
  * Lente GENÉRICA de simulación: equibiconvexa cuyo único dato real es la potencia.
@@ -76,6 +77,7 @@ export class GenericIOLFactory {
   }
 
   create({ power_d, cylinder_d = 0 }) {
+    bump(WorkUnit.IOL_BUILT);
     const r1 = this.radiusForPower(power_d);
     return createIOL({
       manufacturer: 'GENERIC',
@@ -148,6 +150,7 @@ export class SyntheticToricIOLFactory {
   }
 
   create({ power_d, cylinder_d } = {}) {
+    bump(WorkUnit.IOL_BUILT);
     assertFinite(power_d, 'power_d');
     if (cylinder_d === undefined) {
       // mensaje específico (caza adversarial V1.6): el optimizador ESCALAR llama
@@ -226,6 +229,7 @@ export class ManufacturerIOLFactory {
   }
 
   create({ power_d, cylinder_d }) {
+    bump(WorkUnit.IOL_BUILT);
     assertFinite(power_d, 'power_d');
     const key = String(power_d);
     const g = this.geometryByPower[key] ?? this.geometryByPower[power_d];

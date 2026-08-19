@@ -11,6 +11,7 @@
  * RESEARCH USE ONLY.
  */
 import { add, scale, sub, dot, normalize, isFiniteVec } from './vec3.mjs';
+import { bump, WorkUnit } from '../../perf/counters.mjs';
 
 export function sphericalSurface({ zVertex_mm, radius_mm, aperture_mm = 4, n_before, n_after, id = '' }) {
   for (const [v, name] of [[zVertex_mm, 'zVertex'], [radius_mm, 'radius'], [n_before, 'n_before'], [n_after, 'n_after']]) {
@@ -191,6 +192,7 @@ const matVec = (R, v) => [
 ];
 
 export function intersect(surface, ray) {
+  bump(WorkUnit.SURFACE_INTERSECT);
   const EPS = 1e-9;
   if (!isFiniteVec(ray.p) || !isFiniteVec(ray.d)) return null;
   if (surface.kind === 'transformed') {
