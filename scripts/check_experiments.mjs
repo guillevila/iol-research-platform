@@ -92,10 +92,13 @@ for (const exp of EXPERIMENTOS) {
   const respaldo = fs.readFileSync(destino);
   const readmePath = path.join(ROOT, 'experiments', exp.id, 'README.md');
   const respaldoReadme = fs.existsSync(readmePath) ? fs.readFileSync(readmePath) : null;
-  let obtenido;
+  let obtenido, readmeGenerado = null;
   try {
     execFileSync(process.execPath, [path.join(ROOT, exp.script)], { cwd: ROOT, stdio: 'pipe' });
     obtenido = JSON.parse(fs.readFileSync(destino, 'utf8'));
+    // se captura ANTES del finally, que restaura lo publicado: si se leyera después,
+    // se estaría comparando el fichero consigo mismo
+    if (respaldoReadme) readmeGenerado = fs.readFileSync(readmePath, 'utf8');
   } catch (e) {
     console.error(`✖ ${exp.id}: la re-ejecución falló\n${e.stderr?.toString() ?? e.message}`);
     fallos++;
@@ -103,6 +106,26 @@ for (const exp of EXPERIMENTOS) {
   } finally {
     fs.writeFileSync(destino, respaldo);
     if (respaldoReadme) fs.writeFileSync(readmePath, respaldoReadme);
+  }
+
+  // El README también es artefacto publicado: se GENERA junto al results.json y un lector
+  // externo lo lee antes que el JSON. Hasta V1.15 se respaldaba y se restauraba, pero NUNCA
+  // se comparaba — así que su PROSA podía derivar de sus propios datos sin que la CI lo
+  // notara. Ese hueco explica por qué las inconsistencias prosa↔datos sobrevivieron hasta
+  // que una revisión manual las encontró. Los campos volátiles (timestamp, commit) aparecen
+  // también en el README, así que se neutralizan antes de comparar.
+  if (respaldoReadme && readmeGenerado !== null) {
+    const neutraliza = t => String(t)
+      .replace(/\d{4}-\d{2}-\d{2}T[\d:.]+Z/g, '<TIMESTAMP>')
+      .replace(/`[0-9a-f]{7,40}`/g, '`<COMMIT>`');
+    if (neutraliza(respaldoReadme.toString('utf8')) !== neutraliza(readmeGenerado)) {
+      console.error(`✖ ${exp.id}: el README publicado NO se reproduce`);
+      console.error('   El texto generado difiere del publicado (ignorando timestamp y commit).');
+      console.error('   La prosa de un experimento es parte de lo publicado: si cambió el');
+      console.error('   generador, regenera el experimento en un commit propio y explica por qué.');
+      fallos++;
+      continue;
+    }
   }
 
   const d = primeraDiferencia(limpiar(publicado), limpiar(obtenido));

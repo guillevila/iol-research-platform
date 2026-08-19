@@ -5,6 +5,14 @@
 **Fecha:** 09/08/2026
 **Autor:** G. Vila (elaboración asistida por IA)
 
+**RESEARCH USE ONLY — NOT FOR CLINICAL DECISION MAKING.** Comparativa demostrativa de **un
+solo caso**; ninguna de las cuatro columnas está validada contra resultado postoperatorio
+real. Lo que se compara son predicciones de modelos distintos entre sí, no su acierto.
+
+*(Corrección V1.15: este documento era el único de la raíz sin el sello regulatorio, y a la
+vez el que más lejos llegaba en orientación de decisión. Ver el registro de correcciones al
+pie.)*
+
 ---
 
 ## 1. Objeto y alcance
@@ -121,8 +129,10 @@ Desviación media de la refracción prevista a igual potencia, tomando EVO como 
 | Barrett ↔ EVO | 0.20 D | 0.63 D | Distinta en los 4 (½–1 escalón más) |
 
 Como contexto: sobre 548 casos aleatorios (no solo este), la réplica coincide con EVO en
-la potencia esférica el 96–99.5 % según el escenario, con error mediano de refracción de
-0.00 D (metodología y tablas completas en INFORME.md). La comparación con Barrett de este
+la potencia esférica entre el **92.2 %** (escenario combinado) y el **99.5 %** (configuración
+estándar), con divergencia mediana de la tabla de refracciones de **0.01–0.02 D** según el
+escenario (cifras de `legacy/evo_replica/baseline/baseline_metrics.json`, verificado en CI;
+metodología y tablas completas en INFORME.md). La comparación con Barrett de este
 informe se basa en un único caso —el disponible con datos reales—, por lo que sus cifras
 ilustran el orden de magnitud, no una estadística.
 
@@ -135,7 +145,7 @@ depth», usar 3.68 / 3.68 + comprobar la ayuda del campo), LT, CCT, constante A 
 lente y diana 0.00. Con los cinco pares potencia-refracción que devuelva por ojo y lente,
 las tablas de §3–§4 quedan completas y puede recalcularse §6.
 
-## 8. Lectura clínica
+## 8. Lectura de la comparativa (NO es una recomendación clínica)
 
 1. **La réplica no es una opinión más: es el eco de EVO.** Su columna coincide con EVO
    al céntimo de dioptría y en las cuatro recomendaciones. Sirve para tener EVO offline,
@@ -145,13 +155,26 @@ las tablas de §3–§4 quedan completas y puede recalcularse §6.
    la potencia recomendada (OS con Envy). Ninguna de las dos es «la verdad»: son
    predictores del resultado postoperatorio, ambos de primer nivel en la literatura, y su
    desacuerdo crece con la longitud axial.
-3. En ojos así, la decisión no es aritmética sino clínica: qué fórmula ha funcionado
-   mejor históricamente en el propio centro con esa familia de lentes y ese rango de ojo,
-   y qué lado del error se prefiere (en miopía magna suele preferirse el residual miope,
-   lo que favorecería la elección más conservadora de EVO frente a la de Barrett).
-4. Para el trabajo diario: el Anterion ya imprime Barrett; la calculadora local aporta la
-   columna EVO sin depender de la web. Dos fórmulas independientes visibles a la vez es
-   exactamente lo que recomienda la buena práctica en ojos extremos.
+3. **Ninguna de las dos puede declararse preferible con lo que hay aquí**: eso exigiría
+   resultado postoperatorio, que este trabajo no tiene. Qué fórmula usar y qué lado del
+   residual preferir es una decisión clínica externa a este repositorio.
+   *(Redacción anterior, corregida en V1.15: orientaba la decisión —qué fórmula ha
+   funcionado mejor en el propio centro, qué residual se prefiere— sin cohorte que lo
+   sostuviera.)*
+4. Operativamente: el Anterion ya imprime Barrett y la calculadora local aporta la columna
+   EVO sin depender de la web. Que tener dos fórmulas a la vista sea o no aconsejable en
+   ojos extremos es una cuestión de práctica clínica que este documento no puede zanjar.
+   *(Redacción anterior, corregida en V1.15: afirmaba que es «exactamente lo que recomienda
+   la buena práctica», sin citar ninguna fuente.)*
+
+> **Registro de correcciones (V1.15).** Este documento es un artefacto de trabajo previo al
+> desarrollo científico del repositorio. En la auditoría documental de cierre de V1 se
+> corrigieron: (a) la ausencia del sello regulatorio; (b) dos cifras contradichas por el
+> baseline congelado —el extremo inferior de coincidencia era **92.2 %**, no 96 %, y la
+> divergencia mediana **0.01–0.02 D**, no 0.00—; (c) el título y dos puntos de §8, que
+> orientaban una decisión clínica sin cohorte que lo sostuviera. Las cifras de §3–§7 y el
+> caso descrito **no se han tocado**: el texto anterior de los puntos corregidos queda
+> resumido en la propia corrección para que la traza sea legible.
 
 ## 9. Limitaciones
 

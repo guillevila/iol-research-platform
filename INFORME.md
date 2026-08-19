@@ -410,7 +410,7 @@ Este es el dominio añadido a raíz de un caso real de miopía magna.
 
 | Métrica | Resultado |
 |---|---|
-| LIO esférica recomendada idéntica | 212 / 232 (91.4 %) |
+| LIO esférica recomendada idéntica | 214 / 232 (92.2 %) |
 | Error de la tabla de refracciones | mediana 0.010, p95 0.090, máx. 0.200 D |
 | Eje de la LIO dentro de 1° | 89.7 % |
 | Cilindro tórico recomendado idéntico | 182 / 232 (78.4 %) |
@@ -463,8 +463,9 @@ vergencia, equivalencia exacta ACD↔constante A, media aritmética de K) se ded
 pruebas de igualdad exacta, no estadísticas.
 
 **Lo que es bueno pero no perfecto.** El eje de la LIO cae dentro de 1° en el 98 % de los
-casos estándar. La diferencia de 1° es clínicamente irrelevante (un grado de rotación
-equivale a ~3 % del efecto cilíndrico) pero impide la igualdad literal.
+casos estándar. Un grado de divergencia corresponde a ~3 % del efecto cilíndrico (pérdida
+ÓPTICA, por composición de doble ángulo) e impide la igualdad literal. Si ese margen es o no
+relevante en el resultado de un paciente es una pregunta clínica que este trabajo no responde.
 
 **Lo que es la principal limitación.** El cilindro tórico recomendado coincide en el
 77–84 % de los casos. Cuando difiere, es **siempre en un escalón adyacente** y ocurre en
@@ -479,9 +480,10 @@ cilindros disponibles. Dos causas se suman:
    sus residuos exactos: hay un ~4 % de casos en que EVO elige un cilindro que no es el
    que minimiza el astigmatismo residual mostrado, por un criterio interno no identificado.
 
-**Conclusión práctica.** Como herramienta de trabajo esta calculadora es fiable para la
-potencia esférica y el eje. Para el cilindro conviene tratarla como orientativa en casos
-límite: si el astigmatismo residual previsto es parecido para dos cilindros contiguos,
+**Conclusión práctica.** La reproducción de EVO es alta y estable en potencia esférica y en
+eje, y menos estable en cilindro cerca de las fronteras de escalón. Esto describe **fidelidad
+a EVO, no exactitud clínica**: ningún resultado de este documento está contrastado contra
+refracción postoperatoria. Para el cilindro, en casos límite: si el astigmatismo residual previsto es parecido para dos cilindros contiguos,
 conviene contrastar con la calculadora oficial.
 
 ---
