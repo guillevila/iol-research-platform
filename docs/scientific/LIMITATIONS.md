@@ -104,6 +104,55 @@ que V1.9/V1.11/V1.12/V1.14 midieron. Ver también [`../V1_CLOSURE.md` §5](../V1
    sin post-refractiva, Argos ni córnea posterior medida; histéresis Zeiss 709/939;
    la propia regla de recomendación de EVO solo se auto-reproduce al 96.2 % (cifra y regla en
    `INFORME.md`).
+10a. **Córnea posterior medida en `calculadora-torica.html` (2026-09, verificada parcialmente).**
+   La UI acepta opcionalmente K1p/K2p/ejes medidos (biómetro/tomógrafo). Cuando se rellenan,
+   `engine.js` deja de usar la regresión calibrada y calcula el TCA con una suma vectorial
+   estándar (anterior + posterior en el plano corneal) — un método de vector de potencia
+   habitual en la literatura, **no la fórmula propietaria de EVO**. A diferencia de la primera
+   versión, esto SÍ se verificó: campaña de 360 consultas reales a `evoiolcalculator.com`
+   (`legacy/evo_replica/harness/campaign_pk_lasik.mjs`, caché en
+   `legacy/evo_replica/cache/cache_pk_lasik.json`, 2026-09-15). La verificación encontró y
+   corrigió un error de signo (el eje de referencia del vector posterior es el de la magnitud
+   MENOR de K1p/K2p, no la mayor — confirmado empíricamente: con ese eje alineado al meridiano
+   curvo anterior, EVO cancela el astigmatismo progresivamente; a 90°, lo refuerza). Concordancia
+   medida tras el arreglo, sobre 160 comparaciones (9 ojos, AL 21–29 / Km 38–50, WTR y ATR,
+   astigmatismo anterior 1.5 y 3 D, magnitud PK 0.2–0.8 D, 4 ángulos relativos): **eje dentro de
+   2° en el 90 % de los casos** (mediana 0°, máximo 5°); **mismo escalón de cilindro que EVO en
+   el 49 %** de los casos (divergencia máxima medida: 1,5 D). No se encontró un factor de escala
+   que mejore sustancialmente el acierto de cilindro (barrido 1.0–2.0×, mejor caso 53 % en 1.4×,
+   dentro del ruido de redondeo a escalón de 0.5 D). Sigue sin haber ninguna consulta con
+   `DropDownArgos`, post-refractiva combinada con PK, ni fuera del dominio muestreado.
+10b. **Antecedente de LASIK/PRK/RK en `calculadora-torica.html` (2026-09): los 3 modos
+   implementados, cada uno con un modelo distinto porque EVO los trata de forma distinta.**
+   La campaña de 360 consultas (`campaign_pk_lasik.mjs`) incluyó `DropDownLASIK`
+   (miópico/hipermétrope/RK, con `txtPreLASIK`/`txtPostLASIK`).
+   - **Miópico**: relación real y explicable con la magnitud corregida (30 consultas, 4 ojos
+     AL 22-26/Km 38-44: el ajuste crece con la dioptría corregida y es mayor en córneas más
+     planas/ojos más cortos, coherente con la literatura). Ajuste lineal por mínimos cuadrados,
+     error medio ≈0,31 D frente a EVO (máximo observado ~0,9 D).
+   - **Hipermétrope y RK**: una investigación dirigida (fijando cada campo por turnos, valores
+     extremos hasta los límites de validación del formulario, -16 a -0.5 D) encontró que la
+     potencia base de EVO **no cambia en absoluto** con la magnitud de Pre/Post LASIK SE
+     introducida — confirmado dos veces: en la investigación inicial y reproduciendo a mano un
+     caso real que aportó el usuario (AL=23, K1=43, K2=46 → sin cirugía 21,5D/3,5 cil/87°; con
+     Hyperopic 21D/3 cil/86°, idéntico con o sin rellenar Pre/Post SE, incluso en el extremo
+     -16D). Esa reproducción también reveló que el modo **sí puede desplazar el cilindro
+     tórico**, no solo la esfera — algo que la primera investigación no había comprobado porque
+     usaba ojos sin astigmatismo anterior.
+     Se lanzó una segunda campaña dirigida (`campaign_hyp_rk_biometry.mjs`, 72 consultas: 12
+     ojos AL 21-30/Km 36-50 × 2 niveles de astigmatismo anterior × hipermétrope/RK) que SÍ
+     encontró un desplazamiento fijo de la esfera, dependiente de AL/Km (independiente del
+     astigmatismo anterior): ajuste bilineal en `engine.js::prepare()`, error medio ≈0,25 D
+     (hipermétrope) y ≈0,42 D (RK, más ruidoso — n=12 ojos, un punto en AL=21 se ajustó mal).
+     El desplazamiento de cilindro observado en la reproducción del usuario también apareció en
+     esta campaña (±0,75-1 D) pero de forma esporádica y sin relación clara con AL/Km/astigmatismo
+     — **no se modela**: no se pudo separar de ruido de redondeo a escalón de catálogo con los
+     datos disponibles.
+   Ninguno de los tres ajustes es tan sólido como el resto del motor (muestras de 4-12 ojos,
+   no la rejilla densa original). Scripts y caché compartida en
+   `legacy/evo_replica/harness/campaign_pk_lasik.mjs`,
+   `legacy/evo_replica/harness/campaign_hyp_rk_biometry.mjs`,
+   `legacy/evo_replica/cache/cache_pk_lasik.json`.
 
 ## Limitaciones de los datos sintéticos
 

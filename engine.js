@@ -3,6 +3,13 @@
  * Implementación independiente, calibrada por muestreo sistemático de la
  * calculadora EVO Toric v2.0. Metodología, ensayos y concordancia medida
  * en INFORME.md. Generado automáticamente; no editar a mano.
+ *
+ * EXCEPCIÓN (2026-09-15, manual): la rama de córnea posterior MEDIDA en
+ * `prepare()`/`totalCorneal()` (campo `pca`) se añadió a mano y NO viene del
+ * generador (`legacy/evo_replica/harness/gen_engine.mjs`, hoy además
+ * desincronizado del resto de este fichero). Si se regenera este archivo,
+ * esa rama debe reincorporarse a mano. No está calibrada frente a EVO — ver
+ * docs/scientific/EVO_QUERY_PROVENANCE.md y LIMITATIONS.md.
  */
 'use strict';
 var ENGINE = (function () {
@@ -89,20 +96,75 @@ function prepare(v) {
   // meridiano curvo = el de mayor potencia
   var steep = (K2 >= K1) ? v.k2a : v.k1a;
   var antMag = Math.abs(K2 - K1), Km = (K1 + K2) / 2;
-  return { Aeff: Aeff, ALeff: ALeff, Km: Km, antMag: antMag, steep: steep };
+  // Córnea posterior MEDIDA (opcional): K1p/K2p/ejes tal como los reporta el
+  // biómetro/tomógrafo (p.ej. IOLMaster 700, Cassini, Galilei, Pentacam). NO
+  // forma parte de la calibración por muestreo de EVO original, pero SÍ de una
+  // campaña de verificación específica (2026-09-15, 360 consultas reales a
+  // evoiolcalculator.com con PK1/PK2/LASIK) -- ver
+  // legacy/evo_replica/harness/campaign_pk_lasik.mjs y LIMITATIONS.md bullet 10a.
+  // Esa campaña confirmó empíricamente que el eje de referencia para la suma
+  // vectorial es el de la magnitud MENOR de PK1/PK2 (no la mayor): con el eje
+  // "menor" alineado con el meridiano curvo anterior, el cilindro neto de EVO
+  // decrece con la magnitud posterior (cancelación); con el eje "menor" a 90°
+  // del anterior, el cilindro neto CRECE (refuerzo) -- justo lo contrario de
+  // lo que daba la primera versión (que usaba el eje de la magnitud mayor).
+  var pca = null;
+  if (v.pk1 != null && v.pk2 != null && v.pk1a != null && v.pk2a != null) {
+    var pcaMag = Math.abs(v.pk2 - v.pk1);
+    var pcaSteep = (Math.abs(v.pk2) >= Math.abs(v.pk1)) ? v.pk1a : v.pk2a;
+    pca = { mag: pcaMag, steep: pcaSteep };
+  }
+  // Antecedente de LASIK/PRK/RK (opcional). EVO trata los 3 modos de forma
+  // MUY distinta -- confirmado con dos campañas reales a evoiolcalculator.com
+  // (legacy/evo_replica/harness/campaign_pk_lasik.mjs, 2026-09-15, y
+  // campaign_hyp_rk_biometry.mjs, 2026-09-16; esta última reproduciendo y
+  // extendiendo una prueba manual del usuario que mostró que el modo también
+  // desplaza el cilindro, no solo la esfera):
+  //  - MIÓPICO: la potencia depende de CUÁNTO se corrigió (probado 1-6 D).
+  //    Ajuste lineal (n=30, 4 ojos, MAE≈0.31 D):
+  //      extra_D = delta * (0.3266 - 0.0612*(Km-42) - 0.0749*(ALeff-24))
+  //  - HIPERMÉTROPE y RK: la magnitud introducida en Pre/Post LASIK SE NO
+  //    importa (probado desde vacío hasta los extremos de validación del
+  //    formulario, -16 a -0.5 D, siempre idéntico) -- pero SÍ hay un
+  //    desplazamiento fijo que depende del ojo (AL/Km), confirmado con un
+  //    barrido de 12 ojos × 2 niveles de astigmatismo anterior (72 consultas,
+  //    el astigmatismo no afectó al resultado, solo AL/Km):
+  //      hyp: c0=-0.3927 + 0.1436*(ALeff-25.5) - 0.0718*(Km-43) + 0.00259*(ALeff-25.5)*(Km-43)   [MAE≈0.25 D]
+  //      rk:  c0= 0.9831 + 0.1221*(ALeff-25.5) + 0.0507*(Km-43) + 0.00045*(ALeff-25.5)*(Km-43)   [MAE≈0.42 D, más ruidoso]
+  //    Ese mismo barrido mostró que el modo TAMBIÉN desplaza el cilindro tórico
+  //    en algunos ojos (±0.75-1 D, de forma esporádica y sin patrón claro con
+  //    AL/Km/astigmatismo) -- no se modela: la señal es demasiado ruidosa para
+  //    distinguirla de redondeo de escalón de catálogo. Ver LIMITATIONS.md 10b.
+  var lasikAdj = 0;
+  if (v.lasikMode === 'myopic' && v.lasikMyopicDelta != null && v.lasikMyopicDelta > 0) {
+    lasikAdj = v.lasikMyopicDelta * (0.3266 - 0.0612 * (Km - 42) - 0.0749 * (ALeff - 24));
+  } else if (v.lasikMode === 'hyperopic') {
+    lasikAdj = -0.3927 + 0.1436 * (ALeff - 25.5) - 0.0718 * (Km - 43) + 0.00259 * (ALeff - 25.5) * (Km - 43);
+  } else if (v.lasikMode === 'rk') {
+    lasikAdj = 0.9831 + 0.1221 * (ALeff - 25.5) + 0.0507 * (Km - 43) + 0.00045 * (ALeff - 25.5) * (Km - 43);
+  }
+  return { Aeff: Aeff, ALeff: ALeff, Km: Km, antMag: antMag, steep: steep, pca: pca, lasikAdj: lasikAdj };
 }
 
-/** Astigmatismo corneal TOTAL (plano corneal): regresión de córnea posterior + SIA. */
+/** Astigmatismo corneal TOTAL (plano corneal): posterior (medida o predicha) + SIA. */
 function totalCorneal(p, v) {
-  var ant = vec(p.antMag, p.steep), t = D.tm;
-  // córnea posterior predicha: modelo lineal del dominio típico + términos "hinge"
-  // que solo actúan en ojos largos (AL>27) o córneas planas (Km<38); dentro del
-  // dominio original valen exactamente cero, así que aquel comportamiento no cambia
-  var dk = p.Km - 44, da = p.ALeff - 23.5;
-  var hA = Math.max(0, p.ALeff - 27), hK = Math.max(0, 38 - p.Km);
-  var post = t.p0 + t.pK * dk + t.pAL * da
-           + t.hA * hA + t.hA2 * hA * hA + t.hK * hK + t.hK2 * hK * hK + t.hAhK * hA * hK;
-  var tca = [t.sa * ant[0] + post, t.sa * ant[1]];
+  var ant = vec(p.antMag, p.steep), t = D.tm, tca;
+  if (p.pca) {
+    // Posterior MEDIDA: suma vectorial estándar anterior + posterior en el
+    // plano corneal (método de vector potencia, no la fórmula propietaria de
+    // EVO). No calibrado ni verificado frente a EVO — ver disclaimer/UI.
+    var post = vec(p.pca.mag, p.pca.steep);
+    tca = [ant[0] + post[0], ant[1] + post[1]];
+  } else {
+    // córnea posterior predicha: modelo lineal del dominio típico + términos "hinge"
+    // que solo actúan en ojos largos (AL>27) o córneas planas (Km<38); dentro del
+    // dominio original valen exactamente cero, así que aquel comportamiento no cambia
+    var dk = p.Km - 44, da = p.ALeff - 23.5;
+    var hA = Math.max(0, p.ALeff - 27), hK = Math.max(0, 38 - p.Km);
+    var postPred = t.p0 + t.pK * dk + t.pAL * da
+             + t.hA * hA + t.hA2 * hA * hA + t.hK * hK + t.hK2 * hK * hK + t.hAhK * hA * hK;
+    tca = [t.sa * ant[0] + postPred, t.sa * ant[1]];
+  }
   if (v.sia) { var s = vec(v.sia, (v.siaax + 90) % 180); tca = [tca[0] + s[0], tca[1] + s[1]]; }
   return tca;
 }
@@ -126,6 +188,7 @@ function calculate(v) {
     if (!isFinite(s) || Math.abs(s) < 1e-9) break;
     Pt -= e / s; if (Math.abs(e) < 1e-9) break;
   }
+  Pt += p.lasikAdj;
   // EVO elige la mayor potencia cuya refracción prevista no sobrepasa la diana hacia la miopía
   // EVO recomienda la potencia cuya refracción prevista queda más cerca de la diana
   var centre = Math.round(Pt / 0.5) * 0.5;
@@ -186,7 +249,8 @@ function calculate(v) {
 
   return {
     sphere: sphere, baseIOL: baseIOL, toric: toric,
-    tcaMag: M, tcaAxis: deg(Th), antMag: p.antMag,
+    tcaMag: M, tcaAxis: deg(Th), antMag: p.antMag, pcaUsed: !!p.pca,
+    lasikAdjUsed: p.lasikAdj !== 0, lasikAdj: p.lasikAdj,
     rec: { iol: baseIOL, cyl: rec.cyl, axis: rec.iolAxis, ref: rec.ref,
            resiCyl: rec.resiCyl, resiAxis: rec.resiAxis,
            defocus: Math.abs(rec.ref) + Math.abs(rec.resiCyl) / 2 }

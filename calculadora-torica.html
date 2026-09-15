@@ -1,174 +1,682 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Calculadora Tórica de LIO</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Calculadora Tórica de LIO — IOL Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="engine.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  :root{
-    --ink:#1a1a1a; --accent:#595959; --accent-strong:#2e2e2e; --green:#7d9c3a;
-    --wordmark:#6e6e6e; --line:#d6d6d6; --note-red:#cc3300; --panel:#f4f5ff;
-    --info-blue:#0066cc;
-    --display:"Segoe UI",system-ui,-apple-system,sans-serif;
-    --body:Georgia,"Times New Roman",serif;
+  :root {
+    --g900: #0d2b1a;
+    --g800: #14431f;
+    --g700: #1a5c2a;
+    --g600: #1e7a31;
+    --g500: #25a03e;
+    --g400: #3dbf58;
+    --g300: #6dcc84;
+    --g200: #a8e6b5;
+    --g100: #d4f4db;
+    --g50:  #edfaf1;
+    --teal: #0d9488;
+    --teal-light: #ccfbf1;
+    --amber: #b45309;
+    --amber-light: #fef3c7;
+    --slate: #334155;
+    --slate-light: #f1f5f9;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --white: #ffffff;
+    --danger: #dc2626;
+    --req-bg: #f0fdf4;
+    --req-border: #86efac;
+    --opt-bg: #fffbeb;
+    --opt-border: #fcd34d;
+    --font-head: 'DM Sans', 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+    --shadow-btn: 0 2px 6px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.1);
+    --shadow-btn-hover: 0 4px 14px rgba(0,0,0,.22), 0 2px 4px rgba(0,0,0,.14);
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:#fff;color:var(--ink);font-family:var(--body);line-height:1.55}
-  .shell{max-width:920px;margin:0 auto;padding:0 16px 64px}
-  .mast{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
-        padding:24px 0 18px;border-bottom:2px solid var(--line);margin-bottom:18px}
-  .wordmark{font-family:var(--display);font-weight:700;font-size:clamp(20px,4.4vw,30px);
-            letter-spacing:.03em;color:var(--wordmark)}
-  .wordmark span{color:var(--green)}
-  .byline{font-family:var(--display);font-size:13px;color:#8a8a8a}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: linear-gradient(135deg, #0d2b1a 0%, #14431f 40%, #0f3d2c 100%);
+    min-height: 100vh;
+    font-family: var(--font-body);
+    color: var(--ink);
+    padding: 24px 16px 64px;
+  }
 
-  .disclaimer{font-family:var(--display);font-size:12.5px;line-height:1.5;color:#7a3b00;
-    background:#fff8ec;border:1px solid #f0d9b5;border-radius:8px;padding:10px 14px;margin-bottom:20px}
-  .disclaimer b{color:#a33b00}
+  /* ── HEADER ── */
+  .header {
+    max-width: 1020px; margin: 0 auto 28px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .logo-wrap { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--g400), var(--g600));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(37,160,62,.4);
+  }
+  .logo-icon svg { width: 26px; height: 26px; fill: white; }
+  .logo-text { color: white; }
+  .logo-title {
+    font-family: var(--font-head); font-size: 22px; font-weight: 700;
+    letter-spacing: -.02em; line-height: 1;
+  }
+  .logo-title span { color: var(--g300); }
+  .logo-sub { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 3px; }
+  .badge-research {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    background: rgba(255,255,255,.1); color: rgba(255,255,255,.7);
+    border: 1px solid rgba(255,255,255,.15); border-radius: 20px;
+    padding: 5px 12px;
+  }
 
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:clamp(18px,3vw,30px)}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 36px}
-  @media(max-width:760px){.grid{grid-template-columns:1fr}}
-  .field{display:grid;grid-template-columns:170px 1fr;align-items:center;gap:10px;margin-bottom:14px}
-  .flabel{font-family:var(--display);font-size:15px;color:var(--accent-strong)}
-  .tb,.dd{font-family:var(--display);font-size:15px;color:var(--ink);border:1px solid #666;
-          border-radius:4px;padding:6px 8px;width:100%;max-width:180px;background:#fff}
-  .tb:focus,.dd:focus{outline:2px solid var(--accent);outline-offset:1px}
-  .tb[disabled]{background:#eee;color:#888}
-  .radio-row{font-family:var(--display);font-size:15px;color:var(--accent-strong)}
-  .radio-row label{margin-right:18px;cursor:pointer}
-  .radio-row input{margin-right:5px}
-  .degwrap{position:relative;display:inline-block;width:100%;max-width:180px}
-  .degwrap .deg{position:absolute;right:-16px;top:50%;transform:translateY(-50%);
-                font-family:var(--display);font-size:16px;color:var(--accent-strong)}
-  .err{display:block;font-family:var(--display);font-size:11.5px;font-style:italic;
-       color:var(--note-red);margin-top:2px;min-height:14px}
-  .section-title{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.06em;
-     text-transform:uppercase;color:var(--accent);margin:24px 0 12px;padding-top:16px;border-top:2px solid #8a8a8a}
-  .btn-row{display:flex;gap:16px;margin-top:24px;flex-wrap:wrap}
-  .btn{font-family:var(--display);font-weight:700;font-size:15px;border:1px solid #444;border-radius:6px;
-       padding:9px 0;width:130px;text-align:center;cursor:pointer;background:#fff;color:var(--accent-strong)}
-  .btn:hover{background:#f0f0f0}
+  /* ── DISCLAIMER ── */
+  .disclaimer {
+    max-width: 1020px; margin: 0 auto 20px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+    border-radius: var(--radius-sm); padding: 11px 16px;
+    font-size: 12px; color: rgba(255,255,255,.65); line-height: 1.55;
+  }
+  .disclaimer b { color: var(--g300); }
 
-  .results{background:#fff;border:1px solid var(--line);border-radius:10px;padding:clamp(18px,3vw,30px);margin-top:22px}
-  .res-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;font-family:var(--display)}
-  .res-name{font-size:24px;font-weight:700;display:block}
-  .res-id{font-size:17px;font-weight:700;display:block}
-  .res-surgeon{font-size:15px;color:var(--accent);display:block}
-  .res-right{text-align:right}
-  .res-eye-main{font-size:24px;font-weight:700;display:block}
-  .res-eye-sub{font-size:17px;font-weight:700;display:block}
-  .res-params{font-family:var(--display);font-size:13px;color:var(--accent);text-align:center;margin:14px 0 6px}
-  .base-line{font-family:var(--display);font-size:15px;margin:12px 0 0}
-  table.pred,table.toric{width:100%;border-collapse:collapse;font-family:var(--display);margin:18px auto 0}
-  table.pred{max-width:560px}
-  table.toric{table-layout:fixed}
-  table.pred th,table.toric th{background:#eef1e6;font-size:15px;padding:8px 10px;
-      border-top:2px solid #fff;border-bottom:2px solid #fff;font-weight:700}
-  table.toric th{font-size:14px}
-  table.pred td,table.toric td{background:#f5f8fa;font-size:15px;text-align:center;padding:7px 10px;
-      height:34px;border-top:2px solid #fff;border-bottom:2px solid #fff}
-  table.toric td{font-size:14px}
-  tr.recommended td{background:#e3eefc !important;font-weight:700}
-  .res-cols{display:grid;grid-template-columns:1fr 240px;gap:24px;align-items:start}
-  @media(max-width:760px){.res-cols{grid-template-columns:1fr}}
-  .res-cols+.res-cols{margin-top:16px}
-  .rec-box{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px auto 0;width:200px;
-           max-width:100%;font-family:var(--display);font-size:12px;line-height:1.35}
-  .rec-box h5{margin:0 0 3px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;
-              color:var(--accent);text-decoration:underline}
-  .note-blue{font-family:var(--display);font-size:13px;font-weight:700;color:var(--info-blue);
-             text-align:center;margin-top:10px;display:block}
-  .hidden{display:none}
+  /* ── MAIN CARD ── */
+  .card-main {
+    max-width: 1020px; margin: 0 auto;
+    background: white; border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    overflow: hidden;
+  }
+
+  /* ── FORM LAYOUT ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  @media(max-width: 720px){ .form-grid { grid-template-columns: 1fr; } }
+
+  /* ── BLOCKS ── */
+  .block {
+    padding: 22px 26px;
+    border-bottom: 1px solid var(--line);
+  }
+  .block:last-child { border-bottom: none; }
+  .block-title {
+    font-family: var(--font-head); font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 2px solid currentColor;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .block-title .bi { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* Block A — Paciente */
+  .block-a { background: #f8faff; }
+  .block-a .block-title { color: #3730a3; border-color: #c7d2fe; }
+
+  /* Block B — Lente y parámetros de cirugía */
+  .block-b { background: #f0fdf4; }
+  .block-b .block-title { color: var(--g700); border-color: var(--g200); }
+
+  /* Block C — Parámetros OBLIGATORIOS */
+  .block-c { background: var(--req-bg); }
+  .block-c .block-title { color: #166534; border-color: #86efac; }
+
+  /* Block D — Parámetros opcionales */
+  .block-d { background: var(--opt-bg); }
+  .block-d .block-title { color: #92400e; border-color: #fcd34d; }
+
+  /* ── FIELD ── */
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .flabel {
+    font-size: 12px; font-weight: 600; color: var(--slate);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .req-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--g500); flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(37,160,62,.25);
+  }
+  .opt-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #f59e0b; flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(245,158,11,.25);
+  }
+  .field-row { display: flex; align-items: center; gap: 8px; }
+  .tb, .dd {
+    font-family: var(--font-body); font-size: 14px; font-weight: 500;
+    color: var(--ink); background: white;
+    border: 1.5px solid #cbd5e1; border-radius: var(--radius-sm);
+    padding: 8px 11px; width: 100%; max-width: 170px;
+    transition: border-color .15s, box-shadow .15s;
+    outline: none;
+  }
+  .tb:focus, .dd:focus {
+    border-color: var(--g500);
+    box-shadow: 0 0 0 3px rgba(37,160,62,.15);
+  }
+  .tb.req:not(:placeholder-shown):valid { border-color: var(--g400); }
+  .unit { font-size: 12px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+  .deg-unit { font-size: 15px; color: var(--muted); font-weight: 600; }
+  .err {
+    font-size: 11px; color: var(--danger); font-weight: 500;
+    min-height: 14px; font-style: italic;
+  }
+
+  /* Radio */
+  .radio-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .radio-row label {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 14px; font-weight: 500; color: var(--slate); cursor: pointer;
+  }
+  .radio-row input[type=radio] {
+    accent-color: var(--g500); width: 16px; height: 16px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn-area {
+    padding: 20px 26px;
+    background: linear-gradient(to right, var(--g50), #f0fdf4);
+    border-top: 1px solid var(--line);
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+  }
+  .btn {
+    font-family: var(--font-head); font-weight: 700; font-size: 14px;
+    border: none; border-radius: 10px; cursor: pointer;
+    padding: 11px 28px; transition: all .18s;
+    box-shadow: var(--shadow-btn);
+    position: relative; overflow: hidden;
+  }
+  .btn::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(rgba(255,255,255,.15), transparent);
+    pointer-events: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--g500) 0%, var(--g600) 100%);
+    color: white;
+  }
+  .btn-primary:hover {
+    box-shadow: var(--shadow-btn-hover);
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, var(--g400) 0%, var(--g500) 100%);
+  }
+  .btn-secondary {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: var(--slate);
+  }
+  .btn-secondary:hover {
+    box-shadow: var(--shadow-btn-hover);
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  }
+  .btn-print {
+    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+    color: white;
+  }
+  .btn-print:hover {
+    box-shadow: var(--shadow-btn-hover);
+    transform: translateY(-1px);
+  }
+
+  /* ── RESULTS ── */
+  .results-wrap { display: none; }
+  .results-wrap.visible { display: block; }
+  .results-header {
+    background: linear-gradient(135deg, var(--g800) 0%, var(--g700) 100%);
+    padding: 22px 28px;
+    display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;
+  }
+  .res-patient { color: white; }
+  .res-name { font-family: var(--font-head); font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .res-sub { font-size: 13px; color: rgba(255,255,255,.65); margin-top: 3px; }
+  .res-eye-badge {
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    border-radius: 10px; padding: 8px 20px; text-align: center; color: white;
+  }
+  .res-eye-abbr { font-family: var(--font-head); font-size: 28px; font-weight: 800; line-height: 1; }
+  .res-eye-name { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 2px; }
+  .res-params-bar {
+    background: var(--g50); padding: 10px 28px;
+    display: flex; gap: 20px; flex-wrap: wrap;
+    font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line);
+  }
+  .res-params-bar span { display: flex; gap: 5px; }
+  .res-params-bar b { color: var(--slate); font-weight: 600; }
+
+  /* TCA badge */
+  .tca-badge {
+    margin: 18px 28px 0;
+    display: inline-flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, var(--teal-light), #f0fdfa);
+    border: 1.5px solid var(--teal); border-radius: 10px;
+    padding: 10px 18px;
+    font-family: var(--font-head); font-size: 14px;
+  }
+  .tca-label { color: var(--teal); font-weight: 600; }
+  .tca-value { font-size: 18px; font-weight: 800; color: #0f766e; }
+
+  /* Results body grid */
+  .results-body {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 0;
+    padding: 20px 28px 28px;
+    align-items: start;
+  }
+  @media(max-width: 820px){ .results-body { grid-template-columns: 1fr; } }
+
+  /* Tables */
+  .res-tables { display: flex; flex-direction: column; gap: 20px; }
+  .table-block { }
+  .table-label {
+    font-family: var(--font-head); font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .09em; color: var(--muted);
+    margin-bottom: 8px;
+  }
+  table.rtable {
+    width: 100%; border-collapse: collapse;
+    font-family: var(--font-body); font-size: 13.5px;
+    border-radius: var(--radius-sm); overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  table.rtable thead th {
+    background: var(--g700); color: white;
+    font-size: 12px; font-weight: 600; text-align: center;
+    padding: 9px 10px; letter-spacing: .03em;
+  }
+  table.rtable tbody td {
+    background: white; text-align: center; padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+  }
+  table.rtable tbody tr:last-child td { border-bottom: none; }
+  table.rtable tbody tr:hover td { background: var(--g50); }
+  tr.recommended td {
+    background: linear-gradient(to right, #dcfce7, #f0fdf4) !important;
+    font-weight: 700; color: #14532d;
+  }
+  tr.recommended td:first-child { border-left: 3px solid var(--g500); }
+  .rec-star { color: var(--g500); margin-right: 4px; }
+
+  /* Recommendation box */
+  .rec-panel {
+    display: flex; flex-direction: column; gap: 14px;
+    padding-left: 24px;
+  }
+  @media(max-width: 820px){ .rec-panel { padding-left: 0; } }
+
+  .rec-card {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 1.5px solid var(--g300); border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .rec-card-title {
+    font-family: var(--font-head); font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; color: var(--g600);
+    border-bottom: 1px solid var(--g200); padding-bottom: 8px; margin-bottom: 12px;
+  }
+  .rec-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 7px; font-size: 13px;
+  }
+  .rec-row:last-child { margin-bottom: 0; }
+  .rec-key { color: var(--muted); font-weight: 500; }
+  .rec-val { font-weight: 700; color: var(--ink); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .rec-val.highlight { color: var(--g700); font-size: 17px; }
+
+  /* Eye diagram */
+  .eye-diagram-wrap {
+    background: white; border: 1.5px solid var(--line);
+    border-radius: var(--radius); padding: 14px;
+    text-align: center;
+  }
+  .eye-diagram-title {
+    font-family: var(--font-head); font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+    margin-bottom: 10px;
+  }
+  #eye-svg-wrap svg { width: 100%; max-width: 220px; height: auto; display: block; margin: 0 auto; }
+  .eye-axis-label {
+    font-size: 11px; color: var(--muted); margin-top: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Posterior note */
+  .posterior-note {
+    margin: 4px 28px 0;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--teal); font-weight: 600;
+    background: var(--teal-light); border-radius: 6px; padding: 4px 10px;
+  }
+
+  /* ── UTILITY ── */
+  .hidden { display: none !important; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  @media(max-width:720px){ .two-col { grid-template-columns: 1fr; } }
+  .divider-v { border-right: 1px solid var(--line); }
+  @media(max-width:720px){ .divider-v { border-right: none; border-bottom: 1px solid var(--line); } }
 </style>
 </head>
 <body>
-<div class="shell">
 
-  <div class="mast">
-    <div>
-      <div class="wordmark">CALCULADORA <span>TÓRICA DE LIO</span></div>
-      <div class="byline">Implementación propia y offline · motor de vergencia con córnea posterior predicha</div>
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+    </div>
+    <div class="logo-text">
+      <div class="logo-title">IOL <span>Planner</span> Tórico</div>
+      <div class="logo-sub">Motor de vergencia · Córnea posterior predicha</div>
     </div>
   </div>
+  <div class="badge-research">Research Use Only</div>
+</div>
 
-  <div class="disclaimer">
-    <b>Aviso.</b> Herramienta independiente, no oficial y sin relación con los autores de EVO ni con ningún
-    fabricante. El motor se ha calibrado por muestreo para reproducir la calculadora EVO Toric v2.0, pero
-    <b>no es idéntico</b>. Concordancia sobre casos aleatorios reservados, en configuración estándar:
-    <b>potencia esférica idéntica en el 99,5 %</b> en el escenario estándar (divergencia mediana de la tabla de refracciones 0,01 D; en el escenario combinado la coincidencia baja al 92,2 % y la divergencia sube a 0,02 D),
-    <b>eje dentro de 1° en el 98 %</b>, <b>cilindro tórico idéntico en el 77 %</b> —y cuando difiere, siempre
-    en un escalón contiguo, en casos límite. En miopía magna (AL 27–31,5 mm): esférica 99,2 %,
-    cilindro 93,8 %. Dominio validado: AL 20–32 mm, K media 34–50 D.
-    No cubre post-LASIK/PRK/QR, biómetro Argos ni córnea posterior medida. Detalle de ensayos en
-    <code>INFORME.md</code>.
-    Verifique el resultado antes de cualquier uso clínico. No es un producto sanitario.
-  </div>
+<!-- DISCLAIMER -->
+<div class="disclaimer">
+  <b>Aviso clínico:</b> Herramienta independiente, no oficial. Motor calibrado por muestreo sobre EVO Toric v2.0.
+  Concordancia: <b>potencia esférica idéntica en el 99,5 %</b> · <b>eje dentro de 1° en el 98 %</b> · <b>cilindro tórico idéntico en el 77 %</b>.
+  Dominio validado: AL 20–32 mm, K media 34–50 D. No cubre post-LASIK/PRK/QR. <b>Verifique siempre el resultado.</b>
+</div>
 
-  <form id="f" class="panel" autocomplete="off">
-    <div class="grid">
-      <!-- ---------- left column ---------- -->
-      <div>
-        <div class="field"><label class="flabel" for="name">Paciente</label><input class="tb" id="name" maxlength="30"></div>
-        <div class="field"><label class="flabel" for="pid">Identificador</label><input class="tb" id="pid" maxlength="30"></div>
-        <div class="field"><label class="flabel" for="surgeon">Cirujano</label><input class="tb" id="surgeon" maxlength="30"></div>
-        <div class="field">
-          <span class="flabel">Ojo</span>
-          <span class="radio-row">
-            <label><input type="radio" name="eye" value="R" checked>Derecho</label>
-            <label><input type="radio" name="eye" value="L">Izquierdo</label>
-          </span>
+<!-- MAIN CARD -->
+<div class="card-main">
+  <form id="f" autocomplete="off">
+    <div class="two-col">
+
+      <!-- LEFT COLUMN -->
+      <div class="divider-v">
+
+        <!-- BLOQUE A: IDENTIFICACIÓN DEL PACIENTE -->
+        <div class="block block-a">
+          <div class="block-title">
+            <svg class="bi" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            Identificación del paciente
+          </div>
+          <div class="field">
+            <label class="flabel" for="name">Nombre del paciente</label>
+            <input class="tb" id="name" maxlength="40" placeholder="Apellidos, Nombre"/>
+          </div>
+          <div class="field">
+            <label class="flabel" for="pid">Nº Historia / ID</label>
+            <input class="tb" id="pid" maxlength="30" placeholder="HC-00000"/>
+          </div>
+          <div class="field">
+            <label class="flabel" for="surgeon">Cirujano</label>
+            <input class="tb" id="surgeon" maxlength="30" placeholder="Dr./Dra."/>
+          </div>
+          <div class="field">
+            <span class="flabel">Ojo a intervenir</span>
+            <div class="radio-row">
+              <label><input type="radio" name="eye" value="R" checked> Ojo Derecho (OD)</label>
+              <label><input type="radio" name="eye" value="L"> Ojo Izquierdo (OS)</label>
+            </div>
+          </div>
         </div>
-        <div class="field"><label class="flabel" for="al">Longitud axial</label>
-          <span><input class="tb" id="al" maxlength="6" inputmode="decimal"><span class="err" id="e_al"></span></span></div>
-        <div class="field"><label class="flabel" for="k1">K1 (plana)</label>
-          <span><input class="tb" id="k1" maxlength="6" inputmode="decimal"><span class="err" id="e_k1"></span></span></div>
-        <div class="field"><label class="flabel" for="k1a">Eje K1</label>
-          <span class="degwrap"><input class="tb" id="k1a" maxlength="3" inputmode="numeric"><span class="deg">°</span><span class="err" id="e_k1a"></span></span></div>
-        <div class="field"><label class="flabel" for="k2">K2 (curva)</label>
-          <span><input class="tb" id="k2" maxlength="6" inputmode="decimal"><span class="err" id="e_k2"></span></span></div>
-        <div class="field"><label class="flabel" for="k2a">Eje K2</label>
-          <span class="degwrap"><input class="tb" id="k2a" maxlength="3" inputmode="numeric"><span class="deg">°</span><span class="err" id="e_k2a"></span></span></div>
+
+        <!-- BLOQUE B: TIPO DE LENTE Y CIRUGÍA -->
+        <div class="block block-b">
+          <div class="block-title">
+            <svg class="bi" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            Lente y parámetros de cirugía
+          </div>
+          <div class="field">
+            <label class="flabel" for="model">Modelo de LIO tórica</label>
+            <select class="dd" id="model" style="max-width:220px"></select>
+          </div>
+          <div class="field">
+            <label class="flabel" for="aconst">
+              <span class="opt-dot"></span>Constante A
+            </label>
+            <div class="field-row">
+              <input class="tb" id="aconst" maxlength="6" inputmode="decimal" placeholder="p.ej. 119.1"/>
+              <span class="err" id="e_aconst"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel" for="target">Refracción diana</label>
+            <div class="field-row">
+              <input class="tb" id="target" maxlength="5" inputmode="decimal" value="0"/>
+              <span class="unit">D</span>
+              <span class="err" id="e_target"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel" for="kindex">Índice queratométrico</label>
+            <select class="dd" id="kindex">
+              <option value="1.3375">1.3375 (estándar)</option>
+              <option value="1.3315">1.3315 (Javal)</option>
+              <option value="1.332">1.332 (Zeiss)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="flabel" for="sia">SIA — Astigmatismo de incisión</label>
+            <div class="field-row">
+              <input class="tb" id="sia" maxlength="5" inputmode="decimal" value="0"/>
+              <span class="unit">D</span>
+              <span class="err" id="e_sia"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel" for="siaax">Eje de la incisión</label>
+            <div class="field-row">
+              <input class="tb" id="siaax" maxlength="3" inputmode="numeric" value="0"/>
+              <span class="deg-unit">°</span>
+              <span class="err" id="e_siaax"></span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- ---------- right column ---------- -->
+      <!-- RIGHT COLUMN -->
       <div>
-        <div class="field"><label class="flabel" for="acd">ACD óptica</label>
-          <span><input class="tb" id="acd" maxlength="5" inputmode="decimal"><span class="err" id="e_acd"></span></span></div>
-        <div class="field"><label class="flabel" for="lt">Grosor cristalino</label>
-          <span><input class="tb" id="lt" maxlength="5" inputmode="decimal" placeholder="opcional"><span class="err" id="e_lt"></span></span></div>
-        <div class="field"><label class="flabel" for="cct">CCT</label>
-          <span><input class="tb" id="cct" maxlength="5" inputmode="numeric" placeholder="opcional"><span class="err" id="e_cct"></span></span></div>
-        <div class="field"><label class="flabel" for="target">Refracción diana</label>
-          <span><input class="tb" id="target" maxlength="5" inputmode="decimal" value="0"><span class="err" id="e_target"></span></span></div>
-        <div class="field"><label class="flabel" for="aconst">Constante A</label>
-          <span><input class="tb" id="aconst" maxlength="6" inputmode="decimal"><span class="err" id="e_aconst"></span></span></div>
-        <div class="field"><label class="flabel" for="model">Modelo tórico</label>
-          <select class="dd" id="model"></select></div>
-        <div class="field"><label class="flabel" for="kindex">Índice K</label>
-          <select class="dd" id="kindex">
-            <option value="1.3375">1.3375</option><option value="1.3315">1.3315</option><option value="1.332">1.332</option>
-          </select></div>
-        <div class="field"><label class="flabel" for="sia">SIA</label>
-          <span><input class="tb" id="sia" maxlength="5" inputmode="decimal" value="0"><span class="err" id="e_sia"></span></span></div>
-        <div class="field"><label class="flabel" for="siaax">Eje incisión</label>
-          <span class="degwrap"><input class="tb" id="siaax" maxlength="3" inputmode="numeric" value="0"><span class="deg">°</span><span class="err" id="e_siaax"></span></span></div>
-      </div>
-    </div>
 
-    <div class="btn-row">
-      <button type="submit" class="btn">Calcular</button>
-      <button type="button" class="btn" id="clear">Limpiar</button>
+        <!-- BLOQUE C: PARÁMETROS OBLIGATORIOS -->
+        <div class="block block-c">
+          <div class="block-title">
+            <svg class="bi" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            Biometría — Parámetros obligatorios
+            <span style="font-size:10px;background:#dcfce7;color:#14532d;border-radius:4px;padding:2px 7px;margin-left:auto;font-weight:600;">● Obligatorio</span>
+          </div>
+
+          <div class="field">
+            <label class="flabel" for="al"><span class="req-dot"></span>Longitud axial (AL)</label>
+            <div class="field-row">
+              <input class="tb req" id="al" maxlength="6" inputmode="decimal" placeholder="23.50"/>
+              <span class="unit">mm</span>
+              <span class="err" id="e_al"></span>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--line);margin:12px 0;"></div>
+          <div class="field">
+            <label class="flabel" for="k1"><span class="req-dot"></span>K1 — Meridiano plano (menor)</label>
+            <div class="field-row">
+              <input class="tb req" id="k1" maxlength="6" inputmode="decimal" placeholder="43.00"/>
+              <span class="unit">D</span>
+              <span class="err" id="e_k1"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel" for="k1a"><span class="req-dot"></span>Eje K1</label>
+            <div class="field-row">
+              <input class="tb req" id="k1a" maxlength="3" inputmode="numeric" placeholder="0"/>
+              <span class="deg-unit">°</span>
+              <span class="err" id="e_k1a"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel" for="k2"><span class="req-dot"></span>K2 — Meridiano curvo (mayor)</label>
+            <div class="field-row">
+              <input class="tb req" id="k2" maxlength="6" inputmode="decimal" placeholder="44.50"/>
+              <span class="unit">D</span>
+              <span class="err" id="e_k2"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel" for="k2a"><span class="req-dot"></span>Eje K2 <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(auto: K1+90°)</span></label>
+            <div class="field-row">
+              <input class="tb req" id="k2a" maxlength="3" inputmode="numeric" placeholder="90"/>
+              <span class="deg-unit">°</span>
+              <span class="err" id="e_k2a"></span>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--line);margin:12px 0;"></div>
+          <div class="field">
+            <label class="flabel" for="acd"><span class="req-dot"></span>ACD óptica (cámara anterior)</label>
+            <div class="field-row">
+              <input class="tb req" id="acd" maxlength="5" inputmode="decimal" placeholder="3.20"/>
+              <span class="unit">mm</span>
+              <span class="err" id="e_acd"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOQUE D: PARÁMETROS OPCIONALES -->
+        <div class="block block-d">
+          <div class="block-title">
+            <svg class="bi" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+            Biometría — Parámetros opcionales
+            <span style="font-size:10px;background:#fef3c7;color:#92400e;border-radius:4px;padding:2px 7px;margin-left:auto;font-weight:600;">○ Opcional</span>
+          </div>
+          <div class="field">
+            <label class="flabel" for="lt"><span class="opt-dot"></span>Grosor del cristalino (LT)</label>
+            <div class="field-row">
+              <input class="tb" id="lt" maxlength="5" inputmode="decimal" placeholder="dejar vacío si no disponible"/>
+              <span class="unit">mm</span>
+              <span class="err" id="e_lt"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel" for="cct"><span class="opt-dot"></span>Paquimetría central (CCT)</label>
+            <div class="field-row">
+              <input class="tb" id="cct" maxlength="5" inputmode="numeric" placeholder="dejar vacío si no disponible"/>
+              <span class="unit">µm</span>
+              <span class="err" id="e_cct"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOQUE E: CÓRNEA POSTERIOR MEDIDA (opcional, experimental) -->
+        <div class="block block-d">
+          <div class="block-title">
+            <svg class="bi" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            Córnea posterior medida
+            <span style="font-size:10px;background:#fef3c7;color:#92400e;border-radius:4px;padding:2px 7px;margin-left:auto;font-weight:600;">○ Opcional</span>
+          </div>
+          <div style="font-size:11px;color:#92400e;line-height:1.5;margin-bottom:12px;">
+            Solo si tu biómetro/tomógrafo mide la cara posterior (p. ej. K posterior de un
+            IOLMaster 700, Cassini, Galilei o Pentacam). Introduce el valor tal como lo indica
+            el equipo (normalmente negativo). <b>Rellena los 4 campos o déjalos todos vacíos.</b>
+            Si se dejan vacíos, el motor predice la posterior por regresión (ver aviso superior).
+            Con datos medidos, el motor usa una combinación vectorial verificada frente a 160
+            consultas reales a EVO (2026-09): <b>eje dentro de 2° en el 90% de los casos</b>,
+            pero el escalón de cilindro elegido solo coincide con EVO en el 49% (divergencia
+            máxima medida: 1,5 D). Trátalo como orientativo, no equivalente a EVO.
+          </div>
+          <div class="field">
+            <label class="flabel" for="pk1"><span class="opt-dot"></span>K1 posterior</label>
+            <div class="field-row">
+              <input class="tb" id="pk1" maxlength="6" inputmode="decimal" placeholder="p.ej. -6.40"/>
+              <span class="unit">D</span>
+              <span class="err" id="e_pk1"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel" for="pk1a"><span class="opt-dot"></span>Eje K1 posterior</label>
+            <div class="field-row">
+              <input class="tb" id="pk1a" maxlength="3" inputmode="numeric" placeholder="0"/>
+              <span class="deg-unit">°</span>
+              <span class="err" id="e_pk1a"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel" for="pk2"><span class="opt-dot"></span>K2 posterior</label>
+            <div class="field-row">
+              <input class="tb" id="pk2" maxlength="6" inputmode="decimal" placeholder="p.ej. -6.10"/>
+              <span class="unit">D</span>
+              <span class="err" id="e_pk2"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel" for="pk2a"><span class="opt-dot"></span>Eje K2 posterior</label>
+            <div class="field-row">
+              <input class="tb" id="pk2a" maxlength="3" inputmode="numeric" placeholder="90"/>
+              <span class="deg-unit">°</span>
+              <span class="err" id="e_pk2a"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOQUE F: ANTECEDENTE DE LASIK/PRK/RK (opcional) -->
+        <div class="block block-d">
+          <div class="block-title">
+            <svg class="bi" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+            Cirugía refractiva previa (LASIK/PRK/RK)
+            <span style="font-size:10px;background:#fef3c7;color:#92400e;border-radius:4px;padding:2px 7px;margin-left:auto;font-weight:600;">○ Opcional</span>
+          </div>
+          <div style="font-size:11px;color:#92400e;line-height:1.5;margin-bottom:12px;">
+            EVO trata los 3 modos de forma muy distinta (verificado con 132 consultas reales,
+            2026-09): en <b>miópico</b> el ajuste depende de cuánta miopía se corrigió; en
+            <b>hipermétrope y RK no depende en absoluto de la magnitud introducida</b> (probado
+            hasta los extremos del formulario), solo del ojo (AL/K) — por eso aquí no se pide
+            magnitud para esos dos, solo el modo. Errores medios frente a EVO: miópico ≈0,31 D,
+            hipermétrope ≈0,25 D, RK ≈0,42 D (más ruidoso, muestra pequeña). El modo también puede
+            desplazar el cilindro tórico en algunos ojos (±0,75–1 D); ese efecto no está modelado.
+          </div>
+          <div class="field">
+            <label class="flabel" for="lasikMode"><span class="opt-dot"></span>Tipo de cirugía previa</label>
+            <select class="dd" id="lasikMode" style="max-width:220px">
+              <option value="">Ninguna</option>
+              <option value="myopic">LASIK/PRK miópico</option>
+              <option value="hyperopic">LASIK/PRK hipermétrope</option>
+              <option value="rk">Queratotomía radial (RK)</option>
+            </select>
+          </div>
+          <div class="field" id="lasikMyopicField">
+            <label class="flabel" for="lasikMyopicDelta"><span class="opt-dot"></span>Miopía corregida</label>
+            <div class="field-row">
+              <input class="tb" id="lasikMyopicDelta" maxlength="5" inputmode="decimal" placeholder="p.ej. 4.00"/>
+              <span class="unit">D</span>
+              <span class="err" id="e_lasikMyopicDelta"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /two-col -->
+
+    <!-- BUTTONS -->
+    <div class="btn-area">
+      <button type="submit" class="btn btn-primary">⚡ Calcular</button>
+      <button type="button" class="btn btn-secondary" id="clear">↺ Limpiar</button>
     </div>
   </form>
 
-  <div id="out" class="results hidden"></div>
-</div>
+  <!-- RESULTS -->
+  <div id="out" class="results-wrap">
+    <!-- populated by JS -->
+  </div>
+
+</div><!-- /card-main -->
 
 <script>
 (function(){
   const $ = id => document.getElementById(id);
+
+  /* Populate model selector */
   const modelSel = $('model');
   for (const m of ENGINE.modelNames()) {
     const o = document.createElement('option');
@@ -178,88 +686,389 @@
   modelSel.value = 'Posterior';
 
   const RANGES = {
-    al:[20,32,'Rango validado 20 a 32 mm'], k1:[32,52,'Rango 32 a 52 D'], k2:[32,52,'Rango 32 a 52 D'],
-    k1a:[0,180,'Rango 0 a 180°'], k2a:[0,180,'Rango 0 a 180°'],
-    acd:[1,6,'Rango 1 a 6 mm'], lt:[2,7,'Rango 2 a 7 mm'], cct:[300,800,'Rango 300 a 800 µm'],
-    target:[-5,5,'Rango -5 a 5 D'], aconst:[110,125,'Rango 110 a 125'],
-    sia:[0,3,'Rango 0 a 3 D'], siaax:[0,180,'Rango 0 a 180°'],
+    al:[20,32,'AL válida: 20–32 mm'], k1:[32,52,'K: 32–52 D'], k2:[32,52,'K: 32–52 D'],
+    k1a:[0,180,'Eje: 0–180°'], k2a:[0,180,'Eje: 0–180°'],
+    acd:[1,6,'ACD: 1–6 mm'], lt:[2,7,'LT: 2–7 mm'], cct:[300,800,'CCT: 300–800 µm'],
+    target:[-5,5,'Diana: −5 a +5 D'], aconst:[110,125,'Constante A: 110–125'],
+    sia:[0,3,'SIA: 0–3 D'], siaax:[0,180,'Eje: 0–180°'],
+    pk1:[-10,10,'K posterior: −10 a 10 D'], pk1a:[0,180,'Eje: 0–180°'],
+    pk2:[-10,10,'K posterior: −10 a 10 D'], pk2a:[0,180,'Eje: 0–180°'],
+    lasikMyopicDelta:[0,20,'Miopía corregida: 0–20 D'],
   };
-  const OPTIONAL = new Set(['lt','cct']);
+  const OPTIONAL = new Set(['lt','cct','pk1','pk1a','pk2','pk2a','lasikMyopicDelta']);
+  const PCA_FIELDS = ['pk1','pk1a','pk2','pk2a'];
+
+  /* El campo de magnitud solo tiene sentido para miópico (hipermétrope/RK no
+     dependen de la magnitud introducida -- ver aviso del bloque). */
+  function syncLasikField(){
+    $('lasikMyopicField').hidden = ($('lasikMode').value !== 'myopic');
+  }
+  $('lasikMode').addEventListener('change', syncLasikField);
+  syncLasikField();
+
+  /* Eje K2 es perpendicular a Eje K1 por convención (K1+90, dentro de 0-180°) -
+     se autocompleta al escribir K1 para no tener que teclearlo dos veces, pero
+     sigue siendo editable a mano si el caso no es perfectamente perpendicular. */
+  $('k1a').addEventListener('input', () => {
+    const raw = $('k1a').value.trim();
+    if(raw==='') return;
+    const n = parseFloat(raw.replace(',','.'));
+    if(!isFinite(n)) return;
+    let perp = (n + 90) % 180;
+    if(perp < 0) perp += 180;
+    $('k2a').value = String(Math.round(perp));
+  });
 
   function read(){
     let ok = true; const v = {};
-    for (const [id,[lo,hi,msg]] of Object.entries(RANGES)) {
+    for (const [id,[lo,hi,msg]] of Object.entries(RANGES)){
       const raw = $(id).value.trim();
-      const errEl = $('e_'+id); if (errEl) errEl.textContent = '';
-      if (raw === '') {
-        if (OPTIONAL.has(id)) { v[id] = null; continue; }
-        if (errEl) errEl.textContent = '* Obligatorio'; ok = false; continue;
+      const errEl = $('e_'+id); if(errEl) errEl.textContent='';
+      if(raw===''){
+        if(OPTIONAL.has(id)){ v[id]=null; continue; }
+        if(errEl) errEl.textContent='* Obligatorio'; ok=false; continue;
       }
-      const n = parseFloat(raw.replace(',', '.'));
-      if (!isFinite(n) || n < lo || n > hi) { if (errEl) errEl.textContent = '* ' + msg; ok = false; continue; }
-      v[id] = n;
+      const n = parseFloat(raw.replace(',','.'));
+      if(!isFinite(n)||n<lo||n>hi){ if(errEl) errEl.textContent='* '+msg; ok=false; continue; }
+      v[id]=n;
+    }
+    // Córnea posterior medida: o los 4 campos, o ninguno (una combinación
+    // parcial dejaría el motor calculando un astigmatismo posterior a medias).
+    const pcaFilled = PCA_FIELDS.filter(id => v[id] != null);
+    if (pcaFilled.length > 0 && pcaFilled.length < PCA_FIELDS.length){
+      for (const id of PCA_FIELDS){
+        const errEl = $('e_'+id);
+        if(errEl && v[id]==null) errEl.textContent='* Rellena los 4 campos de posterior, o ninguno';
+      }
+      ok = false;
+    }
+    v.lasikMode = $('lasikMode').value || null;
+    if (v.lasikMode === 'myopic' && v.lasikMyopicDelta == null){
+      const errEl = $('e_lasikMyopicDelta');
+      if(errEl) errEl.textContent = '* Indica cuánta miopía se corrigió';
+      ok = false;
     }
     v.eye = document.querySelector('input[name=eye]:checked').value;
     v.model = modelSel.value; v.kindex = parseFloat($('kindex').value);
-    v.name = $('name').value.trim(); v.pid = $('pid').value.trim(); v.surgeon = $('surgeon').value.trim();
+    v.name=$('name').value.trim(); v.pid=$('pid').value.trim(); v.surgeon=$('surgeon').value.trim();
     return ok ? v : null;
   }
 
   const f2 = x => (Math.round(x*100)/100).toFixed(2);
-  const cy = x => (x === 0 ? '0.00' : f2(x));
+  const fPos = x => { const v = Math.abs(Math.round(x*100)/100); return '+'+v.toFixed(2); };
 
+  /* ── EYE DIAGRAM ── */
+  function eyeSVG(iolAxis, eye){
+    const cx=110, cy=110, R=80, iris=60, pupR=22;
+    // Convert axis to SVG angle (0°=right, axis convention: 0°=temporal/horizontal)
+    // In TBOA convention: axis 0=horizontal, 90=vertical
+    const angRad = (iolAxis * Math.PI) / 180;
+    // IOL axis line endpoints
+    const len = R - 6;
+    const x1 = cx - len * Math.cos(angRad);
+    const y1 = cy - len * Math.sin(angRad);
+    const x2 = cx + len * Math.cos(angRad);
+    const y2 = cy + len * Math.sin(angRad);
+    // Corneal reflex markers at 0° and 90°
+    const nasalLabel = eye==='R' ? 'N' : 'T';
+    const tempLabel  = eye==='R' ? 'T' : 'N';
+    return `
+    <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="scleraG" cx="50%" cy="50%">
+          <stop offset="0%" stop-color="#f8faff"/>
+          <stop offset="100%" stop-color="#e8edf5"/>
+        </radialGradient>
+        <radialGradient id="irisG" cx="50%" cy="40%">
+          <stop offset="0%" stop-color="#7bb3c8"/>
+          <stop offset="60%" stop-color="#4a8da8"/>
+          <stop offset="100%" stop-color="#2a6b85"/>
+        </radialGradient>
+        <radialGradient id="pupilG" cx="40%" cy="35%">
+          <stop offset="0%" stop-color="#222"/>
+          <stop offset="100%" stop-color="#000"/>
+        </radialGradient>
+        <filter id="blur2">
+          <feGaussianBlur stdDeviation="1.5"/>
+        </filter>
+      </defs>
+      <!-- Degree ring ticks -->
+      ${[0,30,60,90,120,150].map(a => {
+        const r1=R+4, r2=R+10;
+        const ar=a*Math.PI/180;
+        const x1t=cx+r1*Math.cos(ar), y1t=cy-r1*Math.sin(ar);
+        const x2t=cx+r2*Math.cos(ar), y2t=cy-r2*Math.sin(ar);
+        const xL=cx+(R+16)*Math.cos(ar), yL=cy-(R+16)*Math.sin(ar);
+        const xl2=cx+r1*Math.cos(ar+Math.PI), yl2=cy-r1*Math.sin(ar+Math.PI);
+        const xm2=cx+r2*Math.cos(ar+Math.PI), ym2=cy-r2*Math.sin(ar+Math.PI);
+        return `<line x1="${x1t.toFixed(1)}" y1="${y1t.toFixed(1)}" x2="${x2t.toFixed(1)}" y2="${y2t.toFixed(1)}" stroke="#94a3b8" stroke-width="1"/>
+        <line x1="${xl2.toFixed(1)}" y1="${yl2.toFixed(1)}" x2="${xm2.toFixed(1)}" y2="${ym2.toFixed(1)}" stroke="#94a3b8" stroke-width="1"/>
+        <text x="${xL.toFixed(1)}" y="${yL.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="7" fill="#94a3b8" font-family="Inter,sans-serif">${a}°</text>`;
+      }).join('')}
+      <!-- Sclera -->
+      <circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#scleraG)" stroke="#cbd5e1" stroke-width="1.5"/>
+      <!-- Iris -->
+      <circle cx="${cx}" cy="${cy}" r="${iris}" fill="url(#irisG)"/>
+      <!-- Iris texture lines -->
+      ${Array.from({length:24},(_,i)=>{
+        const a=i*15*Math.PI/180;
+        const ir2=iris-3;
+        return `<line x1="${(cx+pupR*Math.cos(a)).toFixed(1)}" y1="${(cy+pupR*Math.sin(a)).toFixed(1)}" x2="${(cx+ir2*Math.cos(a)).toFixed(1)}" y2="${(cy+ir2*Math.sin(a)).toFixed(1)}" stroke="rgba(255,255,255,0.18)" stroke-width="0.8"/>`;
+      }).join('')}
+      <!-- Pupil -->
+      <circle cx="${cx}" cy="${cy}" r="${pupR}" fill="url(#pupilG)"/>
+      <!-- Pupil light reflex -->
+      <ellipse cx="${cx-7}" cy="${cy-7}" rx="5" ry="3" fill="rgba(255,255,255,0.3)" transform="rotate(-30,${cx-7},${cy-7})"/>
+      <!-- IOL axis line -->
+      <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"
+            stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="none"/>
+      <!-- IOL end caps -->
+      <circle cx="${x1.toFixed(1)}" cy="${y1.toFixed(1)}" r="3.5" fill="#16a34a"/>
+      <circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="3.5" fill="#16a34a"/>
+      <!-- Center dot -->
+      <circle cx="${cx}" cy="${cy}" r="3" fill="#15803d" opacity="0.7"/>
+      <!-- N / T labels -->
+      <text x="8" y="${cy+4}" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b" font-family="Inter,sans-serif">${nasalLabel}</text>
+      <text x="212" y="${cy+4}" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b" font-family="Inter,sans-serif">${tempLabel}</text>
+      <!-- S / I labels -->
+      <text x="${cx}" y="10" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b" font-family="Inter,sans-serif">S</text>
+      <text x="${cx}" y="218" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b" font-family="Inter,sans-serif">I</text>
+    </svg>`;
+  }
+
+  /* ── RENDER RESULTS ── */
   function render(v, r){
-    const rowsPred = r.sphere.map(s =>
-      `<tr class="${s.recommended?'recommended':''}"><td>${f2(s.iol)}</td><td>${f2(s.ref)}</td></tr>`).join('');
-    const rowsToric = r.toric.map(t =>
-      `<tr class="${t.recommended?'recommended':''}"><td>${f2(t.cyl)}</td><td>${t.iolAxis}°</td>` +
-      `<td>${f2(t.ref)}</td><td>${cy(t.resiCyl)}</td><td>${t.resiAxis}°</td></tr>`).join('');
-    $('out').classList.remove('hidden');
-    $('out').innerHTML = `
-      <div class="res-head">
-        <span><span class="res-name">${v.name||'&nbsp;'}</span>
-              <span class="res-id">${v.pid||''}</span>
-              <span class="res-surgeon">${v.surgeon?'Cirujano: '+v.surgeon:''}</span></span>
-        <span class="res-right"><span class="res-eye-main">${v.eye==='R'?'OD':'OS'}</span>
-              <span class="res-eye-sub">${v.eye==='R'?'DERECHO':'IZQUIERDO'}</span></span>
-      </div>
-      <p class="res-params">Constante A: ${v.aconst} &nbsp; Modelo: ${ENGINE.modelLabel(v.model)} &nbsp; Índice K: ${v.kindex}</p>
-      <p class="res-params">AL: ${v.al} &nbsp; K1: ${v.k1} @ ${v.k1a}° &nbsp; K2: ${v.k2} @ ${v.k2a}°
-         &nbsp; ACD: ${v.acd} ${v.lt!=null?'&nbsp; LT: '+v.lt:''} ${v.cct!=null?'&nbsp; CCT: '+v.cct:''}
-         &nbsp; Diana: ${v.target}</p>
-      <p class="base-line">Astigmatismo corneal total: ${f2(r.tcaMag)} D @ ${r.tcaAxis}°</p>
-      <div class="res-cols">
-        <div><table class="pred"><tr><th>Potencia LIO (EE)</th><th>Refracción (EE)</th></tr>${rowsPred}</table></div>
-        <div>
-          <div class="rec-box"><h5>Recomendación</h5>
-            LIO (EE): ${f2(r.rec.iol)}<br>Cilindro: ${f2(r.rec.cyl)}<br>Eje LIO: ${r.rec.axis}°</div>
-          <div class="rec-box"><h5>Predicción</h5>
-            Ref (EE): ${f2(r.rec.ref)}<br>Cil: ${cy(r.rec.resiCyl)}<br>Eje: ${r.rec.resiAxis}°<br>
-            Equiv. desenfoque: ${f2(r.rec.defocus)}</div>
+    const eyeText = v.eye==='R' ? 'OD' : 'OS';
+    const eyeFull = v.eye==='R' ? 'Ojo Derecho' : 'Ojo Izquierdo';
+
+    const rowsPred = r.sphere.map(s => {
+      const star = s.recommended ? '<span class="rec-star">★</span>' : '';
+      return `<tr class="${s.recommended?'recommended':''}"><td>${star}${f2(s.iol)}</td><td>${f2(s.ref)}</td></tr>`;
+    }).join('');
+
+    const rowsToric = r.toric.map(t => {
+      const star = t.recommended ? '<span class="rec-star">★</span>' : '';
+      const resiCylPos = Math.abs(t.resiCyl);
+      const resiCylStr = resiCylPos === 0 ? '0.00' : '+' + resiCylPos.toFixed(2);
+      return `<tr class="${t.recommended?'recommended':''}">
+        <td>${star}${f2(t.cyl)}</td>
+        <td>${t.iolAxis}°</td>
+        <td>${f2(t.ref)}</td>
+        <td style="color:${resiCylPos>0.5?'#b45309':'inherit'}">${resiCylStr}</td>
+        <td>${t.resiAxis}°</td>
+      </tr>`;
+    }).join('');
+
+    const rec = r.rec;
+    const iolAxisDeg = rec.axis;
+    const resiCylRecPos = Math.abs(rec.resiCyl);
+    const resiCylRecStr = resiCylRecPos===0 ? '0.00' : '+'+resiCylRecPos.toFixed(2);
+
+    const out = $('out');
+    out.innerHTML = `
+      <!-- Results header -->
+      <div class="results-header">
+        <div class="res-patient">
+          <div class="res-name">${v.name || '— Paciente —'}</div>
+          <div class="res-sub">${v.pid ? 'HC: '+v.pid : ''}${v.surgeon ? ' &nbsp;·&nbsp; Cirujano: '+v.surgeon : ''}</div>
+        </div>
+        <div class="res-eye-badge">
+          <div class="res-eye-abbr">${eyeText}</div>
+          <div class="res-eye-name">${eyeFull}</div>
         </div>
       </div>
-      <div class="res-cols"><div>
-        <p class="base-line">LIO (EE): ${f2(r.baseIOL)}</p>
-        <table class="toric"><tr><th>Cilindro</th><th>Eje LIO</th><th>Refracción</th><th>Cil. residual</th><th>Eje</th></tr>${rowsToric}</table>
-      </div><div></div></div>
-      <span class="note-blue">Córnea posterior predicha</span>
-      <div class="btn-row" style="justify-content:center">
-        <button type="button" class="btn" onclick="window.print()">Imprimir</button>
+
+      <!-- Params bar -->
+      <div class="res-params-bar">
+        <span><b>AL</b> ${v.al} mm</span>
+        <span><b>K1</b> ${v.k1} D @ ${v.k1a}°</span>
+        <span><b>K2</b> ${v.k2} D @ ${v.k2a}°</span>
+        <span><b>ACD</b> ${v.acd} mm</span>
+        ${v.lt!=null?`<span><b>LT</b> ${v.lt} mm</span>`:''}
+        ${v.cct!=null?`<span><b>CCT</b> ${v.cct} µm</span>`:''}
+        <span><b>Diana</b> ${v.target} D</span>
+        <span><b>Cte. A</b> ${v.aconst}</span>
+      </div>
+
+      <!-- TCA badge -->
+      <div style="padding: 0 28px">
+        <div class="tca-badge">
+          <span class="tca-label">Astigmatismo Corneal Total (TCA)</span>
+          <span class="tca-value">${f2(r.tcaMag)} D</span>
+          <span style="font-size:13px;color:#0f766e;font-weight:600;">@ ${r.tcaAxis}°</span>
+        </div>
+      </div>
+
+      <!-- Posterior note -->
+      <div style="padding:6px 28px 0">
+        ${r.pcaUsed
+          ? `<span class="posterior-note" style="color:#92400e;background:#fef3c7;">⚠️ Córnea posterior MEDIDA incluida en TCA — eje verificado (±2° en el 90% de 160 casos vs EVO), cilindro orientativo (49% mismo escalón)</span>`
+          : `<span class="posterior-note">🔬 Córnea posterior predicha incluida en TCA</span>`}
+      </div>
+      ${r.lasikAdjUsed ? (() => {
+        const info = {
+          myopic: { label: 'LASIK/PRK miópico', mae: '0,31' },
+          hyperopic: { label: 'LASIK/PRK hipermétrope', mae: '0,25' },
+          rk: { label: 'queratotomía radial (RK)', mae: '0,42 (más ruidoso)' },
+        }[v.lasikMode] || { label: 'cirugía refractiva previa', mae: '?' };
+        return `
+      <div style="padding:6px 28px 0">
+        <span class="posterior-note" style="color:#92400e;background:#fef3c7;">⚠️ Ajuste por ${info.label} aplicado: ${r.lasikAdj>=0?'+':''}${f2(r.lasikAdj)} D — calibrado frente a EVO, error medio ≈${info.mae} D</span>
       </div>`;
-    $('out').scrollIntoView({behavior:'smooth', block:'start'});
+      })() : ''}
+
+      <!-- Results body -->
+      <div class="results-body">
+        <div class="res-tables">
+
+          <!-- Sphere table -->
+          <div class="table-block">
+            <div class="table-label">Potencias esféricas — Equivalente esférico</div>
+            <table class="rtable">
+              <thead><tr><th>Potencia LIO (D)</th><th>Refracción prevista (D)</th></tr></thead>
+              <tbody>${rowsPred}</tbody>
+            </table>
+          </div>
+
+          <!-- Toric table -->
+          <div class="table-block" style="margin-top:4px">
+            <div class="table-label">LIO tórica — Opciones de cilindro · Lente base: ${f2(r.baseIOL)} D</div>
+            <table class="rtable">
+              <thead><tr>
+                <th>Cilindro (D)</th>
+                <th>Eje LIO</th>
+                <th>Ref. EE (D)</th>
+                <th>Cil. residual</th>
+                <th>Eje residual</th>
+              </tr></thead>
+              <tbody>${rowsToric}</tbody>
+            </table>
+            <div style="font-size:11px;color:#64748b;margin-top:6px;font-style:italic;">
+              ★ Recomendada &nbsp;·&nbsp; Cilindro residual expresado como positivo (conv. Barrett/Kane)
+            </div>
+          </div>
+
+        </div><!-- /res-tables -->
+
+        <!-- Right panel -->
+        <div class="rec-panel">
+          <!-- Recommendation card -->
+          <div class="rec-card">
+            <div class="rec-card-title">⭐ Recomendación final</div>
+            <div class="rec-row">
+              <span class="rec-key">Potencia EE</span>
+              <span class="rec-val highlight">${f2(rec.iol)} D</span>
+            </div>
+            <div class="rec-row">
+              <span class="rec-key">Cilindro tórico</span>
+              <span class="rec-val highlight">${f2(rec.cyl)} D</span>
+            </div>
+            <div class="rec-row">
+              <span class="rec-key">Eje de implantación</span>
+              <span class="rec-val highlight">${rec.axis}°</span>
+            </div>
+            <div style="height:1px;background:#86efac;margin:10px 0;"></div>
+            <div class="rec-row">
+              <span class="rec-key">Refracción EE prevista</span>
+              <span class="rec-val">${f2(rec.ref)} D</span>
+            </div>
+            <div class="rec-row">
+              <span class="rec-key">Cil. residual (+ conv.)</span>
+              <span class="rec-val">${resiCylRecStr} D</span>
+            </div>
+            <div class="rec-row">
+              <span class="rec-key">Eje residual</span>
+              <span class="rec-val">${rec.resiAxis}°</span>
+            </div>
+            <div class="rec-row">
+              <span class="rec-key">Desenfoque equiv.</span>
+              <span class="rec-val">${f2(rec.defocus)} D</span>
+            </div>
+          </div>
+
+          <!-- Eye diagram -->
+          <div class="eye-diagram-wrap">
+            <div class="eye-diagram-title">Diagrama — Eje de implantación</div>
+            <div id="eye-svg-wrap">${eyeSVG(iolAxisDeg, v.eye)}</div>
+            <div class="eye-axis-label">
+              Eje IOL: <b>${iolAxisDeg}°</b> &nbsp;·&nbsp; ${eyeFull}
+            </div>
+          </div>
+
+          <!-- Print -->
+          <button type="button" class="btn btn-print" id="printBtn" style="width:100%">
+            🖨 Imprimir / PDF
+          </button>
+
+        </div><!-- /rec-panel -->
+      </div><!-- /results-body -->
+    `;
+    out.classList.add('visible');
+    out.scrollIntoView({behavior:'smooth', block:'start'});
   }
+
+  let lastPatientV = null; // used only to name the exported PDF file
 
   $('f').addEventListener('submit', e => {
     e.preventDefault();
     const v = read();
-    if (!v) { $('out').classList.add('hidden'); return; }
-    try { render(v, ENGINE.calculate(v)); }
-    catch (err) { $('out').classList.remove('hidden'); $('out').innerHTML =
-      '<p style="color:#cc3300;font-family:var(--display)">No se pudo calcular: '+err.message+'</p>'; }
+    if(!v){ $('out').classList.remove('visible'); return; }
+    try { render(v, ENGINE.calculate(v)); lastPatientV = v; }
+    catch(err){
+      $('out').innerHTML=`<div style="padding:28px;color:#dc2626;font-family:var(--font-body)">
+        <b>Error en el cálculo:</b> ${err.message}</div>`;
+      $('out').classList.add('visible');
+    }
   });
+
+  /* Imprimir/PDF: en vez de depender del diálogo de impresión del navegador
+     (que en algunos equipos no llega a abrirse), se captura el resultado como
+     imagen y se genera directamente un PDF descargable con esa captura. */
+  $('out').addEventListener('click', async (e) => {
+    const btn = e.target.closest('#printBtn');
+    if(!btn) return;
+    const original = btn.textContent;
+    btn.disabled = true; btn.textContent = '⏳ Generando PDF…';
+    try {
+      const target = $('out');
+      const canvas = await html2canvas(target, {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true,
+        ignoreElements: (el) => el.id === 'printBtn',
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 24;
+      const imgW = pageW - margin * 2;
+      const imgH = canvas.height * (imgW / canvas.width);
+      let heightLeft = imgH;
+      let position = margin;
+      pdf.addImage(imgData, 'PNG', margin, position, imgW, imgH);
+      heightLeft -= (pageH - margin * 2);
+      while (heightLeft > 0) {
+        position = heightLeft - imgH + margin;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', margin, position, imgW, imgH);
+        heightLeft -= (pageH - margin * 2);
+      }
+      const namePart = (lastPatientV && lastPatientV.name ? lastPatientV.name : 'paciente').replace(/[^a-z0-9]+/gi, '_');
+      const idPart = lastPatientV && lastPatientV.pid ? '_' + lastPatientV.pid.replace(/[^a-z0-9]+/gi, '_') : '';
+      pdf.save(`LIO_torica_${namePart}${idPart}.pdf`);
+    } catch(err) {
+      alert('No se pudo generar el PDF: ' + err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = original;
+    }
+  });
+
   $('clear').addEventListener('click', () => {
-    $('f').reset(); $('out').classList.add('hidden');
-    document.querySelectorAll('.err').forEach(x => x.textContent = '');
+    $('f').reset();
+    $('out').classList.remove('visible');
+    $('out').innerHTML = '';
+    document.querySelectorAll('.err').forEach(x => x.textContent='');
+    modelSel.value='Posterior';
   });
 })();
 </script>
